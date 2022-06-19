@@ -3382,14 +3382,14 @@ You are already using the latest version.</source>
         <location filename="../gui/mainwindow.cpp" line="1894"/>
         <source>Your Python version (%1) is outdated. Minimum requirement: %2.
 Do you want to install a newer version now?</source>
-        <translation>Ваша версія Python (%1) застаріла. Мінімальна вимога: %2 
+        <translation>Ваша версія Python (%1) застаріла. Мінімальна вимога: %2
 Ви бажаєте встановити більш нову версію зараз?</translation>
     </message>
     <message>
         <location filename="../gui/mainwindow.cpp" line="1901"/>
         <source>Your Python version (%1) is outdated. Please upgrade to latest version for search engines to work.
 Minimum requirement: %2.</source>
-        <translation>Ваша версія Python (%1) застаріла. Будь ласка, оновіться до останньої версії, щоб пошукові системи працювали. 
+        <translation>Ваша версія Python (%1) застаріла. Будь ласка, оновіться до останньої версії, щоб пошукові системи працювали.
 Мінімально необхідна версія: %2.</translation>
     </message>
     <message>
@@ -9645,22 +9645,22 @@ Please choose a different name and try again.</source>
 <context>
     <name>TorrentInfo</name>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="116"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="115"/>
         <source>File size exceeds max limit %1</source>
         <translation>Розмір файла перевищує обмеження в %1</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="125"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="124"/>
         <source>Torrent file read error: %1</source>
         <translation>Помилка читання торрент-файла: %1</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="129"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="128"/>
         <source>Torrent file read error: size mismatch</source>
         <translation>Помилка читання торрент-файла: невідповідність розміру</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="139"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="138"/>
         <source>Invalid metadata</source>
         <translation>Хибні метадані</translation>
     </message>

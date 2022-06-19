@@ -6945,6 +6945,14 @@ Esses plugins foram desativados.</translation>
 <context>
     <name>PortForwarderImpl</name>
     <message>
+        <source>UPnP/NAT-PMP support: ON</source>
+        <translation type="vanished">Suporte a UPnP/NAT-PMP: LIGADO</translation>
+    </message>
+    <message>
+        <source>UPnP/NAT-PMP support: OFF</source>
+        <translation type="vanished">Suporte a UPnP/NAT-PMP: DESLIGADO</translation>
+    </message>
+    <message>
         <location filename="../base/bittorrent/portforwarderimpl.cpp" line="104"/>
         <source>UPnP/NAT-PMP support: ON</source>
         <translation>Suporte a UPnP/NAT-PMP: LIGADO</translation>
@@ -9645,22 +9653,22 @@ Por favor escolha um nome diferente e tente de novo.</translation>
 <context>
     <name>TorrentInfo</name>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="116"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="115"/>
         <source>File size exceeds max limit %1</source>
         <translation>O tamanho do arquivo excede o limite máximo de %1</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="125"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="124"/>
         <source>Torrent file read error: %1</source>
         <translation>Erro de leitura do arquivo torrent: %1</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="129"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="128"/>
         <source>Torrent file read error: size mismatch</source>
         <translation>Erro de leitura do arquivo torrent: o tamanho não combina</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="139"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="138"/>
         <source>Invalid metadata</source>
         <translation>Metadados inválidos</translation>
     </message>

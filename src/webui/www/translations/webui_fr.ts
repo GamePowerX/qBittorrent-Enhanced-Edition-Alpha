@@ -1,4 +1,10 @@
+<<<<<<< HEAD
 <?xml version="1.0" ?><!DOCTYPE TS><TS version="2.1" language="fr">
+=======
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
+<TS version="2.1" language="fr">
+>>>>>>> v4_4_x
 <context>
     <name>AboutDlg</name>
     <message>
@@ -495,7 +501,11 @@
     </message>
     <message>
         <source>Move Up Queue</source>
+<<<<<<< HEAD
         <translation>Monter dans la file d&apos;attente</translation>
+=======
+        <translation>Monter dans la file d'attente</translation>
+>>>>>>> v4_4_x
     </message>
     <message>
         <source>Bottom of Queue</source>
@@ -507,11 +517,19 @@
     </message>
     <message>
         <source>Top of Queue</source>
+<<<<<<< HEAD
         <translation>Haut de la file d&apos;attente</translation>
     </message>
     <message>
         <source>Move Down Queue</source>
         <translation>Descendre dans la file d&apos;attente</translation>
+=======
+        <translation>Haut de la file d'attente</translation>
+    </message>
+    <message>
+        <source>Move Down Queue</source>
+        <translation>Descendre dans la file d'attente</translation>
+>>>>>>> v4_4_x
     </message>
     <message>
         <source>Move down in the queue</source>
@@ -571,7 +589,11 @@
     </message>
     <message>
         <source>Filters Sidebar</source>
+<<<<<<< HEAD
         <translation>Barre latérale des filtres</translation>
+=======
+        <translation type="vanished">Barre latérale des filtres</translation>
+>>>>>>> v4_4_x
     </message>
 </context>
 <context>
@@ -1448,7 +1470,11 @@
     </message>
     <message>
         <source>Reannounce to all trackers when IP or port changed:</source>
+<<<<<<< HEAD
         <translation>Réannoncer à tous les trackers lorsque l&apos;IP ou le port a été modifié :</translation>
+=======
+        <translation>Réannoncer à tous les trackers lorsque l'IP ou le port a été modifié :</translation>
+>>>>>>> v4_4_x
     </message>
     <message>
         <source>Trusted proxies list:</source>
@@ -1480,6 +1506,7 @@
     </message>
     <message>
         <source>Disk queue size:</source>
+<<<<<<< HEAD
         <translation>Taille de la file d’attente du disque :</translation>
     </message>
     <message>
@@ -1517,6 +1544,21 @@
     <message>
         <source>Physical memory (RAM) usage limit:</source>
         <translation>Limite d’utilisation de la mémoire physique (RAM) :</translation>
+=======
+        <translation type="vanished">Taille de la file d’attente du disque :</translation>
+    </message>
+    <message>
+        <source>Log performance warnings</source>
+        <translation type="vanished">Journaliser les avertissements de performances</translation>
+    </message>
+    <message>
+        <source>Maximum outstanding requests to a single peer:</source>
+        <translation type="vanished">Requêtes en attente maximales vers un seul pair :</translation>
+    </message>
+    <message>
+        <source>Max active checking torrents:</source>
+        <translation type="vanished">Torrents actifs max en vérification :</translation>
+>>>>>>> v4_4_x
     </message>
 </context>
 <context>
@@ -2287,11 +2329,19 @@
     </message>
     <message>
         <source>Total Size</source>
+<<<<<<< HEAD
         <translation>Taille totale</translation>
     </message>
     <message>
         <source>Times Downloaded</source>
         <translation>Nombre de fois téléchargé</translation>
+=======
+        <translation type="vanished">Taille totale</translation>
+    </message>
+    <message>
+        <source>Size</source>
+        <translation type="unfinished" />
+>>>>>>> v4_4_x
     </message>
 </context>
 <context>
@@ -3343,7 +3393,11 @@
     </message>
     <message>
         <source>Three range types for episodes are supported: </source>
+<<<<<<< HEAD
         <translation>Trois types d&apos;intervalles d&apos;épisodes sont pris en charge : </translation>
+=======
+        <translation>Trois types d'intervalles d'épisodes sont pris en charge : </translation>
+>>>>>>> v4_4_x
     </message>
     <message>
         <source>Are you sure you want to remove the selected download rules?</source>
@@ -3456,7 +3510,11 @@
     <message>
         <source>Smart Episode Filter will check the episode number to prevent downloading of duplicates.
 Supports the formats: S01E01, 1x1, 2017.12.31 and 31.12.2017 (Date formats also support - as a separator)</source>
+<<<<<<< HEAD
         <translation>Le filtre d&apos;épisodes intelligent vérifiera le numéro de l&apos;épisode afin d&apos;éviter le téléchargement de doublons.
+=======
+        <translation>Le filtre d'épisodes intelligent vérifiera le numéro de l'épisode afin d'éviter le téléchargement de doublons.
+>>>>>>> v4_4_x
 Les formats supportés : S01E01, 1x1, 2017.12.31 et 31.12.2017 (les formats date supportent également - comme séparateur)</translation>
     </message>
     <message>

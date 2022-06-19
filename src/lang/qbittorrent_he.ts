@@ -6944,6 +6944,14 @@ Those plugins were disabled.</source>
 <context>
     <name>PortForwarderImpl</name>
     <message>
+        <source>UPnP/NAT-PMP support: ON</source>
+        <translation type="vanished">תמיכה ב־UPnP/NAT-PMP: מופעלת</translation>
+    </message>
+    <message>
+        <source>UPnP/NAT-PMP support: OFF</source>
+        <translation type="vanished">תמיכה ב־UPnP/NAT-PMP: כבויה</translation>
+    </message>
+    <message>
         <location filename="../base/bittorrent/portforwarderimpl.cpp" line="104"/>
         <source>UPnP/NAT-PMP support: ON</source>
         <translation>תמיכה ב־UPnP/NAT-PMP: מופעלת</translation>
@@ -9644,22 +9652,22 @@ Please choose a different name and try again.</source>
 <context>
     <name>TorrentInfo</name>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="116"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="115"/>
         <source>File size exceeds max limit %1</source>
         <translation>גודל הקובץ חורג מגבלה מרבית %1</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="125"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="124"/>
         <source>Torrent file read error: %1</source>
         <translation>שגיאת קריאה של קובץ טורנט: %1</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="129"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="128"/>
         <source>Torrent file read error: size mismatch</source>
         <translation>שגיאת קריאה של קובץ טורנט: גודל אינו תואם</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="139"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="138"/>
         <source>Invalid metadata</source>
         <translation>מטא־נתונים בלתי תקפים</translation>
     </message>

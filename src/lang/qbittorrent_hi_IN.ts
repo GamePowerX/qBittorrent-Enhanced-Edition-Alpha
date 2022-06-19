@@ -9631,22 +9631,22 @@ Please choose a different name and try again.</source>
 <context>
     <name>TorrentInfo</name>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="116"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="115"/>
         <source>File size exceeds max limit %1</source>
         <translation>फाइल आकार ने अधिकतम सीमा %1 को पार कर लिया है</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="125"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="124"/>
         <source>Torrent file read error: %1</source>
         <translation>टाॅरेंट फाइल पढ़ने में त्रुटि: %1</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="129"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="128"/>
         <source>Torrent file read error: size mismatch</source>
         <translation>टाॅरेंट फाइल पढ़ने में त्रुटि: आकार बेमेल है</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="139"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="138"/>
         <source>Invalid metadata</source>
         <translation>अमान्य मेटाडेटा</translation>
     </message>

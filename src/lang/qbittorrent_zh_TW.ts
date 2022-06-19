@@ -6945,6 +6945,14 @@ Those plugins were disabled.</source>
 <context>
     <name>PortForwarderImpl</name>
     <message>
+        <source>UPnP/NAT-PMP support: ON</source>
+        <translation type="vanished">UPnP/NAT-PMP 支援：開啟</translation>
+    </message>
+    <message>
+        <source>UPnP/NAT-PMP support: OFF</source>
+        <translation type="vanished">UPnP/NAT-PMP 支援：關閉</translation>
+    </message>
+    <message>
         <location filename="../base/bittorrent/portforwarderimpl.cpp" line="104"/>
         <source>UPnP/NAT-PMP support: ON</source>
         <translation>UPnP/NAT-PMP 支援：開啟</translation>
@@ -9645,22 +9653,22 @@ Please choose a different name and try again.</source>
 <context>
     <name>TorrentInfo</name>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="116"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="115"/>
         <source>File size exceeds max limit %1</source>
         <translation>檔案大小超過上限 %1</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="125"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="124"/>
         <source>Torrent file read error: %1</source>
         <translation>Torrent 檔案讀取錯誤：%1</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="129"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="128"/>
         <source>Torrent file read error: size mismatch</source>
         <translation>Torrent 檔案讀取錯誤：大小不符合</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="139"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="138"/>
         <source>Invalid metadata</source>
         <translation>無效的詮釋資料</translation>
     </message>

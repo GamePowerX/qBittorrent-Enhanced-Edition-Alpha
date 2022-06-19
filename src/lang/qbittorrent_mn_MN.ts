@@ -1268,7 +1268,7 @@ Error: %2</source>
         <location filename="../gui/rss/automatedrssdownloader.ui" line="186"/>
         <source>Smart Episode Filter will check the episode number to prevent downloading of duplicates.
 Supports the formats: S01E01, 1x1, 2017.12.31 and 31.12.2017 (Date formats also support - as a separator)</source>
-        <translation>Ангийн ухаалаг шүүлтүүр нь ангийн дугаарыг шалгаж, давхардсан анги татахаас сэргийлэх боломжыг олгоно. 
+        <translation>Ангийн ухаалаг шүүлтүүр нь ангийн дугаарыг шалгаж, давхардсан анги татахаас сэргийлэх боломжыг олгоно.
 Дэмжих хэлбэржүүлэлт: S01E01, 1x1, 2017.12.31 болон 31.12.2017 (Огноон хэлбэржүүлэлтэнд мөн дундуур зураасаар бичсэнийг уншина)</translation>
     </message>
     <message>
@@ -9701,22 +9701,22 @@ Please choose a different name and try again.</source>
 <context>
     <name>TorrentInfo</name>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="116"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="115"/>
         <source>File size exceeds max limit %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="125"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="124"/>
         <source>Torrent file read error: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="129"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="128"/>
         <source>Torrent file read error: size mismatch</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="139"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="138"/>
         <source>Invalid metadata</source>
         <translation type="unfinished">Алдаатай цөм өгөгдөл</translation>
     </message>
@@ -10886,6 +10886,70 @@ Please choose a different name and try again.</source>
     </message>
     <message>
         <location filename="../gui/transferlistwidget.cpp" line="956"/>
+        <source>Download first and last pieces first</source>
+        <translation type="unfinished">Эхний болон сүүлийн хэсгүүдийг эхэлж татах</translation>
+    </message>
+    <message>
+        <location filename="../gui/transferlistwidget.cpp" line="902"/>
+        <source>Automatic Torrent Management</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/transferlistwidget.cpp" line="903"/>
+        <source>Automatic mode means that various torrent properties (e.g. save path) will be decided by the associated category</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/transferlistwidget.cpp" line="905"/>
+        <source>Edit trackers...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/transferlistwidget.cpp" line="1037"/>
+        <source>Category</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/transferlistwidget.cpp" line="1039"/>
+        <source>New...</source>
+        <comment>New category...</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/transferlistwidget.cpp" line="1041"/>
+        <source>Reset</source>
+        <comment>Reset category</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/transferlistwidget.cpp" line="1062"/>
+        <source>Tags</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/transferlistwidget.cpp" line="1064"/>
+        <source>Add...</source>
+        <comment>Add / assign multiple tags...</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/transferlistwidget.cpp" line="1066"/>
+        <source>Remove All</source>
+        <comment>Remove all tags</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/transferlistwidget.cpp" line="1144"/>
+        <source>Queue</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/transferlistwidget.cpp" line="1152"/>
+        <source>Copy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/transferlistwidget.cpp" line="900"/>
         <source>Download first and last pieces first</source>
         <translation type="unfinished">Эхний болон сүүлийн хэсгүүдийг эхэлж татах</translation>
     </message>

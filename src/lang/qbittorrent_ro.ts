@@ -6940,6 +6940,14 @@ Those plugins were disabled.</source>
 <context>
     <name>PortForwarderImpl</name>
     <message>
+        <source>UPnP/NAT-PMP support: ON</source>
+        <translation type="vanished">Sprijinire UPnP/NAT-PMP: PORNITĂ</translation>
+    </message>
+    <message>
+        <source>UPnP/NAT-PMP support: OFF</source>
+        <translation type="vanished">Sprijinire UPnP/NAT-PMP: OPRITĂ</translation>
+    </message>
+    <message>
         <location filename="../base/bittorrent/portforwarderimpl.cpp" line="104"/>
         <source>UPnP/NAT-PMP support: ON</source>
         <translation>Sprijinire UPnP/NAT-PMP: PORNITĂ</translation>
@@ -7659,7 +7667,7 @@ Those plugins were disabled.</source>
         <source>qBittorrent is a file sharing program. When you run a torrent, its data will be made available to others by means of upload. Any content you share is your sole responsibility.
 
 No further notices will be issued.</source>
-        <translation>qBittorrent este un program de partajat fișiere. Când rulați un torent, datele sale vor fi disponibile și altora prin partajare. Orice conținut partajați este responsabilitatea dumneavoastră 
+        <translation>qBittorrent este un program de partajat fișiere. Când rulați un torent, datele sale vor fi disponibile și altora prin partajare. Orice conținut partajați este responsabilitatea dumneavoastră
 
 Nu vor fi emise alte notificări.</translation>
     </message>
@@ -9640,22 +9648,22 @@ Te rog să alegi un nume diferit și să încerci iar.</translation>
 <context>
     <name>TorrentInfo</name>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="116"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="115"/>
         <source>File size exceeds max limit %1</source>
         <translation>Fișierul depășește limita maximă %1</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="125"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="124"/>
         <source>Torrent file read error: %1</source>
         <translation>Eroare la citirea fișierului torent: %1</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="129"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="128"/>
         <source>Torrent file read error: size mismatch</source>
         <translation>Eroare la citirea fișierului torent: mărime nepotrivită</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="139"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="138"/>
         <source>Invalid metadata</source>
         <translation>Metadate nevalide</translation>
     </message>

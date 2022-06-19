@@ -6945,6 +6945,14 @@ Các plugin đó đã bị vô hiệu hóa.</translation>
 <context>
     <name>PortForwarderImpl</name>
     <message>
+        <source>UPnP/NAT-PMP support: ON</source>
+        <translation type="vanished">Hỗ trợ UPnP/NAT-PMP: BẬT</translation>
+    </message>
+    <message>
+        <source>UPnP/NAT-PMP support: OFF</source>
+        <translation type="vanished">Hỗ trợ UPnP/NAT-PMP: TẮT</translation>
+    </message>
+    <message>
         <location filename="../base/bittorrent/portforwarderimpl.cpp" line="104"/>
         <source>UPnP/NAT-PMP support: ON</source>
         <translation>Hỗ trợ UPnP/NAT-PMP: BẬT</translation>
@@ -9645,22 +9653,22 @@ Vui lòng chọn một tên khác và thử lại.</translation>
 <context>
     <name>TorrentInfo</name>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="116"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="115"/>
         <source>File size exceeds max limit %1</source>
         <translation>Kích thước tệp vượt quá giới hạn tối đa %1</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="125"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="124"/>
         <source>Torrent file read error: %1</source>
         <translation>Lỗi đọc tập tin torrent: %1</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="129"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="128"/>
         <source>Torrent file read error: size mismatch</source>
         <translation>Lỗi đọc tệp Torrent: kích cỡ không khớp</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="139"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="138"/>
         <source>Invalid metadata</source>
         <translation>Dữ liệu mô tả không hợp lệ</translation>
     </message>

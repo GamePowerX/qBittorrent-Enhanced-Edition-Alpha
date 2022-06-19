@@ -11,6 +11,9 @@ XPStyle on
 ;Uncomment when packaging 64bit qbittorrent
 ;!define APP64BIT
 
+;Uncomment when packaging qbittorrent with Qt6
+;!define APPQT6
+
 !include "MUI.nsh"
 !include "UAC.nsh"
 !include "FileFunc.nsh"
@@ -34,28 +37,34 @@ XPStyle on
 !define MUI_FINISHPAGE_RUN_FUNCTION PageFinishRun
 !define MUI_FINISHPAGE_RUN_TEXT $(launch_qbt)
 
-!ifndef APP64BIT
+!ifdef APPQT6
   ; The name of the installer
-  Name "qBittorrent ${PROG_VERSION}"
+  Name "qBittorrent Enhanced Edition ${PROG_VERSION}"
 
   ; The file to write
-  OutFile "qbittorrent_${PROG_VERSION}_setup.exe"
+  OutFile "qbittorrent_enhanced_${PROG_VERSION}_Qt6_setup.exe"
+!else !ifdef APP64BIT
+  ; The name of the installer
+  Name "qBittorrent Enhanced Edition ${PROG_VERSION}"
+
+  ; The file to write
+  OutFile "qbittorrent_enhanced_${PROG_VERSION}_setup.exe"
 !else
   ; The name of the installer
-  Name "qBittorrent ${PROG_VERSION} x64"
+  Name "qBittorrent Enhanced Edition ${PROG_VERSION} x64"
 
   ; The file to write
-  OutFile "qbittorrent_${PROG_VERSION}_x64_setup.exe"
+  OutFile "qbittorrent_enhanced_${PROG_VERSION}_x64_setup.exe"
 !endif
 
 ;Installer Version Information
-VIAddVersionKey "ProductName" "qBittorrent"
-VIAddVersionKey "CompanyName" "The qBittorrent project"
-VIAddVersionKey "LegalCopyright" "Copyright ©2006-2022 The qBittorrent project"
-VIAddVersionKey "FileDescription" "qBittorrent - A Bittorrent Client"
+VIAddVersionKey "ProductName" "qBittorrent Enhanced Edition"
+VIAddVersionKey "CompanyName" "The qBittorrent Enhanced Edition project"
+VIAddVersionKey "LegalCopyright" "Copyright ©2016-2022 The qBittorrent Enhanced Edition project"
+VIAddVersionKey "FileDescription" "qBittorrent Enhanced Edition - A Enhanced Client based on qBittorrent"
 VIAddVersionKey "FileVersion" "${PROG_VERSION}"
 
-VIProductVersion "${PROG_VERSION}.0"
+VIProductVersion "${PROG_VERSION}"
 
 ; The default installation directory. It changes depending if we install in the 64bit dir or not.
 ; A caveat of this is if a user has installed a 32bit version and then runs the 64bit installer

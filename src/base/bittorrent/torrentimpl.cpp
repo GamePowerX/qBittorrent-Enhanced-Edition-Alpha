@@ -223,6 +223,14 @@ namespace
         outVector.resize(size, defaultValue);
         return outVector;
     }
+
+    template <typename Vector>
+    Vector resized(const Vector &inVector, const typename Vector::size_type size, const typename Vector::value_type &defaultValue)
+    {
+        Vector outVector = inVector;
+        outVector.resize(size, defaultValue);
+        return outVector;
+    }
 }
 
 // TorrentImpl
@@ -971,6 +979,8 @@ void TorrentImpl::updateState()
             m_state = TorrentState::PausedDownloading;
         else if (m_session->isQueueingSystemEnabled() && isQueued())
             m_state = TorrentState::QueuedDownloading;
+        else if (m_nativeStatus.state == lt::torrent_status::downloading_metadata) // must come after queue check
+            m_state = TorrentState::DownloadingMetadata;
         else if (isForced())
             m_state = TorrentState::ForcedDownloading;
         else if (m_nativeStatus.download_payload_rate > 0)
@@ -2048,9 +2058,6 @@ void TorrentImpl::handleAlert(const lt::alert *a)
         break;
     case lt::torrent_checked_alert::alert_type:
         handleTorrentCheckedAlert(static_cast<const lt::torrent_checked_alert*>(a));
-        break;
-    case lt::performance_alert::alert_type:
-        handlePerformanceAlert(static_cast<const lt::performance_alert*>(a));
         break;
     }
 }

@@ -946,7 +946,6 @@ void AddNewTorrentDialog::setupTreeview()
         connect(m_ui->buttonSelectAll, &QPushButton::clicked, m_contentModel, &TorrentContentFilterModel::selectAll);
         connect(m_ui->buttonSelectNone, &QPushButton::clicked, m_contentModel, &TorrentContentFilterModel::selectNone);
 
-
         if (m_torrentParams.filePaths.isEmpty())
             m_torrentParams.filePaths = m_torrentInfo.filePaths();
 

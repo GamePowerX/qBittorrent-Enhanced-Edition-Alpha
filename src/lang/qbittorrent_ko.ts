@@ -5257,7 +5257,7 @@ Disable encryption: Only connect to peers without protocol encryption</source>
 Specify an IPv4 or IPv6 address. You can specify &quot;0.0.0.0&quot; for any IPv4 address,
 &quot;::&quot; for any IPv6 address, or &quot;*&quot; for both IPv4 and IPv6.</source>
         <translation>웹 UI가 결합할 IP 주소.
-IPv4나 IPV6 주소를 지정하세요. IPv4 주소에 &quot;0.0.0.0&quot;을, IPV6 주소에 &quot;::&quot;을, 
+IPv4나 IPV6 주소를 지정하세요. IPv4 주소에 &quot;0.0.0.0&quot;을, IPV6 주소에 &quot;::&quot;을,
 또는 IPV4/IPv6 모두 &quot;*&quot;을 지정할 수 있습니다.</translation>
     </message>
     <message>
@@ -5666,7 +5666,7 @@ DNS 재결합 공격을 방어하기 위해,
         <location filename="../gui/optionsdialog.ui" line="954"/>
         <source>Automatic: Various torrent properties (e.g. save path) will be decided by the associated category
 Manual: Various torrent properties (e.g. save path) must be assigned manually</source>
-        <translation>자동: 여러 토렌트 속성(예: 저장 경로)으로 관련 범주를 결정니다. 
+        <translation>자동: 여러 토렌트 속성(예: 저장 경로)으로 관련 범주를 결정니다.
 수동: 여러 토렌트 속성(예: 저장 경로)를 직접 지정해야 합니다.</translation>
     </message>
     <message>
@@ -6943,6 +6943,14 @@ Those plugins were disabled.</source>
 </context>
 <context>
     <name>PortForwarderImpl</name>
+    <message>
+        <source>UPnP/NAT-PMP support: ON</source>
+        <translation type="vanished">UPnP/NAT-PMP 지원: 켜짐</translation>
+    </message>
+    <message>
+        <source>UPnP/NAT-PMP support: OFF</source>
+        <translation type="vanished">UPnP/NAT-PMP 지원: 꺼짐</translation>
+    </message>
     <message>
         <location filename="../base/bittorrent/portforwarderimpl.cpp" line="104"/>
         <source>UPnP/NAT-PMP support: ON</source>
@@ -9644,22 +9652,22 @@ Please choose a different name and try again.</source>
 <context>
     <name>TorrentInfo</name>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="116"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="115"/>
         <source>File size exceeds max limit %1</source>
         <translation>파일 크기가 최대 제한 %1에 도달했습니다</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="125"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="124"/>
         <source>Torrent file read error: %1</source>
         <translation>토렌트 파일 읽기 오류: %1</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="129"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="128"/>
         <source>Torrent file read error: size mismatch</source>
         <translation>토렌트 파일 읽기 오류: 크기가 일치하지 않음</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="139"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="138"/>
         <source>Invalid metadata</source>
         <translation>잘못된 메타데이터</translation>
     </message>

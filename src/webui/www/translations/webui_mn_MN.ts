@@ -2293,6 +2293,10 @@
         <source>Times Downloaded</source>
         <translation type="unfinished"/>
     </message>
+    <message>
+        <source>Downloaded</source>
+        <translation type="unfinished" />
+    </message>
 </context>
 <context>
     <name>TrackersAdditionDialog</name>
@@ -3456,7 +3460,7 @@
     <message>
         <source>Smart Episode Filter will check the episode number to prevent downloading of duplicates.
 Supports the formats: S01E01, 1x1, 2017.12.31 and 31.12.2017 (Date formats also support - as a separator)</source>
-        <translation>Ангийн ухаалаг шүүлтүүр нь ангийн дугаарыг шалгаж, давхардсан анги татахаас сэргийлэх боломжыг олгоно. 
+        <translation>Ангийн ухаалаг шүүлтүүр нь ангийн дугаарыг шалгаж, давхардсан анги татахаас сэргийлэх боломжыг олгоно.
 Дэмжих хэлбэржүүлэлт: S01E01, 1x1, 2017.12.31 болон 31.12.2017 (Огноон хэлбэржүүлэлтэнд мөн дундуур зураасаар бичсэнийг уншина)</translation>
     </message>
     <message>

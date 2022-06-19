@@ -78,6 +78,7 @@
 #include "base/logger.h"
 #include "base/net/downloadmanager.h"
 #include "base/net/proxyconfigurationmanager.h"
+#include "base/preferences.h"
 #include "base/profile.h"
 #include "base/torrentfileguard.h"
 #include "base/torrentfilter.h"
@@ -102,6 +103,8 @@
 #include "lttypecast.h"
 #include "magneturi.h"
 #include "nativesessionextension.h"
+#include "peer_blacklist.hpp"
+#include "peer_filter_session_plugin.hpp"
 #include "portforwarderimpl.h"
 #include "statistics.h"
 #include "torrentimpl.h"
@@ -114,7 +117,7 @@ const Path CATEGORIES_FILE_NAME {u"categories.json"_qs};
 namespace
 {
     const char PEER_ID[] = "qB";
-    const auto USER_AGENT = QStringLiteral("qBittorrent/" QBT_VERSION_2);
+    const auto USER_AGENT = QStringLiteral("qBittorrent Enhanced/" QBT_VERSION_2);
 
     void torrentQueuePositionUp(const lt::torrent_handle &handle)
     {
@@ -293,6 +296,20 @@ namespace
         return {};
     }
 #endif
+
+    TorrentID resumeDataID(const BitTorrent::Torrent *torrent)
+    {
+#ifdef QBT_USES_LIBTORRENT2
+        // use legacy ID to store hybrid torrent
+        const InfoHash infoHash = torrent->infoHash();
+        const TorrentID id = ((infoHash.v1().isValid() && infoHash.v2().isValid())
+                              ? InfoHash(infoHash.v1(), SHA256Hash()).toTorrentID()
+                              : torrent->id());
+#else
+        const TorrentID id = torrent->id();
+#endif
+        return id;
+    }
 }
 
 const int addTorrentParamsId = qRegisterMetaType<AddTorrentParams>();
@@ -426,6 +443,10 @@ Session::Session(QObject *parent)
                         }
                  )
     , m_resumeDataStorageType(BITTORRENT_SESSION_KEY(u"ResumeDataStorageType"_qs), ResumeDataStorageType::Legacy)
+    , m_publicTrackers(BITTORRENT_SESSION_KEY(u"PublicTrackersList"_qs))
+    , m_autoBanUnknownPeer(BITTORRENT_SESSION_KEY(u"AutoBanUnknownPeer"_qs), false)
+    , m_autoBanBTPlayerPeer(BITTORRENT_SESSION_KEY(u"AutoBanBTPlayerPeer"_qs), false)
+    , m_isAutoUpdateTrackersEnabled(BITTORRENT_SESSION_KEY(u"AutoUpdateTrackersEnabled"_qs), false)
 #if defined(Q_OS_WIN)
     , m_OSMemoryPriority(BITTORRENT_KEY(u"OSMemoryPriority"_qs), OSMemoryPriority::BelowNormal)
 #endif
@@ -505,6 +526,15 @@ Session::Session(QObject *parent)
     new PortForwarderImpl {m_nativeSession};
 
     initMetrics();
+
+    // Update Tracker
+    m_updateTimer = new QTimer(this);
+    m_updateTimer->setInterval(86400*1000);
+    connect(m_updateTimer, &QTimer::timeout, this, &Session::updatePublicTracker);
+    if (isAutoUpdateTrackersEnabled()) {
+        updatePublicTracker();
+        m_updateTimer->start();
+    }
 }
 
 bool Session::isDHTEnabled() const
@@ -936,6 +966,54 @@ void Session::setTrackerEnabled(const bool enabled)
     enableTracker(enabled);
 }
 
+bool Session::isAutoUpdateTrackersEnabled() const
+{
+    return m_isAutoUpdateTrackersEnabled;
+}
+
+void Session::setAutoUpdateTrackersEnabled(bool enabled)
+{
+    m_isAutoUpdateTrackersEnabled = enabled;
+
+    if(!enabled) {
+        m_updateTimer->stop();
+    } else {
+        m_updateTimer->start();
+        updatePublicTracker();
+    }
+}
+
+QString Session::publicTrackers() const
+{
+    return m_publicTrackers;
+}
+
+void Session::setPublicTrackers(const QString &trackers)
+{
+    if (trackers != publicTrackers()) {
+        m_publicTrackers = trackers;
+        populatePublicTrackers();
+    }
+}
+
+void Session::updatePublicTracker()
+{
+    Preferences *const pref = Preferences::instance();
+    Net::DownloadManager::instance()->download({pref->customizeTrackersListUrl()}, this, &Session::handlePublicTrackerTxtDownloadFinished);
+}
+
+void Session::handlePublicTrackerTxtDownloadFinished(const Net::DownloadResult &result)
+{
+    switch (result.status) {
+        case Net::DownloadStatus::Success:
+            setPublicTrackers(QString::fromUtf8(result.data.data()));
+            Logger::instance()->addMessage("The public tracker list updated.", Log::INFO);
+            break;
+        default:
+            Logger::instance()->addMessage("Updating the public tracker list failed: " + result.errorString, Log::WARNING);
+    }
+}
+
 qreal Session::globalMaxRatio() const
 {
     return m_globalMaxRatio;
@@ -1062,6 +1140,14 @@ void Session::configureComponents()
 
 void Session::initializeNativeSession()
 {
+    const lt::alert_category_t alertMask = lt::alert::error_notification
+        | lt::alert::file_progress_notification
+        | lt::alert::ip_block_notification
+        | lt::alert::peer_notification
+        | lt::alert::port_mapping_notification
+        | lt::alert::status_notification
+        | lt::alert::storage_notification
+        | lt::alert::tracker_notification;
     const std::string peerId = lt::generate_fingerprint(PEER_ID, QBT_VERSION_MAJOR, QBT_VERSION_MINOR, QBT_VERSION_BUGFIX, QBT_VERSION_BUILD);
 
     lt::settings_pack pack;
@@ -1118,6 +1204,17 @@ void Session::initializeNativeSession()
     m_nativeSession->add_extension(&lt::create_ut_metadata_plugin);
     if (isPeXEnabled())
         m_nativeSession->add_extension(&lt::create_ut_pex_plugin);
+
+    // Enhanced features
+    db_connection::instance().init(QDir(specialFolderLocation(SpecialFolder::Data)).absoluteFilePath("peers.db"));
+    m_nativeSession->add_extension(&create_drop_bad_peers_plugin);
+    if (isAutoBanUnknownPeerEnabled()) {
+        m_nativeSession->add_extension(&create_drop_unknown_peers_plugin);
+        m_nativeSession->add_extension(&create_drop_offline_downloader_plugin);
+    }
+    if (isAutoBanBTPlayerPeerEnabled())
+        m_nativeSession->add_extension(&create_drop_bittorrent_media_player_plugin);
+    m_nativeSession->add_extension(std::make_shared<peer_filter_session_plugin>());
 
     m_nativeSession->add_extension(std::make_shared<NativeSessionExtension>());
 }
@@ -1311,8 +1408,13 @@ void Session::loadLTSettings(lt::settings_pack &settingsPack)
 
     lt::settings_pack::io_buffer_mode_t mode = useOSCache() ? lt::settings_pack::enable_os_cache
                                                               : lt::settings_pack::disable_os_cache;
+
     settingsPack.set_int(lt::settings_pack::disk_io_read_mode, mode);
+#if defined (Q_OS_WIN) && defined (QBT_USES_LIBTORRENT2)
+    settingsPack.set_int(lt::settings_pack::disk_io_write_mode, lt::settings_pack::write_through);
+#else
     settingsPack.set_int(lt::settings_pack::disk_io_write_mode, mode);
+#endif
 
 #ifndef QBT_USES_LIBTORRENT2
     settingsPack.set_bool(lt::settings_pack::coalesce_reads, isCoalesceReadWriteEnabled());
@@ -1631,6 +1733,19 @@ void Session::populateAdditionalTrackers()
     }
 }
 
+void Session::populatePublicTrackers()
+{
+    m_publicTrackerList.clear();
+
+    const QString trackers = publicTrackers();
+    for (QStringView tracker : asConst(QStringView(trackers).split(u'\n')))
+    {
+        tracker = tracker.trimmed();
+        if (!tracker.isEmpty())
+            m_publicTrackerList.append({tracker.toString()});
+    }
+}
+
 void Session::processShareLimits()
 {
     qDebug("Processing share limits...");
@@ -1880,7 +1995,7 @@ bool Session::deleteTorrent(const TorrentID &id, const DeleteOption deleteOption
     }
 
     // Remove it from torrent resume directory
-    m_resumeDataStorage->remove(torrent->id());
+    m_resumeDataStorage->remove(resumeDataID(torrent));
 
     delete torrent;
     return true;
@@ -2545,11 +2660,6 @@ void Session::setSavePath(const Path &path)
             const CategoryOptions &categoryOptions = it.value();
             if (categoryOptions.savePath.isRelative())
                 affectedCatogories.insert(categoryName);
-        }
-
-        for (TorrentImpl *const torrent : asConst(m_torrents))
-        {
-            if (affectedCatogories.contains(torrent->category()))
                 torrent->setAutoTMMEnabled(false);
         }
     }
@@ -4074,6 +4184,32 @@ void Session::setTrackerFilteringEnabled(const bool enabled)
     }
 }
 
+bool Session::isAutoBanUnknownPeerEnabled() const
+{
+    return m_autoBanUnknownPeer;
+}
+
+void Session::setAutoBanUnknownPeer(bool value)
+{
+    if (value != isAutoBanUnknownPeerEnabled()) {
+        m_autoBanUnknownPeer = value;
+        LogMsg(tr("Restart is required to toggle Auto Ban Unknown Client support"), Log::WARNING);
+    }
+}
+
+bool Session::isAutoBanBTPlayerPeerEnabled() const
+{
+    return m_autoBanBTPlayerPeer;
+}
+
+void Session::setAutoBanBTPlayerPeer(bool value)
+{
+    if (value != isAutoBanBTPlayerPeerEnabled()) {
+        m_autoBanBTPlayerPeer = value;
+        LogMsg(tr("Restart is required to toggle Auto Ban Bittorrent Media Player support"), Log::WARNING);
+    }
+}
+
 bool Session::isListening() const
 {
     return m_nativeSession->is_listening();
@@ -4247,7 +4383,7 @@ void Session::handleTorrentResumeDataReady(TorrentImpl *const torrent, const Loa
 {
     --m_numResumeData;
 
-    m_resumeDataStorage->store(torrent->id(), data);
+    m_resumeDataStorage->store(resumeDataID(torrent), data);
 }
 
 bool Session::addMoveTorrentStorageJob(TorrentImpl *torrent, const Path &newPath, const MoveStorageMode mode)
@@ -4941,7 +5077,7 @@ void Session::createTorrent(const lt::torrent_handle &nativeHandle)
 
     if (!params.restored)
     {
-        m_resumeDataStorage->store(torrent->id(), params);
+        m_resumeDataStorage->store(resumeDataID(torrent), params);
 
         // The following is useless for newly added magnet
         if (hasMetadata)
@@ -4949,6 +5085,15 @@ void Session::createTorrent(const lt::torrent_handle &nativeHandle)
             if (!torrentExportDirectory().isEmpty())
                 exportTorrentFile(torrent, torrentExportDirectory());
         }
+
+        if (isAddTrackersEnabled() && !torrent->isPrivate())
+            torrent->addTrackers(m_additionalTrackerList);
+
+        if (isAutoUpdateTrackersEnabled() && !torrent->isPrivate())
+            torrent->addTrackers(m_publicTrackerList);
+
+        LogMsg(tr("'%1' added to download list.", "'torrent name' was added to download list.")
+            .arg(torrent->name()));
     }
 
     if (((torrent->ratioLimit() >= 0) || (torrent->seedingTimeLimit() >= 0))
@@ -5207,6 +5352,7 @@ void Session::handleExternalIPAlert(const lt::external_ip_alert *p)
     {
         if (isReannounceWhenAddressChangedEnabled() && !m_lastExternalIP.isEmpty())
             reannounceToAllTrackers();
+        globalExternalIP = externalIP;
         m_lastExternalIP = externalIP;
     }
 }

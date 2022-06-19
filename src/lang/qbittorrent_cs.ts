@@ -3389,7 +3389,7 @@ Chcete teď nainstalovat novější verzi?</translation>
         <location filename="../gui/mainwindow.cpp" line="1901"/>
         <source>Your Python version (%1) is outdated. Please upgrade to latest version for search engines to work.
 Minimum requirement: %2.</source>
-        <translation>Vaše verze Pythonu (%1) je zastaralá. Pro zprovoznění vyhledávačů aktualizujte na nejnovější verzi. 
+        <translation>Vaše verze Pythonu (%1) je zastaralá. Pro zprovoznění vyhledávačů aktualizujte na nejnovější verzi.
 Minimální požadavky: %2</translation>
     </message>
     <message>
@@ -6945,6 +6945,14 @@ Tyto pluginy byly vypnuty.</translation>
 <context>
     <name>PortForwarderImpl</name>
     <message>
+        <source>UPnP/NAT-PMP support: ON</source>
+        <translation type="vanished">UPnP/NAT-PMP podpora: Zapnuta</translation>
+    </message>
+    <message>
+        <source>UPnP/NAT-PMP support: OFF</source>
+        <translation type="vanished">UPnP/NAT-PMP podpora: Vypnuta</translation>
+    </message>
+    <message>
         <location filename="../base/bittorrent/portforwarderimpl.cpp" line="104"/>
         <source>UPnP/NAT-PMP support: ON</source>
         <translation>UPnP/NAT-PMP podpora: Zapnuta</translation>
@@ -9645,22 +9653,22 @@ Prosím zvolte jiný název kategorie a zkuste to znovu.</translation>
 <context>
     <name>TorrentInfo</name>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="116"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="115"/>
         <source>File size exceeds max limit %1</source>
         <translation>Velikost souboru překračuje maximální limit %1</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="125"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="124"/>
         <source>Torrent file read error: %1</source>
         <translation>Chyba při čtení torrent souboru: %1</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="129"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="128"/>
         <source>Torrent file read error: size mismatch</source>
         <translation>Chyba při čtení torrent souboru: nesouhlasí velikost</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="139"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="138"/>
         <source>Invalid metadata</source>
         <translation>Neplatná metadata</translation>
     </message>

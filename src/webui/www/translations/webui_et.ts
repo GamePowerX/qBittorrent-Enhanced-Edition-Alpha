@@ -1,4 +1,10 @@
+<<<<<<< HEAD
 <?xml version="1.0" ?><!DOCTYPE TS><TS version="2.1" language="et">
+=======
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
+<TS version="2.1" language="et">
+>>>>>>> v4_4_x
 <context>
     <name>AboutDlg</name>
     <message>
@@ -571,7 +577,11 @@
     </message>
     <message>
         <source>Filters Sidebar</source>
+<<<<<<< HEAD
         <translation>Filtrite külgriba</translation>
+=======
+        <translation type="vanished">Filtrite külgriba</translation>
+>>>>>>> v4_4_x
     </message>
 </context>
 <context>
@@ -1032,7 +1042,11 @@
     </message>
     <message>
         <source>Apply rate limit to peers on LAN</source>
+<<<<<<< HEAD
         <translation>Määra kiiruse limiit partneritele LAN&apos;is</translation>
+=======
+        <translation>Määra kiiruse limiit partneritele LAN'is</translation>
+>>>>>>> v4_4_x
     </message>
     <message>
         <source>0 means unlimited</source>
@@ -2286,12 +2300,17 @@
         <translation type="unfinished"/>
     </message>
     <message>
+<<<<<<< HEAD
         <source>Total Size</source>
         <translation type="unfinished"/>
     </message>
     <message>
         <source>Times Downloaded</source>
         <translation type="unfinished"/>
+=======
+        <source>Size</source>
+        <translation type="unfinished" />
+>>>>>>> v4_4_x
     </message>
 </context>
 <context>

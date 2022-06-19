@@ -1446,6 +1446,12 @@ Supports the formats: S01E01, 1x1, 2017.12.31 and 31.12.2017 (Date formats also 
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../gui/rss/automatedrssdownloader.cpp" line="459"/>
+        <location filename="../gui/rss/automatedrssdownloader.cpp" line="477"/>
+        <source>I/O Error</source>
+        <translation>I/O Error</translation>
+    </message>
+    <message>
         <location filename="../gui/rss/automatedrssdownloader.cpp" line="460"/>
         <location filename="../gui/rss/automatedrssdownloader.cpp" line="478"/>
         <source>I/O Error</source>
@@ -1465,6 +1471,11 @@ Supports the formats: S01E01, 1x1, 2017.12.31 and 31.12.2017 (Date formats also 
         <location filename="../gui/rss/automatedrssdownloader.cpp" line="479"/>
         <source>Failed to open the file. Reason: %1</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/rss/automatedrssdownloader.cpp" line="496"/>
+        <source>Import Error</source>
+        <translation>Import Error</translation>
     </message>
     <message>
         <location filename="../gui/rss/automatedrssdownloader.cpp" line="497"/>
@@ -2139,6 +2150,116 @@ Supports the formats: S01E01, 1x1, 2017.12.31 and 31.12.2017 (Date formats also 
         <location filename="../base/bittorrent/session.cpp" line="1114"/>
         <location filename="../base/bittorrent/session.cpp" line="2977"/>
         <location filename="../base/bittorrent/session.cpp" line="3588"/>
+        <source>OFF</source>
+        <translation>OFF</translation>
+    </message>
+    <message>
+        <location filename="../base/bittorrent/session.cpp" line="4941"/>
+        <source>IP filter</source>
+        <comment>this peer was blocked. Reason: IP filter.</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../base/bittorrent/session.cpp" line="4944"/>
+        <source>port filter</source>
+        <comment>this peer was blocked. Reason: port filter.</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../base/bittorrent/session.cpp" line="4947"/>
+        <source>%1 mixed mode restrictions</source>
+        <comment>this peer was blocked. Reason: I2P mixed mode restrictions.</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../base/bittorrent/session.cpp" line="4950"/>
+        <source>use of privileged port</source>
+        <comment>this peer was blocked. Reason: use of privileged port.</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../base/bittorrent/session.cpp" line="4953"/>
+        <source>%1 is disabled</source>
+        <comment>this peer was blocked. Reason: uTP is disabled.</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../base/bittorrent/session.cpp" line="4956"/>
+        <source>%1 is disabled</source>
+        <comment>this peer was blocked. Reason: TCP is disabled.</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../base/bittorrent/session.cpp" line="4980"/>
+        <source>URL seed name lookup failed. Torrent: &quot;%1&quot;. URL: &quot;%2&quot;. Error: &quot;%3&quot;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../base/bittorrent/session.cpp" line="4986"/>
+        <source>Received error message from a URL seed. Torrent: &quot;%1&quot;. URL: &quot;%2&quot;. Message: &quot;%3&quot;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../base/bittorrent/session.cpp" line="4995"/>
+        <source>Successfully listening on IP: %1, port: %2/%3</source>
+        <comment>e.g: Successfully listening on IP: 192.168.0.1, port: TCP/6881</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../base/bittorrent/session.cpp" line="5006"/>
+        <source>Failed to listen on IP: %1, port: %2/%3. Reason: %4</source>
+        <comment>e.g: Failed to listen on IP: 192.168.0.1, port: TCP/6881. Reason: already in use</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../base/bittorrent/session.cpp" line="5015"/>
+        <source>Detected external IP: %1</source>
+        <comment>e.g. Detected external IP: 1.1.1.1</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../base/bittorrent/session.cpp" line="5104"/>
+        <source>Error: Internal alert queue full and alerts were dropped, you might see degraded performance. Dropped alert types: %1. Message: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../base/bittorrent/session.cpp" line="5126"/>
+        <source>&quot;%1&quot; is successfully moved to &quot;%2&quot;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../base/bittorrent/session.cpp" line="5148"/>
+        <source>Failed to move &quot;%1&quot; from &quot;%2&quot; to &quot;%3&quot;. Reason: %4.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../base/bittorrent/session.cpp" line="5187"/>
+        <source>SOCKS5 proxy error. Message: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../base/bittorrent/session.cpp" line="524"/>
+        <location filename="../base/bittorrent/session.cpp" line="539"/>
+        <location filename="../base/bittorrent/session.cpp" line="1107"/>
+        <location filename="../base/bittorrent/session.cpp" line="1108"/>
+        <location filename="../base/bittorrent/session.cpp" line="1109"/>
+        <location filename="../base/bittorrent/session.cpp" line="1110"/>
+        <location filename="../base/bittorrent/session.cpp" line="1111"/>
+        <location filename="../base/bittorrent/session.cpp" line="2891"/>
+        <location filename="../base/bittorrent/session.cpp" line="3448"/>
+        <source>ON</source>
+        <translation>ON</translation>
+    </message>
+    <message>
+        <location filename="../base/bittorrent/session.cpp" line="524"/>
+        <location filename="../base/bittorrent/session.cpp" line="539"/>
+        <location filename="../base/bittorrent/session.cpp" line="1107"/>
+        <location filename="../base/bittorrent/session.cpp" line="1108"/>
+        <location filename="../base/bittorrent/session.cpp" line="1109"/>
+        <location filename="../base/bittorrent/session.cpp" line="1110"/>
+        <location filename="../base/bittorrent/session.cpp" line="1112"/>
+        <location filename="../base/bittorrent/session.cpp" line="2891"/>
+        <location filename="../base/bittorrent/session.cpp" line="3448"/>
         <source>OFF</source>
         <translation>OFF</translation>
     </message>
@@ -9085,7 +9206,7 @@ Click the &quot;Search plug-ins...&quot; button at the bottom right of the windo
     <message>
         <location filename="../gui/tagfiltermodel.cpp" line="148"/>
         <source>Tags</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Tags</translation>
     </message>
     <message>
         <location filename="../gui/tagfiltermodel.cpp" line="259"/>
@@ -9631,22 +9752,22 @@ Please choose a different name and try again.</source>
 <context>
     <name>TorrentInfo</name>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="116"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="115"/>
         <source>File size exceeds max limit %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="125"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="124"/>
         <source>Torrent file read error: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="129"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="128"/>
         <source>Torrent file read error: size mismatch</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="139"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="138"/>
         <source>Invalid metadata</source>
         <translation type="unfinished"></translation>
     </message>
@@ -10213,7 +10334,7 @@ Please choose a different name and try again.</source>
     <message>
         <location filename="../gui/transferlistfilterswidget.cpp" line="852"/>
         <source>Tags</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Tags</translation>
     </message>
     <message>
         <location filename="../gui/transferlistfilterswidget.cpp" line="870"/>
@@ -10375,12 +10496,12 @@ Please choose a different name and try again.</source>
     <message>
         <location filename="../gui/transferlistmodel.cpp" line="182"/>
         <source>Category</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Category</translation>
     </message>
     <message>
         <location filename="../gui/transferlistmodel.cpp" line="183"/>
         <source>Tags</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Tags</translation>
     </message>
     <message>
         <location filename="../gui/transferlistmodel.cpp" line="184"/>
@@ -10774,7 +10895,7 @@ Please choose a different name and try again.</source>
         <location filename="../gui/transferlistwidget.cpp" line="1132"/>
         <source>&amp;Remove All</source>
         <comment>Remove all tags</comment>
-        <translation type="unfinished"></translation>
+        <translation>Remove All</translation>
     </message>
     <message>
         <location filename="../gui/transferlistwidget.cpp" line="1213"/>

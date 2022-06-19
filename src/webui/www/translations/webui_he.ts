@@ -1,4 +1,10 @@
+<<<<<<< HEAD
 <?xml version="1.0" ?><!DOCTYPE TS><TS version="2.1" language="he">
+=======
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
+<TS version="2.1" language="he">
+>>>>>>> v4_4_x
 <context>
     <name>AboutDlg</name>
     <message>
@@ -571,7 +577,11 @@
     </message>
     <message>
         <source>Filters Sidebar</source>
+<<<<<<< HEAD
         <translation>סרגל צד של מסננים</translation>
+=======
+        <translation type="vanished">סרגל צד של מסננים</translation>
+>>>>>>> v4_4_x
     </message>
 </context>
 <context>
@@ -1480,6 +1490,7 @@
     </message>
     <message>
         <source>Disk queue size:</source>
+<<<<<<< HEAD
         <translation>גודל תור בדיסק:</translation>
     </message>
     <message>
@@ -1517,6 +1528,21 @@
     <message>
         <source>Physical memory (RAM) usage limit:</source>
         <translation>מגבלת שימוש בזיכרון פיזי (RAM):</translation>
+=======
+        <translation type="vanished">גודל תור בדיסק:</translation>
+    </message>
+    <message>
+        <source>Log performance warnings</source>
+        <translation type="vanished">כתוב ביומן אזהרות ביצוע</translation>
+    </message>
+    <message>
+        <source>Maximum outstanding requests to a single peer:</source>
+        <translation type="vanished">בקשות חריגות מרביות אל עמית יחיד:</translation>
+    </message>
+    <message>
+        <source>Max active checking torrents:</source>
+        <translation type="vanished">טורנטים נבדקים פעילים מרביים:</translation>
+>>>>>>> v4_4_x
     </message>
 </context>
 <context>
@@ -2287,11 +2313,19 @@
     </message>
     <message>
         <source>Total Size</source>
+<<<<<<< HEAD
         <translation>גודל כולל</translation>
     </message>
     <message>
         <source>Times Downloaded</source>
         <translation>פעמים שהורד</translation>
+=======
+        <translation type="vanished">גודל כולל</translation>
+    </message>
+    <message>
+        <source>Size</source>
+        <translation type="unfinished" />
+>>>>>>> v4_4_x
     </message>
 </context>
 <context>

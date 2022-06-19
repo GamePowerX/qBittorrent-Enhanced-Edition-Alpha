@@ -32,6 +32,7 @@
 
 #include "base/pathfwd.h"
 #include "base/settingvalue.h"
+#include "base/net/downloadmanager.h"
 
 class QListWidgetItem;
 
@@ -113,6 +114,8 @@ private slots:
     void setLocale(const QString &localeStr);
     void webUIHttpsCertChanged(const Path &path, ShowError showError);
     void webUIHttpsKeyChanged(const Path &path, ShowError showError);
+    void handlePublicTrackersListChanged(const Net::DownloadResult &result);
+>>>>>>> v4_4_x
 
 private:
     void showEvent(QShowEvent *e) override;

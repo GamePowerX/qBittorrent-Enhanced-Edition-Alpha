@@ -1,4 +1,10 @@
+<<<<<<< HEAD
 <?xml version="1.0" ?><!DOCTYPE TS><TS version="2.1" language="hu">
+=======
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
+<TS version="2.1" language="hu">
+>>>>>>> v4_4_x
 <context>
     <name>AboutDlg</name>
     <message>
@@ -571,7 +577,11 @@
     </message>
     <message>
         <source>Filters Sidebar</source>
+<<<<<<< HEAD
         <translation>Szűrők oldalsáv</translation>
+=======
+        <translation type="vanished">Szűrők oldalsáv</translation>
+>>>>>>> v4_4_x
     </message>
 </context>
 <context>
@@ -1480,6 +1490,7 @@
     </message>
     <message>
         <source>Disk queue size:</source>
+<<<<<<< HEAD
         <translation>Lemez sorbanállás mérete:</translation>
     </message>
     <message>
@@ -1517,6 +1528,21 @@
     <message>
         <source>Physical memory (RAM) usage limit:</source>
         <translation>Fizikai memória (RAM) használati korlát</translation>
+=======
+        <translation type="vanished">Lemez sorbanállás mérete:</translation>
+    </message>
+    <message>
+        <source>Log performance warnings</source>
+        <translation type="vanished">Teljesítmény figyelmeztetések naplózása</translation>
+    </message>
+    <message>
+        <source>Maximum outstanding requests to a single peer:</source>
+        <translation type="vanished">Maximális függőben lévő kérések egyetlen peerhez:</translation>
+    </message>
+    <message>
+        <source>Max active checking torrents:</source>
+        <translation type="vanished">Torrentek aktív ellenőrzésének maximális száma:</translation>
+>>>>>>> v4_4_x
     </message>
 </context>
 <context>
@@ -2287,11 +2313,19 @@
     </message>
     <message>
         <source>Total Size</source>
+<<<<<<< HEAD
         <translation>Teljes méret</translation>
     </message>
     <message>
         <source>Times Downloaded</source>
         <translation>Letöltések száma</translation>
+=======
+        <translation type="vanished">Teljes méret</translation>
+    </message>
+    <message>
+        <source>Size</source>
+        <translation type="unfinished" />
+>>>>>>> v4_4_x
     </message>
 </context>
 <context>

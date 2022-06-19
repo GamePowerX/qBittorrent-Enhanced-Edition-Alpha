@@ -2332,6 +2332,10 @@
         <source>Times Downloaded</source>
         <translation type="unfinished" />
     </message>
+    <message>
+        <source>Downloaded</source>
+        <translation type="unfinished" />
+    </message>
 </context>
 <context>
     <name>TrackersAdditionDialog</name>

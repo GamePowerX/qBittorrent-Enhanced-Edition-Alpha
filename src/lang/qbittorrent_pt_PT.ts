@@ -5258,7 +5258,7 @@ Desativar encriptação: Apenas liga a fontes sem protocolo de encriptação</tr
 Specify an IPv4 or IPv6 address. You can specify &quot;0.0.0.0&quot; for any IPv4 address,
 &quot;::&quot; for any IPv6 address, or &quot;*&quot; for both IPv4 and IPv6.</source>
         <translation>Endereço IP com o qual a interface web irá ligar.
-Especifique um endereço IPv4 ou IPv6. Você pode especificar &quot;0.0.0.0&quot; para qualquer endereço IPv4, 
+Especifique um endereço IPv4 ou IPv6. Você pode especificar &quot;0.0.0.0&quot; para qualquer endereço IPv4,
 &quot;::&quot; para qualquer endereço IPv6, ou &quot;*&quot; para IPv4 e IPv6.</translation>
     </message>
     <message>
@@ -6945,6 +6945,14 @@ Esses plugins foram desativados.</translation>
 <context>
     <name>PortForwarderImpl</name>
     <message>
+        <source>UPnP/NAT-PMP support: ON</source>
+        <translation type="vanished">Suporte a UPnP/NAT-PMP: ON</translation>
+    </message>
+    <message>
+        <source>UPnP/NAT-PMP support: OFF</source>
+        <translation type="vanished">Suporte a UPnP/NAT-PMP: OFF</translation>
+    </message>
+    <message>
         <location filename="../base/bittorrent/portforwarderimpl.cpp" line="104"/>
         <source>UPnP/NAT-PMP support: ON</source>
         <translation>Suporte a UPnP/NAT-PMP: ON</translation>
@@ -7664,7 +7672,7 @@ Esses plugins foram desativados.</translation>
         <source>qBittorrent is a file sharing program. When you run a torrent, its data will be made available to others by means of upload. Any content you share is your sole responsibility.
 
 No further notices will be issued.</source>
-        <translation>O qBittorrent é um programa de partilha de ficheiros. Ao executar um torrent, os dados do ficheiro ficam disponíveis para todos os utilizadores. Todo o conteúdo partilhado é da sua inteira responsabilidade. 
+        <translation>O qBittorrent é um programa de partilha de ficheiros. Ao executar um torrent, os dados do ficheiro ficam disponíveis para todos os utilizadores. Todo o conteúdo partilhado é da sua inteira responsabilidade.
 
 Não serão emitidos mais avisos relacionados com este assunto.</translation>
     </message>
@@ -9645,22 +9653,22 @@ Por favor, escolha um nome diferente e tente novamente.</translation>
 <context>
     <name>TorrentInfo</name>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="116"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="115"/>
         <source>File size exceeds max limit %1</source>
         <translation>O tamanho do ficheiro excede o limite máx. de %1</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="125"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="124"/>
         <source>Torrent file read error: %1</source>
         <translation>Erro de leitura do ficheiro torrent: %1</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="129"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="128"/>
         <source>Torrent file read error: size mismatch</source>
         <translation>Erro de leitura do ficheiro torrent: incompatibilidade de tamanho</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="139"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="138"/>
         <source>Invalid metadata</source>
         <translation>Metadados inválidos</translation>
     </message>

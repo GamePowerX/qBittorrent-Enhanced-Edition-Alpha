@@ -1225,7 +1225,7 @@ Napaka: %2</translation>
         <source>Smart Episode Filter will check the episode number to prevent downloading of duplicates.
 Supports the formats: S01E01, 1x1, 2017.12.31 and 31.12.2017 (Date formats also support - as a separator)</source>
         <translation>Pametni filter za epizode bo preveril številko epizode v izogibu prejemanja dvojnikov.
-Podprti formati: S01E01, 1x1, 2017.12.31 and 31.12.2017 
+Podprti formati: S01E01, 1x1, 2017.12.31 and 31.12.2017
 (Formati datume so tudi podprti z &quot;-&quot; kot ločilnikom)</translation>
     </message>
     <message>
@@ -6945,6 +6945,14 @@ Tisti vtičniki so bili onemogočeni.</translation>
 <context>
     <name>PortForwarderImpl</name>
     <message>
+        <source>UPnP/NAT-PMP support: ON</source>
+        <translation type="vanished">Podpora za UPnP/NAT-PMP: VKLJUČENA</translation>
+    </message>
+    <message>
+        <source>UPnP/NAT-PMP support: OFF</source>
+        <translation type="vanished">Podpora za UPnP/NAT-PMP: IZKLJUČENA</translation>
+    </message>
+    <message>
         <location filename="../base/bittorrent/portforwarderimpl.cpp" line="104"/>
         <source>UPnP/NAT-PMP support: ON</source>
         <translation>Podpora za UPnP/NAT-PMP: VKLJUČENA</translation>
@@ -9645,22 +9653,22 @@ Prosimo da izberete drugo ime in poizkusite znova.</translation>
 <context>
     <name>TorrentInfo</name>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="116"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="115"/>
         <source>File size exceeds max limit %1</source>
         <translation>Velikost datoteke presega največjo dovoljeno %1</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="125"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="124"/>
         <source>Torrent file read error: %1</source>
         <translation>Napaka pri branju datoteke torrenta: %1</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="129"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="128"/>
         <source>Torrent file read error: size mismatch</source>
         <translation>Napaka pri branju datoteke torrenta: neujemanje velikosti</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="139"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="138"/>
         <source>Invalid metadata</source>
         <translation>Neveljavni metapodatki</translation>
     </message>

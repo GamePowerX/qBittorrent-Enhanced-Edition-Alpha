@@ -5122,7 +5122,7 @@ Voulez-vous faire de qBittorrent l&apos;application par défaut pour ceux-ci ?</
 Require encryption: Only connect to peers with protocol encryption
 Disable encryption: Only connect to peers without protocol encryption</source>
         <translation>Autoriser le chiffrement : Se connecter aux pairs indépendamment de la configuration
-Exiger le chiffrement : Se connecter uniquement aux pairs avec protocole de chiffrement 
+Exiger le chiffrement : Se connecter uniquement aux pairs avec protocole de chiffrement
 Désactiver le chiffrement : Se connecter uniquement aux pairs sans protocole de chiffrement</translation>
     </message>
     <message>
@@ -6942,6 +6942,14 @@ Those plugins were disabled.</source>
 </context>
 <context>
     <name>PortForwarderImpl</name>
+    <message>
+        <source>UPnP/NAT-PMP support: ON</source>
+        <translation type="vanished">Prise en charge UPnP/NAT-PMP : ACTIVÉE</translation>
+    </message>
+    <message>
+        <source>UPnP/NAT-PMP support: OFF</source>
+        <translation type="vanished">Prise en charge UPnP/NAT-PMP : DÉSACTIVÉE</translation>
+    </message>
     <message>
         <location filename="../base/bittorrent/portforwarderimpl.cpp" line="104"/>
         <source>UPnP/NAT-PMP support: ON</source>
@@ -9643,22 +9651,22 @@ Veuillez en choisir un autre.</translation>
 <context>
     <name>TorrentInfo</name>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="116"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="115"/>
         <source>File size exceeds max limit %1</source>
         <translation>La taille du fichier excède la limite max %1</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="125"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="124"/>
         <source>Torrent file read error: %1</source>
         <translation>Erreur de lecture du fichier torrent : %1</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="129"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="128"/>
         <source>Torrent file read error: size mismatch</source>
         <translation>Erreur de lecture du fichier torrent: incohérence de taille</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="139"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="138"/>
         <source>Invalid metadata</source>
         <translation>Métadonnées invalides</translation>
     </message>

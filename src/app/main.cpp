@@ -31,6 +31,7 @@
 
 #include <cstdlib>
 #include <memory>
+#include <tuple>
 
 #ifdef Q_OS_UNIX
 #include <sys/resource.h>

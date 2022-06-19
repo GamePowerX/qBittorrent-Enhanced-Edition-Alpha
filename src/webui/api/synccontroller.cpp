@@ -62,6 +62,7 @@ namespace
     const QString KEY_SYNC_TORRENT_PEERS_SHOW_FLAGS = u"show_flags"_qs;
 
     // Peer keys
+<<<<<<< HEAD
     const QString KEY_PEER_CLIENT = u"client"_qs;
     const QString KEY_PEER_CONNECTION_TYPE = u"connection"_qs;
     const QString KEY_PEER_COUNTRY = u"country"_qs;
@@ -77,6 +78,24 @@ namespace
     const QString KEY_PEER_TOT_DOWN = u"downloaded"_qs;
     const QString KEY_PEER_TOT_UP = u"uploaded"_qs;
     const QString KEY_PEER_UP_SPEED = u"up_speed"_qs;
+=======
+    const char KEY_PEER_CLIENT[] = "client";
+    const char KEY_PEER_ID[] = "peer_id";
+    const char KEY_PEER_CONNECTION_TYPE[] = "connection";
+    const char KEY_PEER_COUNTRY[] = "country";
+    const char KEY_PEER_COUNTRY_CODE[] = "country_code";
+    const char KEY_PEER_DOWN_SPEED[] = "dl_speed";
+    const char KEY_PEER_FILES[] = "files";
+    const char KEY_PEER_FLAGS[] = "flags";
+    const char KEY_PEER_FLAGS_DESCRIPTION[] = "flags_desc";
+    const char KEY_PEER_IP[] = "ip";
+    const char KEY_PEER_PORT[] = "port";
+    const char KEY_PEER_PROGRESS[] = "progress";
+    const char KEY_PEER_RELEVANCE[] = "relevance";
+    const char KEY_PEER_TOT_DOWN[] = "downloaded";
+    const char KEY_PEER_TOT_UP[] = "uploaded";
+    const char KEY_PEER_UP_SPEED[] = "up_speed";
+>>>>>>> v4_4_x
 
     // TransferInfo keys
     const QString KEY_TRANSFER_CONNECTION_STATUS = u"connection_status"_qs;
@@ -558,6 +577,7 @@ void SyncController::torrentPeersAction()
             {KEY_PEER_IP, pi.address().ip.toString()},
             {KEY_PEER_PORT, pi.address().port},
             {KEY_PEER_CLIENT, pi.client()},
+            {KEY_PEER_ID, pi.peerId()},
             {KEY_PEER_PROGRESS, pi.progress()},
             {KEY_PEER_DOWN_SPEED, pi.payloadDownSpeed()},
             {KEY_PEER_UP_SPEED, pi.payloadUpSpeed()},

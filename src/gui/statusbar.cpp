@@ -38,6 +38,7 @@
 
 #include "base/bittorrent/session.h"
 #include "base/bittorrent/sessionstatus.h"
+#include "base/global.h"
 #include "base/utils/misc.h"
 #include "speedlimitdialog.h"
 #include "uithememanager.h"
@@ -89,6 +90,12 @@ StatusBar::StatusBar(QWidget *parent)
     m_DHTLbl = new QLabel(tr("DHT: %1 nodes").arg(0), this);
     m_DHTLbl->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
 
+    m_peersLbl = new QLabel(tr("Connected to %1 peers").arg(0), this);
+    m_peersLbl->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
+
+    m_externalIPLbl = new QLabel(tr("External IP: %1").arg(0), this);
+    m_externalIPLbl->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
+
     m_altSpeedsBtn = new QPushButton(this);
     m_altSpeedsBtn->setFlat(true);
     m_altSpeedsBtn->setFocusPolicy(Qt::NoFocus);
@@ -129,14 +136,28 @@ StatusBar::StatusBar(QWidget *parent)
 #ifndef Q_OS_MACOS
     statusSep4->setFrameShadow(QFrame::Raised);
 #endif
-    layout->addWidget(m_DHTLbl);
+    QFrame *statusSep5 = new QFrame(this);
+    statusSep4->setFrameStyle(QFrame::VLine);
+#ifndef Q_OS_MACOS
+    statusSep1->setFrameShadow(QFrame::Raised);
+#endif
+    QFrame *statusSep6 = new QFrame(this);
+    statusSep2->setFrameStyle(QFrame::VLine);
+#ifndef Q_OS_MACOS
+    statusSep4->setFrameShadow(QFrame::Raised);
+#endif
+    layout->addWidget(m_externalIPLbl);
     layout->addWidget(statusSep1);
-    layout->addWidget(m_connecStatusLblIcon);
+    layout->addWidget(m_peersLbl);
     layout->addWidget(statusSep2);
-    layout->addWidget(m_altSpeedsBtn);
-    layout->addWidget(statusSep4);
-    layout->addWidget(m_dlSpeedLbl);
+    layout->addWidget(m_DHTLbl);
     layout->addWidget(statusSep3);
+    layout->addWidget(m_connecStatusLblIcon);
+    layout->addWidget(statusSep4);
+    layout->addWidget(m_altSpeedsBtn);
+    layout->addWidget(statusSep6);
+    layout->addWidget(m_dlSpeedLbl);
+    layout->addWidget(statusSep5);
     layout->addWidget(m_upSpeedLbl);
 
     addPermanentWidget(container);
@@ -210,6 +231,20 @@ void StatusBar::updateDHTNodesNumber()
     }
 }
 
+void StatusBar::updatePeersNumber() {
+    m_peersLbl->setVisible(true);
+    m_peersLbl->setText(tr("Connected to %1 peers").arg(BitTorrent::Session::instance()->status().peersCount));
+}
+
+void StatusBar::updateExternalIP() {
+    m_externalIPLbl->setVisible(true);
+    if (!globalExternalIP.contains(QLatin1String(":"))) {
+
+    }
+    m_externalIPLbl->setText(tr("External IP: %1").arg(globalExternalIP));
+}
+
+
 void StatusBar::updateSpeedLabels()
 {
     const BitTorrent::SessionStatus &sessionStatus = BitTorrent::Session::instance()->status();
@@ -233,6 +268,8 @@ void StatusBar::refresh()
 {
     updateConnectionStatus();
     updateDHTNodesNumber();
+    updatePeersNumber();
+    updateExternalIP();
     updateSpeedLabels();
 }
 

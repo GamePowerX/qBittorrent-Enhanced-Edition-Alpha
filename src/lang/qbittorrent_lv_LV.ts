@@ -3320,7 +3320,7 @@ Atbalsta formātus: S01E01, 1x1, 2017.12.31 un 31.12.2017 (Datumu formātos kā 
  Reason: %2</source>
         <comment>e.g: An error occurred for torrent &apos;xxx.avi&apos;.
  Reason: disk is full.</comment>
-        <translation>Ievades/Izvades kļūda torrentam &apos;%1&apos;. 
+        <translation>Ievades/Izvades kļūda torrentam &apos;%1&apos;.
 Iemesls: %2</translation>
     </message>
     <message>
@@ -3337,7 +3337,7 @@ Iemesls: %2</translation>
         <location filename="../gui/mainwindow.cpp" line="1875"/>
         <source>Python is required to use the search engine but it does not seem to be installed.
 Do you want to install it now?</source>
-        <translation>Lai lietotu meklētāju, ir nepieciešams uzinstalēt Python. 
+        <translation>Lai lietotu meklētāju, ir nepieciešams uzinstalēt Python.
 Vai vēlaties to instalēt tagad?</translation>
     </message>
     <message>
@@ -3370,7 +3370,7 @@ Vai vēlaties to instalēt tagad?</translation>
         <location filename="../gui/mainwindow.cpp" line="1973"/>
         <source>No updates available.
 You are already using the latest version.</source>
-        <translation>Atjauninājumi nav pieejami. 
+        <translation>Atjauninājumi nav pieejami.
 Jūs jau lietojat jaunāko versiju.</translation>
     </message>
     <message>
@@ -3411,7 +3411,7 @@ Vecākā atļautā: %2.</translation>
         <location filename="../gui/mainwindow.cpp" line="2144"/>
         <source>Python setup could not be downloaded, reason: %1.
 Please install it manually.</source>
-        <translation>Python instalāciju neizdevās lejupielādēt, iemesls: %1. 
+        <translation>Python instalāciju neizdevās lejupielādēt, iemesls: %1.
 Lūdzam to izdarīt manuāli. </translation>
     </message>
     <message>
@@ -3424,7 +3424,7 @@ Lūdzam to izdarīt manuāli. </translation>
         <location filename="../gui/mainwindow.cpp" line="464"/>
         <source>qBittorrent is not the default application for opening torrent files or Magnet links.
 Do you want to make qBittorrent the default application for these?</source>
-        <translation>qBittorent nav uzstādīta kā noklusētā programma torrenta failu un magnētsaišu atvēršanai. 
+        <translation>qBittorent nav uzstādīta kā noklusētā programma torrenta failu un magnētsaišu atvēršanai.
 Vai vēlaties to uzstādīt kā noklusēto programmu tagad?</translation>
     </message>
     <message>
@@ -5667,7 +5667,7 @@ Izmantojiet &apos;;&apos; lai atdalītu vairākus vārdus. Varat izmantot viettu
         <location filename="../gui/optionsdialog.ui" line="954"/>
         <source>Automatic: Various torrent properties (e.g. save path) will be decided by the associated category
 Manual: Various torrent properties (e.g. save path) must be assigned manually</source>
-        <translation>Automātiski: nozīmē, ka torrenta uzstādījumi (piem. saglabāšanas vieta), tiks iestatīti atbilstoši izvēlētajai kategorijai. 
+        <translation>Automātiski: nozīmē, ka torrenta uzstādījumi (piem. saglabāšanas vieta), tiks iestatīti atbilstoši izvēlētajai kategorijai.
 Manuāli: Nozīmē, ka torrenta uzstādījumi (piem. saglabāšanas vieta) būs jānorāda pašam.</translation>
     </message>
     <message>
@@ -6835,7 +6835,7 @@ Manuāli: Nozīmē, ka torrenta uzstādījumi (piem. saglabāšanas vieta) būs 
         <location filename="../gui/search/pluginselectdialog.cpp" line="216"/>
         <source>Some plugins could not be uninstalled because they are included in qBittorrent. Only the ones you added yourself can be uninstalled.
 Those plugins were disabled.</source>
-        <translation>Dažus spraudņus nav iespējams atinstalēt, jo tie ir iekļauti qBittorrent. Jūs varat atinstalēt tikai tos spraudņus, kurus pats ieinstalējāt. 
+        <translation>Dažus spraudņus nav iespējams atinstalēt, jo tie ir iekļauti qBittorrent. Jūs varat atinstalēt tikai tos spraudņus, kurus pats ieinstalējāt.
 Esošie spraudņi tika atslēgti. </translation>
     </message>
     <message>
@@ -7664,7 +7664,7 @@ Esošie spraudņi tika atslēgti. </translation>
         <source>qBittorrent is a file sharing program. When you run a torrent, its data will be made available to others by means of upload. Any content you share is your sole responsibility.
 
 No further notices will be issued.</source>
-        <translation>qBittorrent ir failu koplietošanas programma. Katrs jūsu aktīvais koplietotais torrents ar augšupielādes palīdzību būs pieejams citiem lietotājiem. Katrs fails, kuru augšupielādējat ir uz jūsu pašu atbildību. 
+        <translation>qBittorrent ir failu koplietošanas programma. Katrs jūsu aktīvais koplietotais torrents ar augšupielādes palīdzību būs pieejams citiem lietotājiem. Katrs fails, kuru augšupielādējat ir uz jūsu pašu atbildību.
 
 Tālāki atgādinājumi netiks izsniegti. </translation>
     </message>
@@ -9645,22 +9645,22 @@ Lūdzu izvēlieties citu nosaukumu.</translation>
 <context>
     <name>TorrentInfo</name>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="116"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="115"/>
         <source>File size exceeds max limit %1</source>
         <translation>Fails lielums pārsniedz atļauto %1</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="125"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="124"/>
         <source>Torrent file read error: %1</source>
         <translation>Torrenta faila nolasīšanas kļūda: %1</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="129"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="128"/>
         <source>Torrent file read error: size mismatch</source>
         <translation>Torrenta faila nolasīšanas kļūda: izmēri nesakrīt</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="139"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="138"/>
         <source>Invalid metadata</source>
         <translation>Nederīgi metadati</translation>
     </message>

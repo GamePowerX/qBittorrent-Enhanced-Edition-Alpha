@@ -3337,7 +3337,7 @@ Zergaitia: %2</translation>
         <location filename="../gui/mainwindow.cpp" line="1875"/>
         <source>Python is required to use the search engine but it does not seem to be installed.
 Do you want to install it now?</source>
-        <translation>Python beharrezkoa da bilaketa gailua erabiltzeko baina ez dirudi ezarrita dagoenik. 
+        <translation>Python beharrezkoa da bilaketa gailua erabiltzeko baina ez dirudi ezarrita dagoenik.
 Orain ezartzea nahi duzu?</translation>
     </message>
     <message>
@@ -9641,22 +9641,22 @@ Mesedez hautatu beste izen bat eta saiatu berriro.</translation>
 <context>
     <name>TorrentInfo</name>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="116"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="115"/>
         <source>File size exceeds max limit %1</source>
         <translation>Agiri neurriak geh muga %1 gainditzen du</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="125"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="124"/>
         <source>Torrent file read error: %1</source>
         <translation>Torrent agiriaren irakurtze akatsa: %1</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="129"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="128"/>
         <source>Torrent file read error: size mismatch</source>
         <translation>Torrent agiriaren irakurtze akatsa: neurria ez dator bat</translation>
     </message>
     <message>
-        <location filename="../base/bittorrent/torrentinfo.cpp" line="139"/>
+        <location filename="../base/bittorrent/torrentinfo.cpp" line="138"/>
         <source>Invalid metadata</source>
         <translation>Metadatu baliogabeak</translation>
     </message>
