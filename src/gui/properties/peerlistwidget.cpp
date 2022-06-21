@@ -497,7 +497,7 @@ void PeerListWidget::updatePeer(const BitTorrent::Torrent *torrent, const BitTor
     setModelData(row, PeerListColumns::DOWNLOADING_PIECE, downloadingFilesDisplayValue, downloadingFilesDisplayValue, {}, downloadingFiles.join(u'\n'));
     if (peer.downloadingPieceIndex() == -1)
         setModelData(row, PeerListColumns::DOWNLOADING_PIECE_NUMBER
-                , "", "", {}, "No piece being downloaded");
+                , u""_qs, u""_qs, {}, u"No piece being downloaded"_qs);
     else
         setModelData(row, PeerListColumns::DOWNLOADING_PIECE_NUMBER
                 , QString::number(peer.downloadingPieceIndex()), QString::number(peer.downloadingPieceIndex()), intDataTextAlignment, QString::number(peer.downloadingPieceIndex()));
