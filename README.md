@@ -1,4 +1,12 @@
-qBittorrent Enhanced Edition
+qBittorrent Enhanced Edition Alpha
+------------------------------------------
+Unofficial version of the newest qBittorrent Alpha merged with the latest c0re100/qBittorrent-Enhanced-Edition with a few custom changes.
+********************************
+# Custom changes added in this repo:
+1. Country names of peers appear next to the country flag rather than in the tooltip
+2. External IP address is shown in the statusbar
+3. Number of connected peers showing in the statusbar
+4. Number of the downloading piece showing in the row of the peer
 ------------------------------------------
 [Important Note for user and tracker operators](NOTE.md)
 ********************************
