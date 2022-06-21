@@ -37,24 +37,24 @@ XPStyle on
 !define MUI_FINISHPAGE_RUN_FUNCTION PageFinishRun
 !define MUI_FINISHPAGE_RUN_TEXT $(launch_qbt)
 
-!ifdef APPQT6
-  ; The name of the installer
-  Name "qBittorrent Enhanced Edition ${PROG_VERSION}"
-
-  ; The file to write
-  OutFile "qbittorrent_enhanced_${PROG_VERSION}_Qt6_setup.exe"
-!else !ifdef APP64BIT
-  ; The name of the installer
-  Name "qBittorrent Enhanced Edition ${PROG_VERSION}"
-
-  ; The file to write
-  OutFile "qbittorrent_enhanced_${PROG_VERSION}_setup.exe"
-!else
+!ifdef APP64BIT
   ; The name of the installer
   Name "qBittorrent Enhanced Edition ${PROG_VERSION} x64"
 
   ; The file to write
   OutFile "qbittorrent_enhanced_${PROG_VERSION}_x64_setup.exe"
+!else ifdef APPQT6
+  ; The name of the installer
+  Name "qBittorrent Enhanced Edition ${PROG_VERSION} x64"
+
+  ; The file to write
+  OutFile "qbittorrent_enhanced_${PROG_VERSION}_Qt6_setup.exe"
+!else
+  ; The name of the installer
+  Name "qBittorrent Enhanced Edition ${PROG_VERSION}"
+
+  ; The file to write
+  OutFile "qbittorrent_enhanced_${PROG_VERSION}_setup.exe"
 !endif
 
 ;Installer Version Information
@@ -70,10 +70,12 @@ VIProductVersion "${PROG_VERSION}"
 ; A caveat of this is if a user has installed a 32bit version and then runs the 64bit installer
 ; (which in turn launches the 32bit uninstaller first) the value will still point to the 32bit location.
 ; The user has to manually uninstall the old version and THEN run the 64bit installer
-!ifndef APP64BIT
-  InstallDir $PROGRAMFILES32\qBittorrent
-!else
+!ifdef APP64BIT
   InstallDir $PROGRAMFILES64\qBittorrent
+!else ifdef APPQT6
+  InstallDir $PROGRAMFILES64\qBittorrent
+!else
+  InstallDir $PROGRAMFILES32\qBittorrent
 !endif
 
 ; Registry key to check for directory (so if you install again, it will
