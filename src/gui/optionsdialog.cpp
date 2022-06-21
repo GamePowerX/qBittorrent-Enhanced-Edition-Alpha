@@ -32,7 +32,6 @@
 #include <limits>
 
 #include <QApplication>
-#include <QCloseEvent>
 #include <QDebug>
 #include <QDesktopServices>
 #include <QDialogButtonBox>
@@ -49,6 +48,7 @@
 #include "base/net/downloadmanager.h"
 #include "base/net/portforwarder.h"
 #include "base/net/proxyconfigurationmanager.h"
+#include "base/path.h"
 #include "base/preferences.h"
 #include "base/rss/rss_autodownloader.h"
 #include "base/rss/rss_session.h"
@@ -61,8 +61,8 @@
 #include "base/utils/random.h"
 #include "addnewtorrentdialog.h"
 #include "advancedsettings.h"
-#include "app/application.h"
 #include "banlistoptionsdialog.h"
+#include "interfaces/iguiapplication.h"
 #include "ipsubnetwhitelistoptionsdialog.h"
 #include "rss/automatedrssdownloader.h"
 #include "ui_optionsdialog.h"
@@ -71,7 +71,7 @@
 #include "watchedfolderoptionsdialog.h"
 #include "watchedfoldersmodel.h"
 
-#define SETTINGS_KEY(name) "OptionsDialog/" name
+#define SETTINGS_KEY(name) u"OptionsDialog/" name
 
 namespace
 {
@@ -83,7 +83,7 @@ namespace
         const QDate date {2018, 11, 5};  // Monday
         QStringList ret;
         for (int i = 0; i < 7; ++i)
-            ret.append(locale.toString(date.addDays(i), "dddd"));
+            ret.append(locale.toString(date.addDays(i), u"dddd"_qs));
         return ret;
     }
 
@@ -91,70 +91,70 @@ namespace
     {
         switch (locale.language())
         {
-        case QLocale::Arabic: return QString::fromUtf8(C_LOCALE_ARABIC);
-        case QLocale::Armenian: return QString::fromUtf8(C_LOCALE_ARMENIAN);
-        case QLocale::Azerbaijani: return QString::fromUtf8(C_LOCALE_AZERBAIJANI);
-        case QLocale::Basque: return QString::fromUtf8(C_LOCALE_BASQUE);
-        case QLocale::Bulgarian: return QString::fromUtf8(C_LOCALE_BULGARIAN);
-        case QLocale::Byelorussian: return QString::fromUtf8(C_LOCALE_BYELORUSSIAN);
-        case QLocale::Catalan: return QString::fromUtf8(C_LOCALE_CATALAN);
+        case QLocale::Arabic: return C_LOCALE_ARABIC;
+        case QLocale::Armenian: return C_LOCALE_ARMENIAN;
+        case QLocale::Azerbaijani: return C_LOCALE_AZERBAIJANI;
+        case QLocale::Basque: return C_LOCALE_BASQUE;
+        case QLocale::Bulgarian: return C_LOCALE_BULGARIAN;
+        case QLocale::Byelorussian: return C_LOCALE_BYELORUSSIAN;
+        case QLocale::Catalan: return C_LOCALE_CATALAN;
         case QLocale::Chinese:
             switch (locale.country())
             {
-            case QLocale::China: return QString::fromUtf8(C_LOCALE_CHINESE_SIMPLIFIED);
-            case QLocale::HongKong: return QString::fromUtf8(C_LOCALE_CHINESE_TRADITIONAL_HK);
-            default: return QString::fromUtf8(C_LOCALE_CHINESE_TRADITIONAL_TW);
+            case QLocale::China: return C_LOCALE_CHINESE_SIMPLIFIED;
+            case QLocale::HongKong: return C_LOCALE_CHINESE_TRADITIONAL_HK;
+            default: return C_LOCALE_CHINESE_TRADITIONAL_TW;
             }
-        case QLocale::Croatian: return QString::fromUtf8(C_LOCALE_CROATIAN);
-        case QLocale::Czech: return QString::fromUtf8(C_LOCALE_CZECH);
-        case QLocale::Danish: return QString::fromUtf8(C_LOCALE_DANISH);
-        case QLocale::Dutch: return QString::fromUtf8(C_LOCALE_DUTCH);
+        case QLocale::Croatian: return C_LOCALE_CROATIAN;
+        case QLocale::Czech: return C_LOCALE_CZECH;
+        case QLocale::Danish: return C_LOCALE_DANISH;
+        case QLocale::Dutch: return C_LOCALE_DUTCH;
         case QLocale::English:
             switch (locale.country())
             {
-            case QLocale::Australia: return QString::fromUtf8(C_LOCALE_ENGLISH_AUSTRALIA);
-            case QLocale::UnitedKingdom: return QString::fromUtf8(C_LOCALE_ENGLISH_UNITEDKINGDOM);
-            default: return QString::fromUtf8(C_LOCALE_ENGLISH);
+            case QLocale::Australia: return C_LOCALE_ENGLISH_AUSTRALIA;
+            case QLocale::UnitedKingdom: return C_LOCALE_ENGLISH_UNITEDKINGDOM;
+            default: return C_LOCALE_ENGLISH;
             }
-        case QLocale::Estonian: return QString::fromUtf8(C_LOCALE_ESTONIAN);
-        case QLocale::Finnish: return QString::fromUtf8(C_LOCALE_FINNISH);
-        case QLocale::French: return QString::fromUtf8(C_LOCALE_FRENCH);
-        case QLocale::Galician: return QString::fromUtf8(C_LOCALE_GALICIAN);
-        case QLocale::Georgian: return QString::fromUtf8(C_LOCALE_GEORGIAN);
-        case QLocale::German: return QString::fromUtf8(C_LOCALE_GERMAN);
-        case QLocale::Greek: return QString::fromUtf8(C_LOCALE_GREEK);
-        case QLocale::Hebrew: return QString::fromUtf8(C_LOCALE_HEBREW);
-        case QLocale::Hindi: return QString::fromUtf8(C_LOCALE_HINDI);
-        case QLocale::Hungarian: return QString::fromUtf8(C_LOCALE_HUNGARIAN);
-        case QLocale::Icelandic: return QString::fromUtf8(C_LOCALE_ICELANDIC);
-        case QLocale::Indonesian: return QString::fromUtf8(C_LOCALE_INDONESIAN);
-        case QLocale::Italian: return QString::fromUtf8(C_LOCALE_ITALIAN);
-        case QLocale::Japanese: return QString::fromUtf8(C_LOCALE_JAPANESE);
-        case QLocale::Korean: return QString::fromUtf8(C_LOCALE_KOREAN);
-        case QLocale::Latvian: return QString::fromUtf8(C_LOCALE_LATVIAN);
-        case QLocale::Lithuanian: return QString::fromUtf8(C_LOCALE_LITHUANIAN);
-        case QLocale::Malay: return QString::fromUtf8(C_LOCALE_MALAY);
-        case QLocale::Mongolian: return QString::fromUtf8(C_LOCALE_MONGOLIAN);
-        case QLocale::NorwegianBokmal: return QString::fromUtf8(C_LOCALE_NORWEGIAN);
-        case QLocale::Occitan: return QString::fromUtf8(C_LOCALE_OCCITAN);
-        case QLocale::Persian: return QString::fromUtf8(C_LOCALE_PERSIAN);
-        case QLocale::Polish: return QString::fromUtf8(C_LOCALE_POLISH);
+        case QLocale::Estonian: return C_LOCALE_ESTONIAN;
+        case QLocale::Finnish: return C_LOCALE_FINNISH;
+        case QLocale::French: return C_LOCALE_FRENCH;
+        case QLocale::Galician: return C_LOCALE_GALICIAN;
+        case QLocale::Georgian: return C_LOCALE_GEORGIAN;
+        case QLocale::German: return C_LOCALE_GERMAN;
+        case QLocale::Greek: return C_LOCALE_GREEK;
+        case QLocale::Hebrew: return C_LOCALE_HEBREW;
+        case QLocale::Hindi: return C_LOCALE_HINDI;
+        case QLocale::Hungarian: return C_LOCALE_HUNGARIAN;
+        case QLocale::Icelandic: return C_LOCALE_ICELANDIC;
+        case QLocale::Indonesian: return C_LOCALE_INDONESIAN;
+        case QLocale::Italian: return C_LOCALE_ITALIAN;
+        case QLocale::Japanese: return C_LOCALE_JAPANESE;
+        case QLocale::Korean: return C_LOCALE_KOREAN;
+        case QLocale::Latvian: return C_LOCALE_LATVIAN;
+        case QLocale::Lithuanian: return C_LOCALE_LITHUANIAN;
+        case QLocale::Malay: return C_LOCALE_MALAY;
+        case QLocale::Mongolian: return C_LOCALE_MONGOLIAN;
+        case QLocale::NorwegianBokmal: return C_LOCALE_NORWEGIAN;
+        case QLocale::Occitan: return C_LOCALE_OCCITAN;
+        case QLocale::Persian: return C_LOCALE_PERSIAN;
+        case QLocale::Polish: return C_LOCALE_POLISH;
         case QLocale::Portuguese:
             if (locale.country() == QLocale::Brazil)
-                return QString::fromUtf8(C_LOCALE_PORTUGUESE_BRAZIL);
-            return QString::fromUtf8(C_LOCALE_PORTUGUESE);
-        case QLocale::Romanian: return QString::fromUtf8(C_LOCALE_ROMANIAN);
-        case QLocale::Russian: return QString::fromUtf8(C_LOCALE_RUSSIAN);
-        case QLocale::Serbian: return QString::fromUtf8(C_LOCALE_SERBIAN);
-        case QLocale::Slovak: return QString::fromUtf8(C_LOCALE_SLOVAK);
-        case QLocale::Slovenian: return QString::fromUtf8(C_LOCALE_SLOVENIAN);
-        case QLocale::Spanish: return QString::fromUtf8(C_LOCALE_SPANISH);
-        case QLocale::Swedish: return QString::fromUtf8(C_LOCALE_SWEDISH);
-        case QLocale::Thai: return QString::fromUtf8(C_LOCALE_THAI);
-        case QLocale::Turkish: return QString::fromUtf8(C_LOCALE_TURKISH);
-        case QLocale::Ukrainian: return QString::fromUtf8(C_LOCALE_UKRAINIAN);
-        case QLocale::Uzbek: return QString::fromUtf8(C_LOCALE_UZBEK);
-        case QLocale::Vietnamese: return QString::fromUtf8(C_LOCALE_VIETNAMESE);
+                return C_LOCALE_PORTUGUESE_BRAZIL;
+            return C_LOCALE_PORTUGUESE;
+        case QLocale::Romanian: return C_LOCALE_ROMANIAN;
+        case QLocale::Russian: return C_LOCALE_RUSSIAN;
+        case QLocale::Serbian: return C_LOCALE_SERBIAN;
+        case QLocale::Slovak: return C_LOCALE_SLOVAK;
+        case QLocale::Slovenian: return C_LOCALE_SLOVENIAN;
+        case QLocale::Spanish: return C_LOCALE_SPANISH;
+        case QLocale::Swedish: return C_LOCALE_SWEDISH;
+        case QLocale::Thai: return C_LOCALE_THAI;
+        case QLocale::Turkish: return C_LOCALE_TURKISH;
+        case QLocale::Ukrainian: return C_LOCALE_UKRAINIAN;
+        case QLocale::Uzbek: return C_LOCALE_UZBEK;
+        case QLocale::Vietnamese: return C_LOCALE_VIETNAMESE;
         default:
             const QString lang = QLocale::languageToString(locale.language());
             qWarning() << "Unrecognized language name: " << lang;
@@ -179,32 +179,30 @@ private:
 OptionsDialog::OptionsDialog(QWidget *parent)
     : QDialog {parent}
     , m_ui {new Ui::OptionsDialog}
-    , m_storeDialogSize {SETTINGS_KEY("Size")}
-    , m_storeHSplitterSize {SETTINGS_KEY("HorizontalSplitterSizes")}
-    , m_storeLastViewedPage {SETTINGS_KEY("LastViewedPage")}
+    , m_storeDialogSize {SETTINGS_KEY(u"Size"_qs)}
+    , m_storeHSplitterSize {SETTINGS_KEY(u"HorizontalSplitterSizes"_qs)}
+    , m_storeLastViewedPage {SETTINGS_KEY(u"LastViewedPage"_qs)}
 {
     qDebug("-> Constructing Options");
     m_ui->setupUi(this);
-    setAttribute(Qt::WA_DeleteOnClose);
-    setModal(true);
 
 #if (defined(Q_OS_UNIX))
     setWindowTitle(tr("Preferences"));
 #endif
 
     // Icons
-    m_ui->tabSelection->item(TAB_UI)->setIcon(UIThemeManager::instance()->getIcon("preferences-desktop"));
-    m_ui->tabSelection->item(TAB_BITTORRENT)->setIcon(UIThemeManager::instance()->getIcon("preferences-system-network"));
-    m_ui->tabSelection->item(TAB_CONNECTION)->setIcon(UIThemeManager::instance()->getIcon("network-wired"));
-    m_ui->tabSelection->item(TAB_DOWNLOADS)->setIcon(UIThemeManager::instance()->getIcon("folder-download"));
-    m_ui->tabSelection->item(TAB_SPEED)->setIcon(UIThemeManager::instance()->getIcon("speedometer", "chronometer"));
-    m_ui->tabSelection->item(TAB_RSS)->setIcon(UIThemeManager::instance()->getIcon("rss-config", "application-rss+xml"));
+    m_ui->tabSelection->item(TAB_UI)->setIcon(UIThemeManager::instance()->getIcon(u"preferences-desktop"_qs));
+    m_ui->tabSelection->item(TAB_BITTORRENT)->setIcon(UIThemeManager::instance()->getIcon(u"preferences-system-network"_qs));
+    m_ui->tabSelection->item(TAB_CONNECTION)->setIcon(UIThemeManager::instance()->getIcon(u"network-wired"_qs));
+    m_ui->tabSelection->item(TAB_DOWNLOADS)->setIcon(UIThemeManager::instance()->getIcon(u"folder-download"_qs));
+    m_ui->tabSelection->item(TAB_SPEED)->setIcon(UIThemeManager::instance()->getIcon(u"speedometer"_qs, u"chronometer"_qs));
+    m_ui->tabSelection->item(TAB_RSS)->setIcon(UIThemeManager::instance()->getIcon(u"rss-config"_qs, u"application-rss+xml"_qs));
 #ifndef DISABLE_WEBUI
-    m_ui->tabSelection->item(TAB_WEBUI)->setIcon(UIThemeManager::instance()->getIcon("network-server"));
+    m_ui->tabSelection->item(TAB_WEBUI)->setIcon(UIThemeManager::instance()->getIcon(u"network-server"_qs));
 #else
     m_ui->tabSelection->item(TAB_WEBUI)->setHidden(true);
 #endif
-    m_ui->tabSelection->item(TAB_ADVANCED)->setIcon(UIThemeManager::instance()->getIcon("preferences-other"));
+    m_ui->tabSelection->item(TAB_ADVANCED)->setIcon(UIThemeManager::instance()->getIcon(u"preferences-other"_qs));
 
     // set uniform size for all icons
     int maxHeight = -1;
@@ -216,26 +214,26 @@ OptionsDialog::OptionsDialog(QWidget *parent)
         m_ui->tabSelection->item(i)->setSizeHint(size);
     }
 
-    m_ui->IpFilterRefreshBtn->setIcon(UIThemeManager::instance()->getIcon("view-refresh"));
+    m_ui->IpFilterRefreshBtn->setIcon(UIThemeManager::instance()->getIcon(u"view-refresh"_qs));
 
-    m_ui->labelGlobalRate->setPixmap(Utils::Gui::scaledPixmap(UIThemeManager::instance()->getIcon(QLatin1String("slow_off")), this, 24));
-    m_ui->labelAltRate->setPixmap(Utils::Gui::scaledPixmap(UIThemeManager::instance()->getIcon(QLatin1String("slow")), this, 24));
+    m_ui->labelGlobalRate->setPixmap(Utils::Gui::scaledPixmapSvg(UIThemeManager::instance()->getIconPath(u"slow_off"_qs), this, Utils::Gui::mediumIconSize(this).height()));
+    m_ui->labelAltRate->setPixmap(Utils::Gui::scaledPixmapSvg(UIThemeManager::instance()->getIconPath(u"slow"_qs), this, Utils::Gui::mediumIconSize(this).height()));
 
     m_ui->deleteTorrentWarningIcon->setPixmap(QApplication::style()->standardIcon(QStyle::SP_MessageBoxCritical).pixmap(16, 16));
     m_ui->deleteTorrentWarningIcon->hide();
     m_ui->deleteTorrentWarningLabel->hide();
-    m_ui->deleteTorrentWarningLabel->setToolTip(QLatin1String("<html><body><p>") +
+    m_ui->deleteTorrentWarningLabel->setToolTip(u"<html><body><p>" +
         tr("By enabling these options, you can <strong>irrevocably lose</strong> your .torrent files!") +
-        QLatin1String("</p><p>") +
+        u"</p><p>" +
         tr("When these options are enabled, qBittorrent will <strong>delete</strong> .torrent files "
         "after they were successfully (the first option) or not (the second option) added to its "
         "download queue. This will be applied <strong>not only</strong> to the files opened via "
         "&ldquo;Add torrent&rdquo; menu action but to those opened via <strong>file type association</strong> as well") +
-        QLatin1String("</p><p>") +
+        u"</p><p>" +
         tr("If you enable the second option (&ldquo;Also when addition is cancelled&rdquo;) the "
         ".torrent file <strong>will be deleted</strong> even if you press &ldquo;<strong>Cancel</strong>&rdquo; in "
         "the &ldquo;Add torrent&rdquo; dialog") +
-        QLatin1String("</p></body></html>"));
+        u"</p></body></html>");
 
     m_ui->hsplitter->setCollapsible(0, false);
     m_ui->hsplitter->setCollapsible(1, false);
@@ -338,6 +336,7 @@ OptionsDialog::OptionsDialog(QWidget *parent)
     connect(m_ui->checkAssociateMagnetLinks, &QAbstractButton::toggled, this, &ThisType::enableApplyButton);
     connect(m_ui->checkProgramUpdates, &QAbstractButton::toggled, this, &ThisType::enableApplyButton);
 #endif
+    connect(m_ui->checkBoxPerformanceWarning, &QAbstractButton::toggled, this, &ThisType::enableApplyButton);
     connect(m_ui->checkFileLog, &QGroupBox::toggled, this, &ThisType::enableApplyButton);
     connect(m_ui->textFileLogPath, &FileSystemPathEdit::selectedPathChanged, this, &ThisType::enableApplyButton);
     connect(m_ui->checkFileLogBackup, &QAbstractButton::toggled, this, &ThisType::enableApplyButton);
@@ -351,6 +350,7 @@ OptionsDialog::OptionsDialog(QWidget *parent)
     // Downloads tab
     connect(m_ui->textSavePath, &FileSystemPathEdit::selectedPathChanged, this, &ThisType::enableApplyButton);
     connect(m_ui->checkUseSubcategories, &QAbstractButton::toggled, this, &ThisType::enableApplyButton);
+    connect(m_ui->checkUseCategoryPaths, &QAbstractButton::toggled, this, &ThisType::enableApplyButton);
     connect(m_ui->comboSavingMode, qComboBoxCurrentIndexChanged, this, &ThisType::enableApplyButton);
     connect(m_ui->comboTorrentCategoryChanged, qComboBoxCurrentIndexChanged, this, &ThisType::enableApplyButton);
     connect(m_ui->comboCategoryDefaultPathChanged, qComboBoxCurrentIndexChanged, this, &ThisType::enableApplyButton);
@@ -376,6 +376,8 @@ OptionsDialog::OptionsDialog(QWidget *parent)
     connect(m_ui->checkUseDownloadPath, &QAbstractButton::toggled, this, &ThisType::enableApplyButton);
     connect(m_ui->checkUseDownloadPath, &QAbstractButton::toggled, m_ui->textDownloadPath, &QWidget::setEnabled);
     connect(m_ui->addWatchedFolderButton, &QAbstractButton::clicked, this, &ThisType::enableApplyButton);
+    connect(m_ui->groupExcludedFileNames, &QGroupBox::toggled, this, &ThisType::enableApplyButton);
+    connect(m_ui->textExcludedFileNames, &QPlainTextEdit::textChanged, this, &ThisType::enableApplyButton);
     connect(m_ui->removeWatchedFolderButton, &QAbstractButton::clicked, this, &ThisType::enableApplyButton);
     connect(m_ui->groupMailNotification, &QGroupBox::toggled, this, &ThisType::enableApplyButton);
     connect(m_ui->senderEmailTxt, &QLineEdit::textChanged, this, &ThisType::enableApplyButton);
@@ -389,7 +391,7 @@ OptionsDialog::OptionsDialog(QWidget *parent)
     connect(m_ui->lineEditAutoRun, &QLineEdit::textChanged, this, &ThisType::enableApplyButton);
     connect(m_ui->autoRunConsole, &QCheckBox::toggled, this, &ThisType::enableApplyButton);
 
-    const QString autoRunStr = QString("%1\n    %2\n    %3\n    %4\n    %5\n    %6\n    %7\n    %8\n    %9\n    %10\n    %11\n    %12\n    %13\n%14")
+    const auto autoRunStr = u"%1\n    %2\n    %3\n    %4\n    %5\n    %6\n    %7\n    %8\n    %9\n    %10\n    %11\n    %12\n    %13\n%14"_qs
         .arg(tr("Supported parameters (case sensitive):")
             , tr("%N: Torrent name")
             , tr("%L: Category")
@@ -432,6 +434,7 @@ OptionsDialog::OptionsDialog(QWidget *parent)
     connect(m_ui->spinMaxUploadsPerTorrent, qSpinBoxValueChanged, this, &ThisType::enableApplyButton);
     connect(m_ui->checkDHT, &QAbstractButton::toggled, this, &ThisType::enableApplyButton);
     connect(m_ui->checkAnonymousMode, &QAbstractButton::toggled, this, &ThisType::enableApplyButton);
+    connect(m_ui->spinBoxMaxActiveCheckingTorrents, qSpinBoxValueChanged, this, &ThisType::enableApplyButton);
     connect(m_ui->checkPeX, &QAbstractButton::toggled, this, &ThisType::enableApplyButton);
     connect(m_ui->checkLSD, &QAbstractButton::toggled, this, &ThisType::enableApplyButton);
     connect(m_ui->comboEncryption, qComboBoxCurrentIndexChanged, this, &ThisType::enableApplyButton);
@@ -471,9 +474,9 @@ OptionsDialog::OptionsDialog(QWidget *parent)
     connect(m_ui->checkAutoUpdateTrackers, &QGroupBox::toggled, this, &ThisType::enableApplyButton);
     connect(m_ui->textCustomizeTrackersListUrl, &QLineEdit::textChanged, this, &ThisType::enableApplyButton);
 
-    const QString slowTorrentsExplanation = QLatin1String("<html><body><p>")
+    const QString slowTorrentsExplanation = u"<html><body><p>"
             + tr("A torrent will be considered slow if its download and upload rates stay below these values for \"Torrent inactivity timer\" seconds")
-            + QLatin1String("</p></body></html>");
+            + u"</p></body></html>";
     m_ui->labelDownloadRateForSlowTorrents->setToolTip(slowTorrentsExplanation);
     m_ui->labelUploadRateForSlowTorrents->setToolTip(slowTorrentsExplanation);
     m_ui->labelSlowTorrentInactivityTimer->setToolTip(slowTorrentsExplanation);
@@ -481,10 +484,10 @@ OptionsDialog::OptionsDialog(QWidget *parent)
 #ifndef DISABLE_WEBUI
     // Web UI tab
     m_ui->textWebUIHttpsCert->setMode(FileSystemPathEdit::Mode::FileOpen);
-    m_ui->textWebUIHttpsCert->setFileNameFilter(tr("Certificate") + QLatin1String(" (*.cer *.crt *.pem)"));
+    m_ui->textWebUIHttpsCert->setFileNameFilter(tr("Certificate") + u" (*.cer *.crt *.pem)");
     m_ui->textWebUIHttpsCert->setDialogCaption(tr("Select certificate"));
     m_ui->textWebUIHttpsKey->setMode(FileSystemPathEdit::Mode::FileOpen);
-    m_ui->textWebUIHttpsKey->setFileNameFilter(tr("Private key") + QLatin1String(" (*.key *.pem)"));
+    m_ui->textWebUIHttpsKey->setFileNameFilter(tr("Private key") + u" (*.key *.pem)");
     m_ui->textWebUIHttpsKey->setDialogCaption(tr("Select private key"));
 
     connect(m_ui->textServerDomains, &QLineEdit::textChanged, this, &ThisType::enableApplyButton);
@@ -494,9 +497,9 @@ OptionsDialog::OptionsDialog(QWidget *parent)
     connect(m_ui->checkWebUIUPnP, &QAbstractButton::toggled, this, &ThisType::enableApplyButton);
     connect(m_ui->checkWebUiHttps, &QGroupBox::toggled, this, &ThisType::enableApplyButton);
     connect(m_ui->textWebUIHttpsCert, &FileSystemPathLineEdit::selectedPathChanged, this, &ThisType::enableApplyButton);
-    connect(m_ui->textWebUIHttpsCert, &FileSystemPathLineEdit::selectedPathChanged, this, [this](const QString &s) { webUIHttpsCertChanged(s, ShowError::Show); });
+    connect(m_ui->textWebUIHttpsCert, &FileSystemPathLineEdit::selectedPathChanged, this, [this](const Path &path) { webUIHttpsCertChanged(path, ShowError::Show); });
     connect(m_ui->textWebUIHttpsKey, &FileSystemPathLineEdit::selectedPathChanged, this, &ThisType::enableApplyButton);
-    connect(m_ui->textWebUIHttpsKey, &FileSystemPathLineEdit::selectedPathChanged, this, [this](const QString &s) { webUIHttpsKeyChanged(s, ShowError::Show); });
+    connect(m_ui->textWebUIHttpsKey, &FileSystemPathLineEdit::selectedPathChanged, this, [this](const Path &path) { webUIHttpsKeyChanged(path, ShowError::Show); });
     connect(m_ui->textWebUiUsername, &QLineEdit::textChanged, this, &ThisType::enableApplyButton);
     connect(m_ui->textWebUiPassword, &QLineEdit::textChanged, this, &ThisType::enableApplyButton);
     connect(m_ui->checkBypassLocalAuth, &QAbstractButton::toggled, this, &ThisType::enableApplyButton);
@@ -557,7 +560,7 @@ OptionsDialog::OptionsDialog(QWidget *parent)
 
     m_ui->textFilterPath->setDialogCaption(tr("Choose an IP filter file"));
     m_ui->textFilterPath->setFileNameFilter(tr("All supported filters")
-        + QLatin1String(" (*.dat *.p2p *.p2b);;.dat (*.dat);;.p2p (*.p2p);;.p2b (*.p2b)"));
+        + u" (*.dat *.p2p *.p2b);;.dat (*.dat);;.p2p (*.p2p);;.p2b (*.p2b)");
 
     m_ui->textSavePath->setDialogCaption(tr("Choose a save directory"));
     m_ui->textSavePath->setMode(FileSystemPathEdit::Mode::DirectorySave);
@@ -574,31 +577,29 @@ OptionsDialog::OptionsDialog(QWidget *parent)
 
     m_ui->tabSelection->setCurrentRow(m_storeLastViewedPage);
 
-    Utils::Gui::resize(this, m_storeDialogSize);
-    show();
-    // Have to be called after show(), because splitter width needed
-    loadSplitterState();
+    if (const QSize dialogSize = m_storeDialogSize; dialogSize.isValid())
+        resize(dialogSize);
 }
 
 void OptionsDialog::initializeLanguageCombo()
 {
     // List language files
-    const QDir langDir(":/lang");
-    const QStringList langFiles = langDir.entryList(QStringList("qbittorrent_*.qm"), QDir::Files);
+    const QDir langDir(u":/lang"_qs);
+    const QStringList langFiles = langDir.entryList(QStringList(u"qbittorrent_*.qm"_qs), QDir::Files);
     for (const QString &langFile : langFiles)
     {
         QString localeStr = langFile.mid(12); // remove "qbittorrent_"
         localeStr.chop(3); // Remove ".qm"
         QString languageName;
-        if (localeStr.startsWith("eo", Qt::CaseInsensitive))
+        if (localeStr.startsWith(u"eo", Qt::CaseInsensitive))
         {
             // QLocale doesn't work with that locale. Esperanto isn't a "real" language.
-            languageName = QString::fromUtf8(C_LOCALE_ESPERANTO);
+            languageName = C_LOCALE_ESPERANTO;
         }
-        else if (localeStr.startsWith("ltg", Qt::CaseInsensitive))
+        else if (localeStr.startsWith(u"ltg", Qt::CaseInsensitive))
         {
             // QLocale doesn't work with that locale.
-            languageName = QString::fromUtf8(C_LOCALE_LATGALIAN);
+            languageName = C_LOCALE_LATGALIAN;
         }
         else
         {
@@ -638,8 +639,7 @@ void OptionsDialog::changePage(QListWidgetItem *current, QListWidgetItem *previo
 void OptionsDialog::loadSplitterState()
 {
     // width has been modified, use height as width reference instead
-    const int width = Utils::Gui::scaledSize(this
-        , (m_ui->tabSelection->item(TAB_UI)->sizeHint().height() * 2));
+    const int width = m_ui->tabSelection->item(TAB_UI)->sizeHint().height() * 2;
     const QStringList defaultSizes = {QString::number(width), QString::number(m_ui->hsplitter->width() - width)};
 
     QList<int> splitterSizes;
@@ -649,16 +649,26 @@ void OptionsDialog::loadSplitterState()
     m_ui->hsplitter->setSizes(splitterSizes);
 }
 
+void OptionsDialog::showEvent(QShowEvent *e)
+{
+    QDialog::showEvent(e);
+
+    loadSplitterState();
+}
+
 void OptionsDialog::saveOptions()
 {
+    auto *pref = Preferences::instance();
+    auto *session = BitTorrent::Session::instance();
+
     m_applyButton->setEnabled(false);
-    Preferences *const pref = Preferences::instance();
+
     // Load the translation
     QString locale = getLocale();
     if (pref->getLocale() != locale)
     {
         auto *translator = new QTranslator;
-        if (translator->load(QLatin1String(":/lang/qbittorrent_") + locale))
+        if (translator->load(u":/lang/qbittorrent_"_qs + locale))
             qDebug("%s locale recognized, using translation.", qUtf8Printable(locale));
         else
             qDebug("%s locale unrecognized, using default (en).", qUtf8Printable(locale));
@@ -714,7 +724,9 @@ void OptionsDialog::saveOptions()
 #if defined(Q_OS_WIN) || defined(Q_OS_MACOS)
     pref->setUpdateCheckEnabled(m_ui->checkProgramUpdates->isChecked());
 #endif
-    auto *const app = static_cast<Application *>(QCoreApplication::instance());
+    session->setPerformanceWarningEnabled(m_ui->checkBoxPerformanceWarning->isChecked());
+
+    auto *app = dynamic_cast<IApplication *>(QCoreApplication::instance());
     app->setFileLoggerPath(m_ui->textFileLogPath->selectedPath());
     app->setFileLoggerBackup(m_ui->checkFileLogBackup->isChecked());
     app->setFileLoggerMaxSize(m_ui->spinFileLogSize->value() * 1024);
@@ -728,20 +740,19 @@ void OptionsDialog::saveOptions()
     RSS::Session::instance()->setMaxArticlesPerFeed(m_ui->spinRSSMaxArticlesPerFeed->value());
     RSS::Session::instance()->setProcessingEnabled(m_ui->checkRSSEnable->isChecked());
     RSS::AutoDownloader::instance()->setProcessingEnabled(m_ui->checkRSSAutoDownloaderEnable->isChecked());
-    RSS::AutoDownloader::instance()->setSmartEpisodeFilters(m_ui->textSmartEpisodeFilters->toPlainText().split('\n', Qt::SkipEmptyParts));
+    RSS::AutoDownloader::instance()->setSmartEpisodeFilters(m_ui->textSmartEpisodeFilters->toPlainText().split(u'\n', Qt::SkipEmptyParts));
     RSS::AutoDownloader::instance()->setDownloadRepacks(m_ui->checkSmartFilterDownloadRepacks->isChecked());
 
-    auto session = BitTorrent::Session::instance();
-
     // Downloads preferences
-    session->setSavePath(Utils::Fs::expandPathAbs(m_ui->textSavePath->selectedPath()));
+    session->setSavePath(Path(m_ui->textSavePath->selectedPath()));
     session->setSubcategoriesEnabled(m_ui->checkUseSubcategories->isChecked());
+    session->setUseCategoryPathsInManualMode(m_ui->checkUseCategoryPaths->isChecked());
     session->setAutoTMMDisabledByDefault(m_ui->comboSavingMode->currentIndex() == 0);
     session->setDisableAutoTMMWhenCategoryChanged(m_ui->comboTorrentCategoryChanged->currentIndex() == 1);
     session->setDisableAutoTMMWhenCategorySavePathChanged(m_ui->comboCategoryChanged->currentIndex() == 1);
     session->setDisableAutoTMMWhenDefaultSavePathChanged(m_ui->comboCategoryDefaultPathChanged->currentIndex() == 1);
     session->setDownloadPathEnabled(m_ui->checkUseDownloadPath->isChecked());
-    session->setDownloadPath(Utils::Fs::expandPathAbs(m_ui->textDownloadPath->selectedPath()));
+    session->setDownloadPath(m_ui->textDownloadPath->selectedPath());
     session->setAppendExtensionEnabled(m_ui->checkAppendqB->isChecked());
     session->setPreallocationEnabled(preAllocateAllFiles());
     pref->disableRecursiveDownload(!m_ui->checkRecursiveDownload->isChecked());
@@ -751,6 +762,8 @@ void OptionsDialog::saveOptions()
     session->setTorrentContentLayout(static_cast<BitTorrent::TorrentContentLayout>(m_ui->contentLayoutComboBox->currentIndex()));
     auto watchedFoldersModel = static_cast<WatchedFoldersModel *>(m_ui->scanFoldersView->model());
     watchedFoldersModel->apply();
+    session->setExcludedFileNamesEnabled(m_ui->groupExcludedFileNames->isChecked());
+    session->setExcludedFileNames(m_ui->textExcludedFileNames->toPlainText().split(u'\n', Qt::SkipEmptyParts));
     session->setTorrentExportDirectory(getTorrentExportDir());
     session->setFinishedTorrentExportDirectory(getFinishedTorrentExportDir());
     pref->setMailNotificationEnabled(m_ui->groupMailNotification->isChecked());
@@ -812,6 +825,7 @@ void OptionsDialog::saveOptions()
     session->setLSDEnabled(isLSDEnabled());
     session->setEncryption(getEncryptionSetting());
     session->setAnonymousModeEnabled(m_ui->checkAnonymousMode->isChecked());
+    session->setMaxActiveCheckingTorrents(m_ui->spinBoxMaxActiveCheckingTorrents->value());
     session->setAddTrackersEnabled(m_ui->checkEnableAddTrackers->isChecked());
     session->setAdditionalTrackers(m_ui->textTrackers->toPlainText());
     session->setGlobalMaxRatio(getMaxRatio());
@@ -825,8 +839,6 @@ void OptionsDialog::saveOptions()
         EnableSuperSeeding
     };
     session->setMaxRatioAction(actIndex.value(m_ui->comboRatioLimitAct->currentIndex()));
-    session->setAutoUpdateTrackersEnabled(m_ui->checkAutoUpdateTrackers->isChecked());
-    pref->setCustomizeTrackersListUrl(m_ui->textCustomizeTrackersListUrl->text());
     // End Bittorrent preferences
 
     // Misc preferences
@@ -921,11 +933,8 @@ Net::ProxyType OptionsDialog::getProxyType() const
 
 void OptionsDialog::loadOptions()
 {
-    int intValue;
-    QString strValue;
-    bool fileLogBackup = true;
-    bool fileLogDelete = true;
-    const Preferences *const pref = Preferences::instance();
+    const auto *pref = Preferences::instance();
+    const auto *session = BitTorrent::Session::instance();
 
     // Behavior preferences
     setLocale(pref->getLocale());
@@ -967,14 +976,15 @@ void OptionsDialog::loadOptions()
 #if defined(Q_OS_WIN) || defined(Q_OS_MACOS)
     m_ui->checkProgramUpdates->setChecked(pref->isUpdateCheckEnabled());
 #endif
+    m_ui->checkBoxPerformanceWarning->setChecked(session->isPerformanceWarningEnabled());
 
-    const Application *const app = static_cast<Application*>(QCoreApplication::instance());
+    const auto *app = dynamic_cast<IApplication *>(QCoreApplication::instance());
     m_ui->checkFileLog->setChecked(app->isFileLoggerEnabled());
     m_ui->textFileLogPath->setSelectedPath(app->fileLoggerPath());
-    fileLogBackup = app->isFileLoggerBackup();
+    const bool fileLogBackup = app->isFileLoggerBackup();
     m_ui->checkFileLogBackup->setChecked(fileLogBackup);
     m_ui->spinFileLogSize->setEnabled(fileLogBackup);
-    fileLogDelete = app->isFileLoggerDeleteOld();
+    const bool fileLogDelete = app->isFileLoggerDeleteOld();
     m_ui->checkFileLogDelete->setChecked(fileLogDelete);
     m_ui->spinFileLogAge->setEnabled(fileLogDelete);
     m_ui->comboFileLogAgeType->setEnabled(fileLogDelete);
@@ -985,13 +995,11 @@ void OptionsDialog::loadOptions()
 
     m_ui->checkRSSEnable->setChecked(RSS::Session::instance()->isProcessingEnabled());
     m_ui->checkRSSAutoDownloaderEnable->setChecked(RSS::AutoDownloader::instance()->isProcessingEnabled());
-    m_ui->textSmartEpisodeFilters->setPlainText(RSS::AutoDownloader::instance()->smartEpisodeFilters().join('\n'));
+    m_ui->textSmartEpisodeFilters->setPlainText(RSS::AutoDownloader::instance()->smartEpisodeFilters().join(u'\n'));
     m_ui->checkSmartFilterDownloadRepacks->setChecked(RSS::AutoDownloader::instance()->downloadRepacks());
 
     m_ui->spinRSSRefreshInterval->setValue(RSS::Session::instance()->refreshInterval());
     m_ui->spinRSSMaxArticlesPerFeed->setValue(RSS::Session::instance()->maxArticlesPerFeed());
-
-    const auto *session = BitTorrent::Session::instance();
 
     // Downloads preferences
     m_ui->checkAdditionDialog->setChecked(AddNewTorrentDialog::isEnabled());
@@ -1004,20 +1012,21 @@ void OptionsDialog::loadOptions()
 
     m_ui->textSavePath->setSelectedPath(session->savePath());
     m_ui->checkUseSubcategories->setChecked(session->isSubcategoriesEnabled());
+    m_ui->checkUseCategoryPaths->setChecked(session->useCategoryPathsInManualMode());
     m_ui->comboSavingMode->setCurrentIndex(!session->isAutoTMMDisabledByDefault());
     m_ui->comboTorrentCategoryChanged->setCurrentIndex(session->isDisableAutoTMMWhenCategoryChanged());
     m_ui->comboCategoryChanged->setCurrentIndex(session->isDisableAutoTMMWhenCategorySavePathChanged());
     m_ui->comboCategoryDefaultPathChanged->setCurrentIndex(session->isDisableAutoTMMWhenDefaultSavePathChanged());
     m_ui->checkUseDownloadPath->setChecked(session->isDownloadPathEnabled());
     m_ui->textDownloadPath->setEnabled(m_ui->checkUseDownloadPath->isChecked());
-    m_ui->textDownloadPath->setEnabled(m_ui->checkUseDownloadPath->isChecked());
-    m_ui->textDownloadPath->setSelectedPath(Utils::Fs::toNativePath(session->downloadPath()));
+    m_ui->textDownloadPath->setSelectedPath(session->downloadPath());
     m_ui->checkAppendqB->setChecked(session->isAppendExtensionEnabled());
     m_ui->checkPreallocateAll->setChecked(session->isPreallocationEnabled());
     m_ui->checkRecursiveDownload->setChecked(!pref->recursiveDownloadDisabled());
+    m_ui->groupExcludedFileNames->setChecked(session->isExcludedFileNamesEnabled());
+    m_ui->textExcludedFileNames->setPlainText(session->excludedFileNames().join(u'\n'));
 
-    strValue = session->torrentExportDirectory();
-    if (strValue.isEmpty())
+    if (session->torrentExportDirectory().isEmpty())
     {
         // Disable
         m_ui->checkExportDir->setChecked(false);
@@ -1028,11 +1037,10 @@ void OptionsDialog::loadOptions()
         // Enable
         m_ui->checkExportDir->setChecked(true);
         m_ui->textExportDir->setEnabled(true);
-        m_ui->textExportDir->setSelectedPath(strValue);
+        m_ui->textExportDir->setSelectedPath(session->torrentExportDirectory());
     }
 
-    strValue = session->finishedTorrentExportDirectory();
-    if (strValue.isEmpty())
+    if (session->finishedTorrentExportDirectory().isEmpty())
     {
         // Disable
         m_ui->checkExportDirFin->setChecked(false);
@@ -1043,7 +1051,7 @@ void OptionsDialog::loadOptions()
         // Enable
         m_ui->checkExportDirFin->setChecked(true);
         m_ui->textExportDirFin->setEnabled(true);
-        m_ui->textExportDirFin->setSelectedPath(strValue);
+        m_ui->textExportDirFin->setSelectedPath(session->finishedTorrentExportDirectory());
     }
 
     m_ui->groupMailNotification->setChecked(pref->isMailNotificationEnabled());
@@ -1089,7 +1097,7 @@ void OptionsDialog::loadOptions()
     m_ui->spinPort->setValue(session->port());
     m_ui->checkUPnP->setChecked(Net::PortForwarder::instance()->isEnabled());
 
-    intValue = session->maxConnections();
+    int intValue = session->maxConnections();
     if (intValue > 0)
     {
         // enable
@@ -1212,6 +1220,7 @@ void OptionsDialog::loadOptions()
     m_ui->checkLSD->setChecked(session->isLSDEnabled());
     m_ui->comboEncryption->setCurrentIndex(session->encryption());
     m_ui->checkAnonymousMode->setChecked(session->isAnonymousModeEnabled());
+    m_ui->spinBoxMaxActiveCheckingTorrents->setValue(session->maxActiveCheckingTorrents());
     m_ui->checkEnableAddTrackers->setChecked(session->isAddTrackersEnabled());
     m_ui->textTrackers->setPlainText(session->additionalTrackers());
 
@@ -1482,15 +1491,8 @@ void OptionsDialog::applySettings()
     saveOptions();
 }
 
-void OptionsDialog::closeEvent(QCloseEvent *e)
-{
-    setAttribute(Qt::WA_DeleteOnClose);
-    e->accept();
-}
-
 void OptionsDialog::on_buttonBox_rejected()
 {
-    setAttribute(Qt::WA_DeleteOnClose);
     reject();
 }
 
@@ -1610,21 +1612,21 @@ QString OptionsDialog::getLocale() const
 void OptionsDialog::setLocale(const QString &localeStr)
 {
     QString name;
-    if (localeStr.startsWith("eo", Qt::CaseInsensitive))
+    if (localeStr.startsWith(u"eo", Qt::CaseInsensitive))
     {
-        name = "eo";
+        name = u"eo"_qs;
     }
-    else if (localeStr.startsWith("ltg", Qt::CaseInsensitive))
+    else if (localeStr.startsWith(u"ltg", Qt::CaseInsensitive))
     {
-        name = "ltg";
+        name = u"ltg"_qs;
     }
     else
     {
         QLocale locale(localeStr);
         if (locale.language() == QLocale::Uzbek)
-            name = "uz@Latn";
+            name = u"uz@Latn"_qs;
         else if (locale.language() == QLocale::Azerbaijani)
-            name = "az@latin";
+            name = u"az@latin"_qs;
         else
             name = locale.name();
     }
@@ -1633,7 +1635,7 @@ void OptionsDialog::setLocale(const QString &localeStr)
     if (index < 0)
     {
         //Attempt to find a language match without a country
-        int pos = name.indexOf('_');
+        int pos = name.indexOf(u'_');
         if (pos > -1)
         {
             QString lang = name.left(pos);
@@ -1643,36 +1645,35 @@ void OptionsDialog::setLocale(const QString &localeStr)
     if (index < 0)
     {
         // Unrecognized, use US English
-        index = m_ui->comboI18n->findData("en", Qt::UserRole);
+        index = m_ui->comboI18n->findData(u"en"_qs, Qt::UserRole);
         Q_ASSERT(index >= 0);
     }
     m_ui->comboI18n->setCurrentIndex(index);
 }
 
-QString OptionsDialog::getTorrentExportDir() const
+Path OptionsDialog::getTorrentExportDir() const
 {
     if (m_ui->checkExportDir->isChecked())
-        return Utils::Fs::expandPathAbs(m_ui->textExportDir->selectedPath());
+        return m_ui->textExportDir->selectedPath();
     return {};
 }
 
-QString OptionsDialog::getFinishedTorrentExportDir() const
+Path OptionsDialog::getFinishedTorrentExportDir() const
 {
     if (m_ui->checkExportDirFin->isChecked())
-        return Utils::Fs::expandPathAbs(m_ui->textExportDirFin->selectedPath());
+        return m_ui->textExportDirFin->selectedPath();
     return {};
 }
 
 void OptionsDialog::on_addWatchedFolderButton_clicked()
 {
     Preferences *const pref = Preferences::instance();
-    const QString dir = QFileDialog::getExistingDirectory(this, tr("Select folder to monitor"),
-        Utils::Fs::toNativePath(Utils::Fs::folderName(pref->getScanDirsLastPath())));
+    const Path dir {QFileDialog::getExistingDirectory(
+                this, tr("Select folder to monitor"), pref->getScanDirsLastPath().parentPath().toString())};
     if (dir.isEmpty())
         return;
 
     auto dialog = new WatchedFolderOptionsDialog({}, this);
-    dialog->setModal(true);
     dialog->setAttribute(Qt::WA_DeleteOnClose);
     connect(dialog, &QDialog::accepted, this, [this, dialog, dir, pref]()
     {
@@ -1728,7 +1729,6 @@ void OptionsDialog::editWatchedFolderOptions(const QModelIndex &index)
 
     auto watchedFoldersModel = static_cast<WatchedFoldersModel *>(m_ui->scanFoldersView->model());
     auto dialog = new WatchedFolderOptionsDialog(watchedFoldersModel->folderOptions(index.row()), this);
-    dialog->setModal(true);
     dialog->setAttribute(Qt::WA_DeleteOnClose);
     connect(dialog, &QDialog::accepted, this, [this, dialog, index, watchedFoldersModel]()
     {
@@ -1744,19 +1744,8 @@ void OptionsDialog::editWatchedFolderOptions(const QModelIndex &index)
     dialog->open();
 }
 
-QString OptionsDialog::askForExportDir(const QString &currentExportPath)
-{
-    QDir currentExportDir(Utils::Fs::expandPathAbs(currentExportPath));
-    QString dir;
-    if (!currentExportPath.isEmpty() && currentExportDir.exists())
-        dir = QFileDialog::getExistingDirectory(this, tr("Choose export directory"), currentExportDir.absolutePath());
-    else
-        dir = QFileDialog::getExistingDirectory(this, tr("Choose export directory"), QDir::homePath());
-    return dir;
-}
-
 // Return Filter object to apply to BT session
-QString OptionsDialog::getFilter() const
+Path OptionsDialog::getFilter() const
 {
     return m_ui->textFilterPath->selectedPath();
 }
@@ -1778,15 +1767,15 @@ QString OptionsDialog::webUiPassword() const
     return m_ui->textWebUiPassword->text();
 }
 
-void OptionsDialog::webUIHttpsCertChanged(const QString &path, const ShowError showError)
+void OptionsDialog::webUIHttpsCertChanged(const Path &path, const ShowError showError)
 {
     m_ui->textWebUIHttpsCert->setSelectedPath(path);
-    m_ui->lblSslCertStatus->setPixmap(Utils::Gui::scaledPixmapSvg(UIThemeManager::instance()->getIconPath(QLatin1String("security-low")), this, 24));
+    m_ui->lblSslCertStatus->setPixmap(Utils::Gui::scaledPixmapSvg(UIThemeManager::instance()->getIconPath(u"security-low"_qs), this, 24));
 
     if (path.isEmpty())
         return;
 
-    QFile file(path);
+    QFile file {path.data()};
     if (!file.open(QIODevice::ReadOnly))
     {
         if (showError == ShowError::Show)
@@ -1801,18 +1790,18 @@ void OptionsDialog::webUIHttpsCertChanged(const QString &path, const ShowError s
         return;
     }
 
-    m_ui->lblSslCertStatus->setPixmap(Utils::Gui::scaledPixmapSvg(UIThemeManager::instance()->getIconPath(QLatin1String("security-high")), this, 24));
+    m_ui->lblSslCertStatus->setPixmap(Utils::Gui::scaledPixmapSvg(UIThemeManager::instance()->getIconPath(u"security-high"_qs), this, 24));
 }
 
-void OptionsDialog::webUIHttpsKeyChanged(const QString &path, const ShowError showError)
+void OptionsDialog::webUIHttpsKeyChanged(const Path &path, const ShowError showError)
 {
     m_ui->textWebUIHttpsKey->setSelectedPath(path);
-    m_ui->lblSslKeyStatus->setPixmap(Utils::Gui::scaledPixmapSvg(UIThemeManager::instance()->getIconPath(QLatin1String("security-low")), this, 24));
+    m_ui->lblSslKeyStatus->setPixmap(Utils::Gui::scaledPixmapSvg(UIThemeManager::instance()->getIconPath(u"security-low"_qs), this, 24));
 
     if (path.isEmpty())
         return;
 
-    QFile file(path);
+    QFile file {path.data()};
     if (!file.open(QIODevice::ReadOnly))
     {
         if (showError == ShowError::Show)
@@ -1827,7 +1816,7 @@ void OptionsDialog::webUIHttpsKeyChanged(const QString &path, const ShowError sh
         return;
     }
 
-    m_ui->lblSslKeyStatus->setPixmap(Utils::Gui::scaledPixmapSvg(UIThemeManager::instance()->getIconPath(QLatin1String("security-high")), this, 24));
+    m_ui->lblSslKeyStatus->setPixmap(Utils::Gui::scaledPixmapSvg(UIThemeManager::instance()->getIconPath(u"security-high"_qs), this, 24));
 }
 
 void OptionsDialog::showConnectionTab()
@@ -1848,7 +1837,7 @@ void OptionsDialog::on_IpFilterRefreshBtn_clicked()
     // Updating program preferences
     BitTorrent::Session *const session = BitTorrent::Session::instance();
     session->setIPFilteringEnabled(true);
-    session->setIPFilterFile(""); // forcing Session reload filter file
+    session->setIPFilterFile({}); // forcing Session reload filter file
     session->setIPFilterFile(getFilter());
     connect(session, &BitTorrent::Session::IPFilterParsed, this, &OptionsDialog::handleIPFilterParsed);
     setCursor(QCursor(Qt::WaitCursor));
@@ -1892,7 +1881,7 @@ bool OptionsDialog::webUIAuthenticationOk()
 
 bool OptionsDialog::isAlternativeWebUIPathValid()
 {
-    if (m_ui->groupAltWebUI->isChecked() && m_ui->textWebUIRootFolder->selectedPath().trimmed().isEmpty())
+    if (m_ui->groupAltWebUI->isChecked() && m_ui->textWebUIRootFolder->selectedPath().isEmpty())
     {
         QMessageBox::warning(this, tr("Location Error"), tr("The alternative Web UI files location cannot be blank."));
         return false;
@@ -1914,24 +1903,4 @@ void OptionsDialog::on_IPSubnetWhitelistButton_clicked()
     dialog->setAttribute(Qt::WA_DeleteOnClose);
     connect(dialog, &QDialog::accepted, this, &OptionsDialog::enableApplyButton);
     dialog->open();
-}
-
-void OptionsDialog::on_fetchButton_clicked()
-{
-    Net::DownloadHandler *m_fetchHandler = Net::DownloadManager::instance()->download(Preferences::instance()->customizeTrackersListUrl());
-    connect(m_fetchHandler, &Net::DownloadHandler::finished, this, &OptionsDialog::handlePublicTrackersListChanged);
-}
-
-void OptionsDialog::handlePublicTrackersListChanged(const Net::DownloadResult &result)
-{
-    switch (result.status) {
-        case Net::DownloadStatus::Success:
-            BitTorrent::Session::instance()->setPublicTrackers(QString::fromUtf8(result.data.data()));
-            m_ui->textPublicTrackers->setPlainText(QString::fromUtf8(result.data.data()));
-            m_ui->fetchButton->setEnabled(false);
-            m_ui->fetchButton->setText("Fetched!");
-            break;
-        default:
-            m_ui->textPublicTrackers->setPlainText("Refetch failed. Reason: " + result.errorString);
-    }
 }

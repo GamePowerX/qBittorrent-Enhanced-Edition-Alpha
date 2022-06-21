@@ -41,9 +41,16 @@ src/icons/skin/build-icons/icons/*.png
 # CMake build directory
 build/
 
+# CMake build debug directory
+cmake-build-debug/
+
 # Web UI tools
 node_modules
 package-lock.json
 conf.pri.*
 /dist/windows/translations/*
 /dist/windows/license.txt
+
+# Clion
+.idea
+

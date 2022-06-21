@@ -1,6 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.1" language="sv">
+<?xml version="1.0" ?><!DOCTYPE TS><TS version="2.1" language="sv">
 <context>
     <name>AboutDlg</name>
     <message>
@@ -39,7 +37,7 @@
         <translation>Skapa undermapp</translation>
     </message>
     <message>
-        <source>Don't create subfolder</source>
+        <source>Don&apos;t create subfolder</source>
         <translation>Skapa inte undermapp</translation>
     </message>
 </context>
@@ -573,7 +571,7 @@
     </message>
     <message>
         <source>Filters Sidebar</source>
-        <translation type="vanished">Filtersidofält</translation>
+        <translation>Filtersidofält</translation>
     </message>
 </context>
 <context>
@@ -957,8 +955,8 @@
         <translation>%T: Aktuell spårare</translation>
     </message>
     <message>
-        <source>Tip: Encapsulate parameter with quotation marks to avoid text being cut off at whitespace (e.g., "%N")</source>
-        <translation>Tips: Inkapsla parametern med citattecken för att undvika att text skärs av vid blanktecknet (t. ex. "%N")</translation>
+        <source>Tip: Encapsulate parameter with quotation marks to avoid text being cut off at whitespace (e.g., &quot;%N&quot;)</source>
+        <translation>Tips: Inkapsla parametern med citattecken för att undvika att text skärs av vid blanktecknet (t. ex. &quot;%N&quot;)</translation>
     </message>
     <message>
         <source>The Web UI username must be at least 3 characters long.</source>
@@ -1330,7 +1328,7 @@
     </message>
     <message>
         <source>Peer turnover threshold percentage:</source>
-        <translation type="unfinished" />
+        <translation type="unfinished"/>
     </message>
     <message>
         <source>RSS Torrent Auto Downloader</source>
@@ -1362,7 +1360,7 @@
     </message>
     <message>
         <source>Peer turnover disconnect percentage:</source>
-        <translation type="unfinished" />
+        <translation type="unfinished"/>
     </message>
     <message>
         <source>Maximum number of articles per feed:</source>
@@ -1378,7 +1376,7 @@
     </message>
     <message>
         <source>Peer turnover disconnect interval:</source>
-        <translation type="unfinished" />
+        <translation type="unfinished"/>
     </message>
     <message>
         <source>Optional IP address to bind to:</source>
@@ -1429,7 +1427,7 @@
         <translation>Ursprunglig</translation>
     </message>
     <message>
-        <source>Don't create subfolder</source>
+        <source>Don&apos;t create subfolder</source>
         <translation>Skapa inte undermapp</translation>
     </message>
     <message>
@@ -1482,19 +1480,43 @@
     </message>
     <message>
         <source>Disk queue size:</source>
-        <translation type="vanished">Diskköstorlek:</translation>
+        <translation>Diskköstorlek:</translation>
     </message>
     <message>
         <source>Log performance warnings</source>
-        <translation type="vanished">Logga prestandavarningar</translation>
+        <translation>Logga prestandavarningar</translation>
     </message>
     <message>
         <source>Maximum outstanding requests to a single peer:</source>
-        <translation type="vanished">Högst antal utestående förfrågningar till en enskild jämlike:</translation>
+        <translation>Högst antal utestående förfrågningar till en enskild jämlike:</translation>
     </message>
     <message>
         <source>Max active checking torrents:</source>
-        <translation type="vanished">Max aktiva torrentkontroller:</translation>
+        <translation>Max aktiva torrentkontroller:</translation>
+    </message>
+    <message>
+        <source>Memory mapped files</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Default</source>
+        <translation>Standard</translation>
+    </message>
+    <message>
+        <source>POSIX-compliant</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>This option is less effective on Linux</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Disk IO type (libtorrent &gt;= 2.0; requires restart):</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Physical memory (RAM) usage limit:</source>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>
@@ -2184,10 +2206,6 @@
         <translation>Meddelande</translation>
     </message>
     <message>
-        <source>Downloaded</source>
-        <translation>Hämtat</translation>
-    </message>
-    <message>
         <source>Tracker URL:</source>
         <translation>Spårar-URL:</translation>
     </message>
@@ -2269,11 +2287,11 @@
     </message>
     <message>
         <source>Total Size</source>
-        <translation type="vanished">Total storlek</translation>
+        <translation>Total storlek</translation>
     </message>
     <message>
-        <source>Size</source>
-        <translation type="unfinished" />
+        <source>Times Downloaded</source>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>
@@ -2570,6 +2588,10 @@
         <source>Torrent ID</source>
         <translation>Torrent-ID</translation>
     </message>
+    <message>
+        <source>Export .torrent</source>
+        <translation type="unfinished"/>
+    </message>
 </context>
 <context>
     <name>UpDownRatioDialog</name>
@@ -2835,7 +2857,7 @@
         <translation>Aktiverad</translation>
     </message>
     <message>
-        <source>Warning: Be sure to comply with your country's copyright laws when downloading torrents from any of these search engines.</source>
+        <source>Warning: Be sure to comply with your country&apos;s copyright laws when downloading torrents from any of these search engines.</source>
         <translation>Varning: Var noga med att följa ditt lands upphovsrättslagar när du hämtar torrenter från någon av de här sökmotorerna.</translation>
     </message>
     <message>
@@ -3450,7 +3472,7 @@ Stöder formaten: S01E01, 1x1, 2017.12.31 och 31.12.2017 (datumformatet stöder 
         <translation>Original</translation>
     </message>
     <message>
-        <source>Don't create subfolder</source>
+        <source>Don&apos;t create subfolder</source>
         <translation>Skapa inte undermapp</translation>
     </message>
 </context>

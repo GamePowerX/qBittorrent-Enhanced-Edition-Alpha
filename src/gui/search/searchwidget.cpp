@@ -46,7 +46,6 @@
 #include <QObject>
 #include <QRegularExpression>
 #include <QShortcut>
-#include <QTextStream>
 #include <QVector>
 
 #include "base/global.h"
@@ -64,20 +63,20 @@
 
 namespace
 {
-    QString statusIconName(SearchJobWidget::Status st)
+    QString statusIconName(const SearchJobWidget::Status st)
     {
         switch (st)
         {
         case SearchJobWidget::Status::Ongoing:
-            return QLatin1String("task-ongoing");
+            return u"task-ongoing"_qs;
         case SearchJobWidget::Status::Finished:
-            return QLatin1String("task-complete");
+            return u"task-complete"_qs;
         case SearchJobWidget::Status::Aborted:
-            return QLatin1String("task-reject");
+            return u"task-reject"_qs;
         case SearchJobWidget::Status::Error:
-            return QLatin1String("task-attention");
+            return u"task-attention"_qs;
         case SearchJobWidget::Status::NoResults:
-            return QLatin1String("task-attention");
+            return u"task-attention"_qs;
         default:
             return {};
         }
@@ -93,28 +92,26 @@ SearchWidget::SearchWidget(MainWindow *mainWindow)
     m_ui->setupUi(this);
     m_ui->tabWidget->tabBar()->installEventFilter(this);
 
-    QString searchPatternHint;
-    QTextStream stream(&searchPatternHint, QIODevice::WriteOnly);
-    stream << "<html><head/><body><p>"
-           << tr("A phrase to search for.") << "<br>"
-           << tr("Spaces in a search term may be protected by double quotes.")
-           << "</p><p>"
-           << tr("Example:", "Search phrase example")
-           << "<br>"
-           << tr("<b>foo bar</b>: search for <b>foo</b> and <b>bar</b>",
+    const QString searchPatternHint = u"<html><head/><body><p>"
+        + tr("A phrase to search for.") + u"<br>"
+        + tr("Spaces in a search term may be protected by double quotes.")
+        + u"</p><p>"
+        + tr("Example:", "Search phrase example")
+        + u"<br>"
+        + tr("<b>foo bar</b>: search for <b>foo</b> and <b>bar</b>",
                  "Search phrase example, illustrates quotes usage, a pair of "
                  "space delimited words, individal words are highlighted")
-           << "<br>"
-           << tr("<b>&quot;foo bar&quot;</b>: search for <b>foo bar</b>",
+        + u"<br>"
+        + tr("<b>&quot;foo bar&quot;</b>: search for <b>foo bar</b>",
                  "Search phrase example, illustrates quotes usage, double quoted"
                  "pair of space delimited words, the whole pair is highlighted")
-           << "</p></body></html>";
+        + u"</p></body></html>";
     m_ui->lineEditSearchPattern->setToolTip(searchPatternHint);
 
 #ifndef Q_OS_MACOS
     // Icons
-    m_ui->searchButton->setIcon(UIThemeManager::instance()->getIcon("edit-find"));
-    m_ui->pluginsButton->setIcon(UIThemeManager::instance()->getIcon("preferences-system-network"));
+    m_ui->searchButton->setIcon(UIThemeManager::instance()->getIcon(u"edit-find"_qs));
+    m_ui->pluginsButton->setIcon(UIThemeManager::instance()->getIcon(u"preferences-system-network"_qs));
 #else
     // On macOS the icons overlap the text otherwise
     QSize iconSize = m_ui->tabWidget->iconSize();
@@ -182,7 +179,7 @@ bool SearchWidget::eventFilter(QObject *object, QEvent *event)
 void SearchWidget::fillCatCombobox()
 {
     m_ui->comboCategory->clear();
-    m_ui->comboCategory->addItem(SearchPluginManager::categoryFullName("all"), "all");
+    m_ui->comboCategory->addItem(SearchPluginManager::categoryFullName(u"all"_qs), u"all"_qs);
 
     using QStrPair = std::pair<QString, QString>;
     QVector<QStrPair> tmpList;
@@ -203,9 +200,9 @@ void SearchWidget::fillCatCombobox()
 void SearchWidget::fillPluginComboBox()
 {
     m_ui->selectPlugin->clear();
-    m_ui->selectPlugin->addItem(tr("Only enabled"), "enabled");
-    m_ui->selectPlugin->addItem(tr("All plugins"), "all");
-    m_ui->selectPlugin->addItem(tr("Select..."), "multi");
+    m_ui->selectPlugin->addItem(tr("Only enabled"), u"enabled"_qs);
+    m_ui->selectPlugin->addItem(tr("All plugins"), u"all"_qs);
+    m_ui->selectPlugin->addItem(tr("Select..."), u"multi"_qs);
 
     using QStrPair = std::pair<QString, QString>;
     QVector<QStrPair> tmpList;
@@ -266,7 +263,7 @@ void SearchWidget::tabChanged(int index)
 void SearchWidget::selectMultipleBox(int index)
 {
     Q_UNUSED(index);
-    if (selectedPlugin() == "multi")
+    if (selectedPlugin() == u"multi")
         on_pluginsButton_clicked();
 }
 
@@ -286,7 +283,9 @@ void SearchWidget::toggleFocusBetweenLineEdits()
 
 void SearchWidget::on_pluginsButton_clicked()
 {
-    new PluginSelectDialog(SearchPluginManager::instance(), this);
+    auto *dlg = new PluginSelectDialog(SearchPluginManager::instance(), this);
+    dlg->setAttribute(Qt::WA_DeleteOnClose);
+    dlg->show();
 }
 
 void SearchWidget::searchTextEdited(const QString &)
@@ -331,11 +330,11 @@ void SearchWidget::on_searchButton_clicked()
     }
 
     QStringList plugins;
-    if (selectedPlugin() == "all")
+    if (selectedPlugin() == u"all")
         plugins = SearchPluginManager::instance()->allPlugins();
-    else if (selectedPlugin() == "enabled")
+    else if (selectedPlugin() == u"enabled")
         plugins = SearchPluginManager::instance()->enabledPlugins();
-    else if (selectedPlugin() == "multi")
+    else if (selectedPlugin() == u"multi")
         plugins = SearchPluginManager::instance()->enabledPlugins();
     else
         plugins << selectedPlugin();
@@ -350,7 +349,7 @@ void SearchWidget::on_searchButton_clicked()
     m_allTabs.append(newTab);
 
     QString tabName = pattern;
-    tabName.replace(QRegularExpression("&{1}"), "&&");
+    tabName.replace(QRegularExpression(u"&{1}"_qs), u"&&"_qs);
     m_ui->tabWidget->addTab(newTab, tabName);
     m_ui->tabWidget->setCurrentWidget(newTab);
 

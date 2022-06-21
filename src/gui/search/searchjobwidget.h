@@ -31,6 +31,8 @@
 
 #include <QWidget>
 
+#include "base/settingvalue.h"
+
 #define ENGINE_URL_COLUMN 4
 #define URL_COLUMN 5
 
@@ -88,6 +90,9 @@ signals:
 protected:
     void keyPressEvent(QKeyEvent *event) override;
 
+private slots:
+    void displayColumnHeaderMenu();
+
 private:
     enum class AddTorrentOption
     {
@@ -100,9 +105,8 @@ private:
     void saveSettings() const;
     void updateFilter();
     void filterSearchResults(const QString &name);
-    void showFilterContextMenu(const QPoint &);
+    void showFilterContextMenu();
     void contextMenuEvent(QContextMenuEvent *event) override;
-    void displayToggleColumnsMenu(const QPoint &);
     void onItemDoubleClicked(const QModelIndex &index);
     void searchFinished(bool cancelled);
     void searchFailed();
@@ -115,6 +119,7 @@ private:
     NameFilteringMode filteringMode() const;
     QHeaderView *header() const;
     void setRowColor(int row, const QColor &color);
+    int visibleColumnsCount() const;
 
     void downloadTorrents(AddTorrentOption option = AddTorrentOption::Default);
     void openTorrentPages() const;
@@ -124,7 +129,6 @@ private:
     void copyField(int column) const;
 
     static QString statusText(Status st);
-    static SettingValue<NameFilteringMode> &nameFilteringModeSetting();
 
     Ui::SearchJobWidget *m_ui;
     SearchHandler *m_searchHandler;
@@ -133,6 +137,8 @@ private:
     LineEdit *m_lineEditSearchResultsFilter;
     Status m_status = Status::Ongoing;
     bool m_noSearchResults = true;
+
+    SettingValue<NameFilteringMode> m_nameFilteringMode;
 };
 
 Q_DECLARE_METATYPE(SearchJobWidget::NameFilteringMode)

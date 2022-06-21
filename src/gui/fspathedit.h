@@ -30,6 +30,8 @@
 
 #include <QWidget>
 
+#include "base/path.h"
+
 namespace Private
 {
     class FileComboEdit;
@@ -44,10 +46,14 @@ namespace Private
 class FileSystemPathEdit : public QWidget
 {
     Q_OBJECT
+    Q_DISABLE_COPY_MOVE(FileSystemPathEdit)
+
     Q_PROPERTY(Mode mode READ mode WRITE setMode)
-    Q_PROPERTY(QString selectedPath READ selectedPath WRITE setSelectedPath NOTIFY selectedPathChanged)
+    Q_PROPERTY(Path selectedPath READ selectedPath WRITE setSelectedPath NOTIFY selectedPathChanged)
     Q_PROPERTY(QString fileNameFilter READ fileNameFilter WRITE setFileNameFilter)
     Q_PROPERTY(QString dialogCaption READ dialogCaption WRITE setDialogCaption)
+
+    class FileSystemPathEditPrivate;
 
 public:
     ~FileSystemPathEdit() override;
@@ -64,14 +70,14 @@ public:
     Mode mode() const;
     void setMode(Mode mode);
 
-    QString selectedPath() const;
-    void setSelectedPath(const QString &val);
+    Path selectedPath() const;
+    void setSelectedPath(const Path &val);
 
     QString fileNameFilter() const;
     void setFileNameFilter(const QString &val);
 
-    QString placeholder() const;
-    void setPlaceholder(const QString &val);
+    Path placeholder() const;
+    void setPlaceholder(const Path &val);
 
     /// The browse button caption is "..." if true, and "Browse" otherwise
     bool briefBrowseButtonCaption() const;
@@ -83,7 +89,7 @@ public:
     virtual void clear() = 0;
 
 signals:
-    void selectedPathChanged(const QString &path);
+    void selectedPathChanged(const Path &path);
 
 protected:
     explicit FileSystemPathEdit(Private::FileEditorWithCompletion *editor, QWidget *parent);
@@ -98,13 +104,13 @@ protected slots:
     void onPathEdited();
 
 private:
+    Q_DECLARE_PRIVATE(FileSystemPathEdit)
+
     virtual QString editWidgetText() const = 0;
     virtual void setEditWidgetText(const QString &text) = 0;
 
     QWidget *editWidgetImpl() const;
-    Q_DISABLE_COPY_MOVE(FileSystemPathEdit)
-    class FileSystemPathEditPrivate;
-    Q_DECLARE_PRIVATE(FileSystemPathEdit)
+
     FileSystemPathEditPrivate *d_ptr;
 };
 
@@ -136,9 +142,9 @@ public:
     void clear() override;
 
     int count() const;
-    QString item(int index) const;
-    void addItem(const QString &text);
-    void insertItem(int index, const QString &text);
+    Path item(int index) const;
+    void addItem(const Path &path);
+    void insertItem(int index, const Path &path);
 
     int currentIndex() const;
     void setCurrentIndex(int index);

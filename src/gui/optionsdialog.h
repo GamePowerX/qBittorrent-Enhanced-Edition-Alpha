@@ -30,10 +30,10 @@
 
 #include <QDialog>
 
+#include "base/pathfwd.h"
 #include "base/settingvalue.h"
 #include "base/net/downloadmanager.h"
 
-class QCloseEvent;
 class QListWidgetItem;
 
 class AdvancedSettings;
@@ -94,7 +94,6 @@ public slots:
 private slots:
     void enableProxy(int index);
     void on_buttonBox_accepted();
-    void closeEvent(QCloseEvent *e) override;
     void on_buttonBox_rejected();
     void applySettings();
     void enableApplyButton();
@@ -113,12 +112,12 @@ private slots:
     void on_removeWatchedFolderButton_clicked();
     void on_registerDNSBtn_clicked();
     void setLocale(const QString &localeStr);
-    void webUIHttpsCertChanged(const QString &path, ShowError showError);
-    void webUIHttpsKeyChanged(const QString &path, ShowError showError);
-    void on_fetchButton_clicked();
-    void handlePublicTrackersListChanged(const Net::DownloadResult &result);
+    void webUIHttpsCertChanged(const Path &path, ShowError showError);
+    void webUIHttpsKeyChanged(const Path &path, ShowError showError);
 
 private:
+    void showEvent(QShowEvent *e) override;
+
     // Methods
     void saveOptions();
     void loadOptions();
@@ -139,9 +138,8 @@ private:
     bool preAllocateAllFiles() const;
     bool useAdditionDialog() const;
     bool addTorrentsInPause() const;
-    QString getTorrentExportDir() const;
-    QString getFinishedTorrentExportDir() const;
-    QString askForExportDir(const QString &currentExportPath);
+    Path getTorrentExportDir() const;
+    Path getFinishedTorrentExportDir() const;
     // Connection options
     int getPort() const;
     bool isUPnPEnabled() const;
@@ -165,7 +163,7 @@ private:
     Net::ProxyType getProxyType() const;
     // IP Filter
     bool isIPFilteringEnabled() const;
-    QString getFilter() const;
+    Path getFilter() const;
     // Queueing system
     bool isQueueingSystemEnabled() const;
     int getMaxActiveDownloads() const;

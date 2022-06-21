@@ -132,6 +132,14 @@
 
     <fieldset class="settings">
         <legend>
+            <input type="checkbox" id="excludedFileNamesCheckbox" onclick="qBittorrent.Preferences.updateExcludedFileNamesEnabled();" />
+            <label for="excludedFileNamesCheckbox">QBT_TR(Excluded file names)QBT_TR[CONTEXT=OptionsDialog]</label>
+        </legend>
+        <textarea id="excludedFileNamesTextarea" rows="6" cols="70"></textarea>
+    </fieldset>
+
+    <fieldset class="settings">
+        <legend>
             <input type="checkbox" id="mail_notification_checkbox" onclick="qBittorrent.Preferences.updateMailNotification();" />
             <label for="mail_notification_checkbox">QBT_TR(Email notification upon download completion)QBT_TR[CONTEXT=OptionsDialog]</label>
         </legend>
@@ -472,6 +480,11 @@
         </div>
     </fieldset>
 
+    <div class="formRow">
+        <label for="maxActiveCheckingTorrents">QBT_TR(Max active checking torrents:)QBT_TR[CONTEXT=OptionsDialog]</label>
+        <input type="number" id="maxActiveCheckingTorrents" style="width: 4em;" min="-1" />
+    </div>
+
     <fieldset class="settings">
         <legend>
             <input type="checkbox" id="queueing_checkbox" onclick="qBittorrent.Preferences.updateQueueingSystem();" />
@@ -712,6 +725,11 @@
         </select>
     </fieldset>
 
+    <div class="formRow">
+        <input type="checkbox" id="performanceWarning" />
+        <label for="performanceWarning">QBT_TR(Log performance warnings)QBT_TR[CONTEXT=OptionsDialog]</label>
+    </div>
+
     <fieldset class="settings">
         <legend>QBT_TR(Web User Interface (Remote control))QBT_TR[CONTEXT=OptionsDialog]</legend>
         <table>
@@ -914,6 +932,14 @@
         <table>
             <tr>
                 <td>
+                    <label for="memoryWorkingSetLimit">QBT_TR(Physical memory (RAM) usage limit:)QBT_TR[CONTEXT=OptionsDialog]&nbsp;<a href="https://wikipedia.org/wiki/Working_set" target="_blank">(?)</a></label>
+                </td>
+                <td>
+                    <input type="text" id="memoryWorkingSetLimit" style="width: 15em;" title="QBT_TR(This option is less effective on Linux)QBT_TR[CONTEXT=OptionsDialog]">&nbsp;&nbsp;QBT_TR(MiB)QBT_TR[CONTEXT=OptionsDialog]
+                </td>
+            </tr>
+            <tr>
+                <td>
                     <label for="networkInterface">QBT_TR(Network interface:)QBT_TR[CONTEXT=OptionsDialog]</label>
                 </td>
                 <td>
@@ -1045,6 +1071,26 @@
                 </td>
                 <td>
                     <input type="text" id="diskCacheExpiryInterval" style="width: 15em;">&nbsp;&nbsp;QBT_TR(s)QBT_TR[CONTEXT=OptionsDialog]
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="diskQueueSize">QBT_TR(Disk queue size:)QBT_TR[CONTEXT=OptionsDialog]&nbsp;<a href="https://www.libtorrent.org/reference-Settings.html#max_queued_disk_bytes" target="_blank">(?)</a></label>
+                </td>
+                <td>
+                    <input type="text" id="diskQueueSize" style="width: 15em;">&nbsp;&nbsp;QBT_TR(KiB)QBT_TR[CONTEXT=OptionsDialog]
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="diskIOType">QBT_TR(Disk IO type (libtorrent >= 2.0; requires restart):)QBT_TR[CONTEXT=OptionsDialog]&nbsp;<a href="https://www.libtorrent.org/single-page-ref.html#default-disk-io-constructor" target="_blank">(?)</a></label>
+                </td>
+                <td>
+                    <select id="diskIOType" style="width: 15em;">
+                        <option value="0">QBT_TR(Default)QBT_TR[CONTEXT=OptionsDialog]</option>
+                        <option value="1">QBT_TR(Memory mapped files)QBT_TR[CONTEXT=OptionsDialog]</option>
+                        <option value="2">QBT_TR(POSIX-compliant)QBT_TR[CONTEXT=OptionsDialog]</option>
+                    </select>
                 </td>
             </tr>
             <tr>
@@ -1289,6 +1335,14 @@
                     <input type="text" id="peerTurnoverInterval" style="width: 15em;" />&nbsp;&nbsp;s
                 </td>
             </tr>
+            <tr>
+                <td>
+                    <label for="requestQueueSize">QBT_TR(Maximum outstanding requests to a single peer:)QBT_TR[CONTEXT=OptionsDialog]&nbsp;<a href="https://www.libtorrent.org/reference-Settings.html#max_out_request_queue" target="_blank">(?)</a></label>
+                </td>
+                <td>
+                    <input type="text" id="requestQueueSize" style="width: 15em;" />
+                </td>
+            </tr>
         </table>
     </fieldset>
 </div>
@@ -1309,6 +1363,7 @@
                 updateExportDirEnabled: updateExportDirEnabled,
                 updateExportDirFinEnabled: updateExportDirFinEnabled,
                 addWatchFolder: addWatchFolder,
+                updateExcludedFileNamesEnabled: updateExcludedFileNamesEnabled,
                 changeWatchFolderSelect: changeWatchFolderSelect,
                 updateMailNotification: updateMailNotification,
                 updateMailAuthSettings: updateMailAuthSettings,
@@ -1354,7 +1409,7 @@
             }
             else {
                 item.nextElementSibling.hidden = true;
-                const text = item.options[item.selectedIndex].innerHTML;
+                const text = item.options[item.selectedIndex].textContent;
                 item.nextElementSibling.value = text;
             }
         };
@@ -1377,7 +1432,7 @@
             $('cb_watch_' + pos).setProperty('value', sel);
             if (disableInput) {
                 const elt = $('cb_watch_' + pos);
-                other = elt.options[elt.selectedIndex].innerHTML;
+                other = elt.options[elt.selectedIndex].textContent;
             }
             $('cb_watch_txt_' + pos).setProperty('value', other);
 
@@ -1404,6 +1459,11 @@
                 }
             }
             return folders;
+        };
+
+        const updateExcludedFileNamesEnabled = function() {
+            const isAExcludedFileNamesEnabled = $('excludedFileNamesCheckbox').getProperty('checked');
+            $('excludedFileNamesTextarea').setProperty('disabled', !isAExcludedFileNamesEnabled);
         };
 
         const updateExportDirEnabled = function() {
@@ -1608,7 +1668,8 @@
                     alert("Could not contact qBittorrent");
                 },
                 onSuccess: function(ifaces) {
-                    if (!ifaces) return;
+                    if (!ifaces)
+                        return;
 
                     $('networkInterface').options.add(new Option('QBT_TR(Any interface)QBT_TR[CONTEXT=OptionsDialog]', ''));
                     ifaces.forEach(function(item, index) {
@@ -1633,7 +1694,8 @@
                     alert("Could not contact qBittorrent");
                 },
                 onSuccess: function(addresses) {
-                    if (!addresses) return;
+                    if (!addresses)
+                        return;
 
                     $('optionalIPAddressToBind').options.add(new Option('QBT_TR(All addresses)QBT_TR[CONTEXT=OptionDialog]', ''));
                     $('optionalIPAddressToBind').options.add(new Option('QBT_TR(All IPv4 addresses)QBT_TR[CONTEXT=OptionDialog]', '0.0.0.0'));
@@ -1720,6 +1782,10 @@
                             addWatchFolder(folder, sel, other);
                         }
                         addWatchFolder();
+
+                        // Excluded file names
+                        $('excludedFileNamesCheckbox').setProperty('checked', pref.excluded_file_names_enabled);
+                        $('excludedFileNamesTextarea').setProperty('value', pref.excluded_file_names);
 
                         // Email notification upon download completion
                         $('mail_notification_checkbox').setProperty('checked', pref.mail_notification_enabled);
@@ -1849,6 +1915,8 @@
                         $('encryption_select').getChildren('option')[encryption].setAttribute('selected', '');
                         $('anonymous_mode_checkbox').setProperty('checked', pref.anonymous_mode);
 
+                        $('maxActiveCheckingTorrents').setProperty('value', pref.max_active_checking_torrents);
+
                         // Torrent Queueing
                         $('queueing_checkbox').setProperty('checked', pref.queueing_enabled);
                         $('max_active_dl_value').setProperty('value', pref.max_active_downloads.toInt());
@@ -1902,7 +1970,8 @@
 
                         // Web UI tab
                         // Language
-                        $('locale_select').setProperty('value', pref.locale);
+                        $('locale_select').setProperty('value', ((pref.locale === "en_US") ? "en" : pref.locale));
+                        $('performanceWarning').setProperty('checked', pref.performance_warning);
 
                         // HTTP Server
                         $('webui_domain_textarea').setProperty('value', pref.web_ui_domain_list);
@@ -1956,6 +2025,7 @@
 
                         // Advanced settings
                         // qBittorrent section
+                        $('memoryWorkingSetLimit').setProperty('value', pref.memory_working_set_limit);
                         updateNetworkInterfaces(pref.current_network_interface);
                         updateInterfaceAddresses(pref.current_network_interface, pref.current_interface_address);
                         $('saveResumeDataInterval').setProperty('value', pref.save_resume_data_interval);
@@ -1971,6 +2041,8 @@
                         $('outstandMemoryWhenCheckingTorrents').setProperty('value', pref.checking_memory_use);
                         $('diskCache').setProperty('value', pref.disk_cache);
                         $('diskCacheExpiryInterval').setProperty('value', pref.disk_cache_ttl);
+                        $('diskQueueSize').setProperty('value', (pref.disk_queue_size / 1024));
+                        $('diskIOType').setProperty('value', pref.disk_io_type);
                         $('enableOSCache').setProperty('checked', pref.enable_os_cache);
                         $('coalesceReadsAndWrites').setProperty('checked', pref.enable_coalesce_read_write);
                         $('pieceExtentAffinity').setProperty('checked', pref.enable_piece_extent_affinity);
@@ -2002,6 +2074,7 @@
                         $('peerTurnover').setProperty('value', pref.peer_turnover);
                         $('peerTurnoverCutoff').setProperty('value', pref.peer_turnover_cutoff);
                         $('peerTurnoverInterval').setProperty('value', pref.peer_turnover_interval);
+                        $('requestQueueSize').setProperty('value', pref.request_queue_size);
                     }
                 }
             }).send();
@@ -2038,6 +2111,10 @@
 
             // Automatically add torrents from
             settings.set('scan_dirs', getWatchedFolders());
+
+            // Excluded file names
+            settings.set('excluded_file_names_enabled', $('excludedFileNamesCheckbox').getProperty('checked'));
+            settings.set('excluded_file_names', $('excludedFileNamesTextarea').getProperty('value'));
 
             // Email notification upon download completion
             settings.set('mail_notification_enabled', $('mail_notification_checkbox').getProperty('checked'));
@@ -2200,6 +2277,8 @@
             settings.set('encryption', $('encryption_select').getSelected()[0].getProperty('value'));
             settings.set('anonymous_mode', $('anonymous_mode_checkbox').getProperty('checked'));
 
+            settings.set('max_active_checking_torrents', $('maxActiveCheckingTorrents').getProperty('value'));
+
             // Torrent Queueing
             settings.set('queueing_enabled', $('queueing_checkbox').getProperty('checked'));
             if ($('queueing_checkbox').getProperty('checked')) {
@@ -2283,6 +2362,7 @@
             // Web UI tab
             // Language
             settings.set('locale', $('locale_select').getProperty('value'));
+            settings.set('performance_warning', $('performanceWarning').getProperty('checked'));
 
             // HTTP Server
             settings.set('web_ui_domain_list', $('webui_domain_textarea').getProperty('value'));
@@ -2354,6 +2434,7 @@
 
             // Update advanced settings
             // qBittorrent section
+            settings.set('memory_working_set_limit', $('memoryWorkingSetLimit').getProperty('value'));
             settings.set('current_network_interface', $('networkInterface').getProperty('value'));
             settings.set('current_interface_address', $('optionalIPAddressToBind').getProperty('value'));
             settings.set('save_resume_data_interval', $('saveResumeDataInterval').getProperty('value'));
@@ -2370,6 +2451,8 @@
             settings.set('checking_memory_use', $('outstandMemoryWhenCheckingTorrents').getProperty('value'));
             settings.set('disk_cache', $('diskCache').getProperty('value'));
             settings.set('disk_cache_ttl', $('diskCacheExpiryInterval').getProperty('value'));
+            settings.set('disk_queue_size', ($('diskQueueSize').getProperty('value') * 1024));
+            settings.set('disk_io_type', $('diskIOType').getProperty('value'));
             settings.set('enable_os_cache', $('enableOSCache').getProperty('checked'));
             settings.set('enable_coalesce_read_write', $('coalesceReadsAndWrites').getProperty('checked'));
             settings.set('enable_piece_extent_affinity', $('pieceExtentAffinity').getProperty('checked'));
@@ -2401,6 +2484,7 @@
             settings.set('peer_turnover', $('peerTurnover').getProperty('value'));
             settings.set('peer_turnover_cutoff', $('peerTurnoverCutoff').getProperty('value'));
             settings.set('peer_turnover_interval', $('peerTurnoverInterval').getProperty('value'));
+            settings.set('request_queue_size', $('requestQueueSize').getProperty('value'));
 
             // Send it to qBT
             const json_str = JSON.encode(settings);

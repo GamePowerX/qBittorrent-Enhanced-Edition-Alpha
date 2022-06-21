@@ -708,6 +708,13 @@
              </widget>
             </item>
             <item>
+             <widget class="QCheckBox" name="checkBoxPerformanceWarning">
+              <property name="text">
+               <string>Log performance warnings</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <spacer name="verticalSpacer_4">
               <property name="orientation">
                <enum>Qt::Vertical</enum>
@@ -1104,6 +1111,16 @@ Manual: Various torrent properties (e.g. save path) must be assigned manually</s
                 </widget>
                </item>
                <item>
+                <widget class="QCheckBox" name="checkUseCategoryPaths">
+                 <property name="toolTip">
+                  <string>Resolve relative Save Path against appropriate Category path instead of Default one</string>
+                 </property>
+                 <property name="text">
+                  <string>Use Category paths in Manual Mode</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
                 <layout class="QGridLayout" name="gridLayout_4">
                  <item row="0" column="0">
                   <widget class="QLabel" name="labelSavePath">
@@ -1240,6 +1257,43 @@ Manual: Various torrent properties (e.g. save path) must be assigned manually</s
                   </layout>
                  </item>
                 </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="groupExcludedFileNames">
+              <property name="title">
+               <string>Excluded file names</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="checked">
+               <bool>false</bool>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_311">
+               <item>
+                <widget class="QPlainTextEdit" name="textExcludedFileNames">
+                 <property name="toolTip">
+                  <string>Blacklist filtered file names from being downloaded from torrent(s).
+Files matching any of the filters in this list will have their priority automatically set to &quot;Do not download&quot;.
+
+Use newlines to separate multiple entries. Can use wildcards as outlined below.
+*: matches zero or more of any characters.
+?: matches any single character.
+[...]: sets of characters can be represented in square brackets.
+
+Examples
+*.exe: filter '.exe' file extension.
+readme.txt: filter exact file name.
+?.txt: filter 'a.txt', 'b.txt' but not 'aa.txt'.
+readme[0-9].txt: filter 'readme1.txt', 'readme2.txt' but not 'readme10.txt'.</string>
+                 </property>
+                 <property name="lineWrapMode">
+                  <enum>QPlainTextEdit::NoWrap</enum>
+                 </property>
+                </widget>
                </item>
               </layout>
              </widget>
@@ -1812,12 +1866,6 @@ Manual: Various torrent properties (e.g. save path) must be assigned manually</s
                  </item>
                  <item>
                   <widget class="QToolButton" name="IpFilterRefreshBtn">
-                   <property name="minimumSize">
-                    <size>
-                     <width>0</width>
-                     <height>25</height>
-                    </size>
-                   </property>
                    <property name="toolTip">
                     <string>Reload the filter</string>
                    </property>
@@ -2367,6 +2415,43 @@ Disable encryption: Only connect to peers without protocol encryption</string>
              </widget>
             </item>
             <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_20">
+              <item>
+               <widget class="QLabel" name="labelMaxActiveCheckingTorrents">
+                <property name="text">
+                 <string>Maximum active checking torrents:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSpinBox" name="spinBoxMaxActiveCheckingTorrents">
+                <property name="specialValueText">
+                 <string notr="true">∞</string>
+                </property>
+                <property name="minimum">
+                 <number>-1</number>
+                </property>
+                <property name="maximum">
+                 <number>2147483647</number>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_21">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </item>
+            <item>
              <widget class="QGroupBox" name="checkEnableQueueing">
               <property name="title">
                <string>&amp;Torrent Queueing</string>
@@ -2394,10 +2479,7 @@ Disable encryption: Only connect to peers without protocol encryption</string>
                   <number>-1</number>
                  </property>
                  <property name="maximum">
-                  <number>999</number>
-                 </property>
-                 <property name="value">
-                  <number>3</number>
+                  <number>2147483647</number>
                  </property>
                 </widget>
                </item>
@@ -2417,10 +2499,7 @@ Disable encryption: Only connect to peers without protocol encryption</string>
                   <number>-1</number>
                  </property>
                  <property name="maximum">
-                  <number>999</number>
-                 </property>
-                 <property name="value">
-                  <number>3</number>
+                  <number>2147483647</number>
                  </property>
                 </widget>
                </item>
@@ -2440,10 +2519,7 @@ Disable encryption: Only connect to peers without protocol encryption</string>
                   <number>-1</number>
                  </property>
                  <property name="maximum">
-                  <number>999</number>
-                 </property>
-                 <property name="value">
-                  <number>5</number>
+                  <number>2147483647</number>
                  </property>
                 </widget>
                </item>
@@ -2816,7 +2892,7 @@ Disable encryption: Only connect to peers without protocol encryption</string>
                  <item row="1" column="1">
                   <widget class="QSpinBox" name="spinRSSMaxArticlesPerFeed">
                    <property name="maximum">
-                    <number>9999</number>
+                    <number>2147483646</number>
                    </property>
                    <property name="value">
                     <number>100</number>

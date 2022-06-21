@@ -29,15 +29,18 @@
 
 #pragma once
 
+#include <QtGlobal>
 #include <QtContainerFwd>
 #include <QMetaType>
 #include <QString>
 
 #include "base/3rdparty/expected.hpp"
+#include "base/pathfwd.h"
 #include "base/tagset.h"
 #include "abstractfilestorage.h"
 
 class QBitArray;
+class QByteArray;
 class QDateTime;
 class QUrl;
 
@@ -97,7 +100,11 @@ namespace BitTorrent
         Error
     };
 
-    uint qHash(TorrentState key, uint seed);
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+    std::size_t qHash(TorrentState key, std::size_t seed = 0);
+#else
+    uint qHash(TorrentState key, uint seed = 0);
+#endif
 
     class Torrent : public AbstractFileStorage
     {
@@ -170,13 +177,13 @@ namespace BitTorrent
 
         virtual bool isAutoTMMEnabled() const = 0;
         virtual void setAutoTMMEnabled(bool enabled) = 0;
-        virtual QString savePath() const = 0;
-        virtual void setSavePath(const QString &savePath) = 0;
-        virtual QString downloadPath() const = 0;
-        virtual void setDownloadPath(const QString &downloadPath) = 0;
-        virtual QString actualStorageLocation() const = 0;
-        virtual QString rootPath() const = 0;
-        virtual QString contentPath() const = 0;
+        virtual Path savePath() const = 0;
+        virtual void setSavePath(const Path &savePath) = 0;
+        virtual Path downloadPath() const = 0;
+        virtual void setDownloadPath(const Path &downloadPath) = 0;
+        virtual Path actualStorageLocation() const = 0;
+        virtual Path rootPath() const = 0;
+        virtual Path contentPath() const = 0;
         virtual QString category() const = 0;
         virtual bool belongsToCategory(const QString &category) const = 0;
         virtual bool setCategory(const QString &category) = 0;
@@ -194,8 +201,8 @@ namespace BitTorrent
         virtual qreal ratioLimit() const = 0;
         virtual int seedingTimeLimit() const = 0;
 
-        virtual QStringList filePaths() const = 0;
-        virtual QStringList absoluteFilePaths() const = 0;
+        virtual Path actualFilePath(int index) const = 0;
+        virtual PathList filePaths() const = 0;
         virtual QVector<DownloadPriority> filePriorities() const = 0;
 
         virtual TorrentInfo info() const = 0;
@@ -224,7 +231,6 @@ namespace BitTorrent
         virtual qlonglong totalUpload() const = 0;
         virtual qlonglong activeTime() const = 0;
         virtual qlonglong finishedTime() const = 0;
-        virtual qlonglong seedingTime() const = 0;
         virtual qlonglong eta() const = 0;
         virtual QVector<qreal> filesProgress() const = 0;
         virtual int seedsCount() const = 0;
@@ -287,15 +293,17 @@ namespace BitTorrent
         virtual void setPEXDisabled(bool disable) = 0;
         virtual void setLSDDisabled(bool disable) = 0;
         virtual void flushCache() const = 0;
-        virtual void addTrackers(const QVector<TrackerEntry> &trackers) = 0;
-        virtual void replaceTrackers(const QVector<TrackerEntry> &trackers) = 0;
+        virtual void addTrackers(QVector<TrackerEntry> trackers) = 0;
+        virtual void removeTrackers(const QStringList &trackers) = 0;
+        virtual void replaceTrackers(QVector<TrackerEntry> trackers) = 0;
         virtual void addUrlSeeds(const QVector<QUrl> &urlSeeds) = 0;
         virtual void removeUrlSeeds(const QVector<QUrl> &urlSeeds) = 0;
         virtual bool connectPeer(const PeerAddress &peerAddress) = 0;
         virtual void clearPeers() = 0;
 
         virtual QString createMagnetURI() const = 0;
-        virtual nonstd::expected<void, QString> exportToFile(const QString &path) const = 0;
+        virtual nonstd::expected<QByteArray, QString> exportToBuffer() const = 0;
+        virtual nonstd::expected<void, QString> exportToFile(const Path &path) const = 0;
 
         TorrentID id() const;
         bool isResumed() const;

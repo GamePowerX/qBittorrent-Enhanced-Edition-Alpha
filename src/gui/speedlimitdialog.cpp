@@ -37,7 +37,7 @@
 #include "uithememanager.h"
 #include "utils.h"
 
-#define SETTINGS_KEY(name) "SpeedLimitDialog/" name
+#define SETTINGS_KEY(name) u"SpeedLimitDialog/" name
 
 namespace
 {
@@ -52,14 +52,14 @@ namespace
 SpeedLimitDialog::SpeedLimitDialog(QWidget *parent)
     : QDialog {parent}
     , m_ui {new Ui::SpeedLimitDialog}
-    , m_storeDialogSize {SETTINGS_KEY("Size")}
+    , m_storeDialogSize {SETTINGS_KEY(u"Size"_qs)}
 {
     m_ui->setupUi(this);
 
-    m_ui->labelGlobalSpeedIcon->setPixmap(Utils::Gui::scaledPixmap(UIThemeManager::instance()->getIcon(QLatin1String("slow_off"))
-                                                , this, style()->pixelMetric(QStyle::PM_SmallIconSize, nullptr, this)));
-    m_ui->labelAltGlobalSpeedIcon->setPixmap(Utils::Gui::scaledPixmap(UIThemeManager::instance()->getIcon(QLatin1String("slow"))
-                                                , this, style()->pixelMetric(QStyle::PM_SmallIconSize, nullptr, this)));
+    m_ui->labelGlobalSpeedIcon->setPixmap(Utils::Gui::scaledPixmapSvg(UIThemeManager::instance()->getIconPath(u"slow_off"_qs)
+                                                , this, Utils::Gui::mediumIconSize(this).height()));
+    m_ui->labelAltGlobalSpeedIcon->setPixmap(Utils::Gui::scaledPixmapSvg(UIThemeManager::instance()->getIconPath(u"slow"_qs)
+                                                , this, Utils::Gui::mediumIconSize(this).height()));
 
     const auto initSlider = [](QSlider *slider, const int value, const int maximum)
     {
@@ -108,7 +108,8 @@ SpeedLimitDialog::SpeedLimitDialog(QWidget *parent)
     connect(m_ui->spinAltDownloadLimit, qOverload<int>(&QSpinBox::valueChanged)
             , this, [this](const int value) { updateSliderValue(m_ui->sliderAltDownloadLimit, value); });
 
-    Utils::Gui::resize(this, m_storeDialogSize);
+    if (const QSize dialogSize = m_storeDialogSize; dialogSize.isValid())
+        resize(dialogSize);
 }
 
 SpeedLimitDialog::~SpeedLimitDialog()

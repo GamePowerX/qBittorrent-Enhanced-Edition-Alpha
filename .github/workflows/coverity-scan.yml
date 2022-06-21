@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install dependencies
         run: |
@@ -28,7 +28,7 @@ jobs:
       - name: Install libtorrent
         run: |
           git clone \
-            --branch "v2.0.5" \
+            --branch "v2.0.6" \
             --depth 1 \
             --recurse-submodules \
             https://github.com/arvidn/libtorrent.git

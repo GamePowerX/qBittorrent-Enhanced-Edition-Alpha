@@ -36,6 +36,8 @@
 
 #include <QString>
 
+#include "base/path.h"
+
 enum class ShutdownDialogAction;
 
 /*  Miscellaneous functions that can be useful */
@@ -76,7 +78,7 @@ namespace Utils::Misc
     int friendlyUnitPrecision(SizeUnit unit);
     qint64 sizeInBytes(qreal size, SizeUnit unit);
 
-    bool isPreviewable(const QString &filename);
+    bool isPreviewable(const Path &filePath);
 
     // Take a number of seconds and return a user-friendly
     // time duration like "1d 2h 10m".
@@ -84,19 +86,13 @@ namespace Utils::Misc
     QString getUserIDString();
 
 #ifdef Q_OS_WIN
-    QString windowsSystemPath();
+    Path windowsSystemPath();
 
     template <typename T>
     T loadWinAPI(const QString &source, const char *funcName)
     {
-        QString path = windowsSystemPath();
-        if (!path.endsWith('\\'))
-            path += '\\';
-        path += source;
-
-        const std::wstring pathWStr = path.toStdWString();
-        return reinterpret_cast<T>(
-            ::GetProcAddress(::LoadLibraryW(pathWStr.c_str()), funcName));
+        const std::wstring path = (windowsSystemPath() / Path(source)).toString().toStdWString();
+        return reinterpret_cast<T>(::GetProcAddress(::LoadLibraryW(path.c_str()), funcName));
     }
 #endif // Q_OS_WIN
 }

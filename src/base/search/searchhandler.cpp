@@ -29,11 +29,13 @@
 
 #include "searchhandler.h"
 
+#include <QMetaObject>
 #include <QProcess>
 #include <QTimer>
 #include <QVector>
 
 #include "base/global.h"
+#include "base/path.h"
 #include "base/utils/foreignapps.h"
 #include "base/utils/fs.h"
 #include "searchpluginmanager.h"
@@ -67,14 +69,14 @@ SearchHandler::SearchHandler(const QString &pattern, const QString &category, co
 
     const QStringList params
     {
-        Utils::Fs::toNativePath(m_manager->engineLocation() + "/nova2.py"),
-        m_usedPlugins.join(','),
+        (m_manager->engineLocation() / Path(u"nova2.py"_qs)).toString(),
+        m_usedPlugins.join(u','),
         m_category
     };
 
     // Launch search
     m_searchProcess->setProgram(Utils::ForeignApps::pythonInfo().executableName);
-    m_searchProcess->setArguments(params + m_pattern.split(' '));
+    m_searchProcess->setArguments(params + m_pattern.split(u' '));
 
     connect(m_searchProcess, &QProcess::errorOccurred, this, &SearchHandler::processFailed);
     connect(m_searchProcess, &QProcess::readyReadStandardOutput, this, &SearchHandler::readSearchOutput);
@@ -86,7 +88,8 @@ SearchHandler::SearchHandler(const QString &pattern, const QString &category, co
     m_searchTimeout->start(180000); // 3 min
 
     // deferred start allows clients to handle starting-related signals
-    QTimer::singleShot(0, this, [this]() { m_searchProcess->start(QIODevice::ReadOnly); });
+    QMetaObject::invokeMethod(this, [this]() { m_searchProcess->start(QIODevice::ReadOnly); }
+        , Qt::QueuedConnection);
 }
 
 bool SearchHandler::isActive() const

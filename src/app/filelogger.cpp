@@ -44,7 +44,9 @@ namespace
     const std::chrono::seconds FLUSH_INTERVAL {2};
 }
 
-FileLogger::FileLogger(const QString &path, const bool backup, const int maxSize, const bool deleteOld, const int age, const FileLogAgeType ageType)
+FileLogger::FileLogger(const Path &path, const bool backup
+                       , const int maxSize, const bool deleteOld, const int age
+                       , const FileLogAgeType ageType)
     : m_backup(backup)
     , m_maxSize(maxSize)
 {
@@ -68,27 +70,26 @@ FileLogger::~FileLogger()
     closeLogFile();
 }
 
-void FileLogger::changePath(const QString &newPath)
+void FileLogger::changePath(const Path &newPath)
 {
-    const QDir dir(newPath);
-    dir.mkpath(newPath);
-    const QString tmpPath = dir.absoluteFilePath("qbittorrent.log");
+    // compare paths as strings to perform case sensitive comparison on all the platforms
+    if (newPath.data() == m_path.parentPath().data())
+        return;
 
-    if (tmpPath != m_path)
-    {
-        m_path = tmpPath;
+    closeLogFile();
 
-        closeLogFile();
-        m_logFile.setFileName(m_path);
-        openLogFile();
-    }
+    m_path = newPath / Path(u"qbittorrent.log"_qs);
+    m_logFile.setFileName(m_path.data());
+
+    Utils::Fs::mkpath(newPath);
+    openLogFile();
 }
 
 void FileLogger::deleteOld(const int age, const FileLogAgeType ageType)
 {
     const QDateTime date = QDateTime::currentDateTime();
-    const QDir dir(Utils::Fs::branchPath(m_path));
-    const QFileInfoList fileList = dir.entryInfoList(QStringList("qbittorrent.log.bak*")
+    const QDir dir {m_path.parentPath().data()};
+    const QFileInfoList fileList = dir.entryInfoList(QStringList(u"qbittorrent.log.bak*"_qs)
         , (QDir::Files | QDir::Writable), (QDir::Time | QDir::Reversed));
 
     for (const QFileInfo &file : fileList)
@@ -107,7 +108,7 @@ void FileLogger::deleteOld(const int age, const FileLogAgeType ageType)
         }
         if (modificationDate > date)
             break;
-        Utils::Fs::forceRemove(file.absoluteFilePath());
+        Utils::Fs::removeFile(Path(file.absoluteFilePath()));
     }
 }
 
@@ -133,33 +134,33 @@ void FileLogger::addLogMessage(const Log::Msg &msg)
     switch (msg.type)
     {
     case Log::INFO:
-        stream << "(I) ";
+        stream << QStringView(u"(I) ");
         break;
     case Log::WARNING:
-        stream << "(W) ";
+        stream << QStringView(u"(W) ");
         break;
     case Log::CRITICAL:
-        stream << "(C) ";
+        stream << QStringView(u"(C) ");
         break;
     default:
-        stream << "(N) ";
+        stream << QStringView(u"(N) ");
     }
 
-    stream << QDateTime::fromMSecsSinceEpoch(msg.timestamp).toString(Qt::ISODate) << " - " << msg.message << '\n';
+    stream << QDateTime::fromSecsSinceEpoch(msg.timestamp).toString(Qt::ISODate) << QStringView(u" - ") << msg.message << QChar(u'\n');
 
     if (m_backup && (m_logFile.size() >= m_maxSize))
     {
         closeLogFile();
         int counter = 0;
-        QString backupLogFilename = m_path + ".bak";
+        Path backupLogFilename = m_path + u".bak";
 
-        while (QFile::exists(backupLogFilename))
+        while (backupLogFilename.exists())
         {
             ++counter;
-            backupLogFilename = m_path + ".bak" + QString::number(counter);
+            backupLogFilename = m_path + u".bak" + QString::number(counter);
         }
 
-        QFile::rename(m_path, backupLogFilename);
+        Utils::Fs::renameFile(m_path, backupLogFilename);
         openLogFile();
     }
     else

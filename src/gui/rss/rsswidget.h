@@ -46,6 +46,7 @@ namespace Ui
 class RSSWidget : public QWidget
 {
     Q_OBJECT
+    Q_DISABLE_COPY_MOVE(RSSWidget)
 
 public:
     RSSWidget(QWidget *parent);
@@ -62,8 +63,8 @@ private slots:
     void on_newFeedButton_clicked();
     void refreshAllFeeds();
     void on_markReadButton_clicked();
-    void displayRSSListMenu(const QPoint &);
-    void displayItemsListMenu(const QPoint &);
+    void displayRSSListMenu(const QPoint &pos);
+    void displayItemsListMenu();
     void renameSelectedRSSItem();
     void refreshSelectedItems();
     void copySelectedFeedsURL();

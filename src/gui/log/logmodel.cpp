@@ -73,7 +73,7 @@ QVariant BaseLogModel::Message::type() const
 BaseLogModel::BaseLogModel(QObject *parent)
     : QAbstractListModel(parent)
     , m_messages(MAX_VISIBLE_MESSAGES)
-    , m_timeForeground(UIThemeManager::instance()->getColor(QLatin1String("Log.TimeStamp"), Qt::darkGray))
+    , m_timeForeground(UIThemeManager::instance()->getColor(u"Log.TimeStamp"_qs, Qt::darkGray))
 {
 }
 
@@ -142,10 +142,10 @@ LogMessageModel::LogMessageModel(QObject *parent)
     : BaseLogModel(parent)
     , m_foregroundForMessageTypes
     {
-        {Log::NORMAL, UIThemeManager::instance()->getColor(QLatin1String("Log.Normal"), QApplication::palette().color(QPalette::WindowText))},
-        {Log::INFO, UIThemeManager::instance()->getColor(QLatin1String("Log.Info"), Qt::blue)},
-        {Log::WARNING, UIThemeManager::instance()->getColor(QLatin1String("Log.Warning"), QColor {255, 165, 0})}, // orange
-        {Log::CRITICAL, UIThemeManager::instance()->getColor(QLatin1String("Log.Critical"), Qt::red)}
+        {Log::NORMAL, UIThemeManager::instance()->getColor(u"Log.Normal"_qs, QApplication::palette().color(QPalette::WindowText))},
+        {Log::INFO, UIThemeManager::instance()->getColor(u"Log.Info"_qs, Qt::blue)},
+        {Log::WARNING, UIThemeManager::instance()->getColor(u"Log.Warning"_qs, QColor {255, 165, 0})}, // orange
+        {Log::CRITICAL, UIThemeManager::instance()->getColor(u"Log.Critical"_qs, Qt::red)}
     }
 {
     for (const Log::Msg &msg : asConst(Logger::instance()->getMessages()))
@@ -155,7 +155,7 @@ LogMessageModel::LogMessageModel(QObject *parent)
 
 void LogMessageModel::handleNewMessage(const Log::Msg &message)
 {
-    const QString time = QLocale::system().toString(QDateTime::fromMSecsSinceEpoch(message.timestamp), QLocale::ShortFormat);
+    const QString time = QLocale::system().toString(QDateTime::fromSecsSinceEpoch(message.timestamp), QLocale::ShortFormat);
     const QString messageText = message.message;
     const QColor foreground = m_foregroundForMessageTypes[message.type];
 
@@ -164,7 +164,7 @@ void LogMessageModel::handleNewMessage(const Log::Msg &message)
 
 LogPeerModel::LogPeerModel(QObject *parent)
     : BaseLogModel(parent)
-    , m_bannedPeerForeground(UIThemeManager::instance()->getColor(QLatin1String("Log.BannedPeer"), Qt::red))
+    , m_bannedPeerForeground(UIThemeManager::instance()->getColor(u"Log.BannedPeer"_qs, Qt::red))
 {
     for (const Log::Peer &peer : asConst(Logger::instance()->getPeers()))
         handleNewMessage(peer);
@@ -173,7 +173,7 @@ LogPeerModel::LogPeerModel(QObject *parent)
 
 void LogPeerModel::handleNewMessage(const Log::Peer &peer)
 {
-    const QString time = QLocale::system().toString(QDateTime::fromMSecsSinceEpoch(peer.timestamp), QLocale::ShortFormat);
+    const QString time = QLocale::system().toString(QDateTime::fromSecsSinceEpoch(peer.timestamp), QLocale::ShortFormat);
     const QString message = peer.blocked
             ? tr("%1 was blocked. Reason: %2.", "0.0.0.0 was blocked. Reason: reason for blocking.").arg(peer.ip, peer.reason)
             : tr("%1 was banned", "0.0.0.0 was banned").arg(peer.ip);

@@ -1,6 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.1" language="ko">
+<?xml version="1.0" ?><!DOCTYPE TS><TS version="2.1" language="ko">
 <context>
     <name>AboutDlg</name>
     <message>
@@ -39,7 +37,7 @@
         <translation>폴더 생성</translation>
     </message>
     <message>
-        <source>Don't create subfolder</source>
+        <source>Don&apos;t create subfolder</source>
         <translation>폴더 생성 안 함</translation>
     </message>
 </context>
@@ -573,7 +571,7 @@
     </message>
     <message>
         <source>Filters Sidebar</source>
-        <translation type="vanished">필터 사이드바</translation>
+        <translation>필터 사이드바</translation>
     </message>
 </context>
 <context>
@@ -957,8 +955,8 @@
         <translation>%T: 현재 트래커</translation>
     </message>
     <message>
-        <source>Tip: Encapsulate parameter with quotation marks to avoid text being cut off at whitespace (e.g., "%N")</source>
-        <translation>팁: 텍스트가 공백때문에 잘리지 않게 하려면 변수를 따옴표로 감싸세요 (예, "%N")</translation>
+        <source>Tip: Encapsulate parameter with quotation marks to avoid text being cut off at whitespace (e.g., &quot;%N&quot;)</source>
+        <translation>팁: 텍스트가 공백때문에 잘리지 않게 하려면 변수를 따옴표로 감싸세요 (예, &quot;%N&quot;)</translation>
     </message>
     <message>
         <source>The Web UI username must be at least 3 characters long.</source>
@@ -1429,7 +1427,7 @@
         <translation>원본</translation>
     </message>
     <message>
-        <source>Don't create subfolder</source>
+        <source>Don&apos;t create subfolder</source>
         <translation>폴더 생성 안 함</translation>
     </message>
     <message>
@@ -1482,19 +1480,43 @@
     </message>
     <message>
         <source>Disk queue size:</source>
-        <translation type="vanished">디스크 대기열 크기:</translation>
+        <translation>디스크 대기열 크기:</translation>
     </message>
     <message>
         <source>Log performance warnings</source>
-        <translation type="vanished">성능 경고 로그</translation>
+        <translation>성능 경고 로그</translation>
     </message>
     <message>
         <source>Maximum outstanding requests to a single peer:</source>
-        <translation type="vanished">단일 피어에 대한 최대 미해결 요청:</translation>
+        <translation>단일 피어에 대한 최대 미해결 요청:</translation>
     </message>
     <message>
         <source>Max active checking torrents:</source>
-        <translation type="vanished">최대 활성 점검 토런트:</translation>
+        <translation>최대 활성 점검 토런트:</translation>
+    </message>
+    <message>
+        <source>Memory mapped files</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Default</source>
+        <translation>기본</translation>
+    </message>
+    <message>
+        <source>POSIX-compliant</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>This option is less effective on Linux</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Disk IO type (libtorrent &gt;= 2.0; requires restart):</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Physical memory (RAM) usage limit:</source>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>
@@ -2184,10 +2206,6 @@
         <translation>메시지</translation>
     </message>
     <message>
-        <source>Downloaded</source>
-        <translation>내려받음</translation>
-    </message>
-    <message>
         <source>Tracker URL:</source>
         <translation>트래커 URL:</translation>
     </message>
@@ -2269,11 +2287,11 @@
     </message>
     <message>
         <source>Total Size</source>
-        <translation type="vanished">전체 크기</translation>
+        <translation>전체 크기</translation>
     </message>
     <message>
-        <source>Size</source>
-        <translation type="unfinished" />
+        <source>Times Downloaded</source>
+        <translation>내려받기한 시간</translation>
     </message>
 </context>
 <context>
@@ -2570,6 +2588,10 @@
         <source>Torrent ID</source>
         <translation>토렌트 ID</translation>
     </message>
+    <message>
+        <source>Export .torrent</source>
+        <translation type="unfinished"/>
+    </message>
 </context>
 <context>
     <name>UpDownRatioDialog</name>
@@ -2835,7 +2857,7 @@
         <translation>사용됨</translation>
     </message>
     <message>
-        <source>Warning: Be sure to comply with your country's copyright laws when downloading torrents from any of these search engines.</source>
+        <source>Warning: Be sure to comply with your country&apos;s copyright laws when downloading torrents from any of these search engines.</source>
         <translation>경고: 검색 엔진으로 토렌트를 내려받을 때는 해당 국가의 저작권법을 준수해야 합니다.</translation>
     </message>
     <message>
@@ -3449,7 +3471,7 @@ Supports the formats: S01E01, 1x1, 2017.12.31 and 31.12.2017 (Date formats also 
         <translation>원본</translation>
     </message>
     <message>
-        <source>Don't create subfolder</source>
+        <source>Don&apos;t create subfolder</source>
         <translation>폴더 생성 안 함</translation>
     </message>
 </context>

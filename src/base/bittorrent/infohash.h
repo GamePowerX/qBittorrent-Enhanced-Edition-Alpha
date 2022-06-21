@@ -32,7 +32,7 @@
 #include <libtorrent/info_hash.hpp>
 #endif
 
-#include <QHash>
+#include <QtGlobal>
 #include <QMetaType>
 
 #include "base/digest32.h"
@@ -81,7 +81,11 @@ namespace BitTorrent
         WrappedType m_nativeHash;
     };
 
-    uint qHash(const TorrentID &key, uint seed);
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+    std::size_t qHash(const TorrentID &key, std::size_t seed = 0);
+#else
+    uint qHash(const TorrentID &key, uint seed = 0);
+#endif
 
     bool operator==(const InfoHash &left, const InfoHash &right);
     bool operator!=(const InfoHash &left, const InfoHash &right);

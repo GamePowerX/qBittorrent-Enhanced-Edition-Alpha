@@ -30,23 +30,30 @@
 
 #include <QString>
 
+#include "base/global.h"
 #include "base/logger.h"
 #include "base/preferences.h"
 #include "base/utils/password.h"
 #include "apierror.h"
 #include "isessionmanager.h"
 
+AuthController::AuthController(ISessionManager *sessionManager, QObject *parent)
+    : APIController {parent}
+    , m_sessionManager {sessionManager}
+{
+}
+
 void AuthController::loginAction()
 {
-    if (sessionManager()->session())
+    if (m_sessionManager->session())
     {
-        setResult(QLatin1String("Ok."));
+        setResult(u"Ok."_qs);
         return;
     }
 
-    const QString clientAddr {sessionManager()->clientId()};
-    const QString usernameFromWeb {params()["username"]};
-    const QString passwordFromWeb {params()["password"]};
+    const QString clientAddr {m_sessionManager->clientId()};
+    const QString usernameFromWeb {params()[u"username"_qs]};
+    const QString passwordFromWeb {params()[u"password"_qs]};
 
     if (isBanned())
     {
@@ -68,15 +75,15 @@ void AuthController::loginAction()
     {
         m_clientFailedLogins.remove(clientAddr);
 
-        sessionManager()->sessionStart();
-        setResult(QLatin1String("Ok."));
+        m_sessionManager->sessionStart();
+        setResult(u"Ok."_qs);
         LogMsg(tr("WebAPI login success. IP: %1").arg(clientAddr));
     }
     else
     {
         if (Preferences::instance()->getWebUIMaxAuthFailCount() > 0)
             increaseFailedAttempts();
-        setResult(QLatin1String("Fails."));
+        setResult(u"Fails."_qs);
         LogMsg(tr("WebAPI login failure. Reason: invalid credentials, attempt count: %1, IP: %2, username: %3")
                 .arg(QString::number(failedAttemptsCount()), clientAddr, usernameFromWeb)
             , Log::WARNING);
@@ -85,12 +92,12 @@ void AuthController::loginAction()
 
 void AuthController::logoutAction() const
 {
-    sessionManager()->sessionEnd();
+    m_sessionManager->sessionEnd();
 }
 
 bool AuthController::isBanned() const
 {
-    const auto failedLoginIter = m_clientFailedLogins.find(sessionManager()->clientId());
+    const auto failedLoginIter = m_clientFailedLogins.find(m_sessionManager->clientId());
     if (failedLoginIter == m_clientFailedLogins.end())
         return false;
 
@@ -106,14 +113,14 @@ bool AuthController::isBanned() const
 
 int AuthController::failedAttemptsCount() const
 {
-    return m_clientFailedLogins.value(sessionManager()->clientId()).failedAttemptsCount;
+    return m_clientFailedLogins.value(m_sessionManager->clientId()).failedAttemptsCount;
 }
 
 void AuthController::increaseFailedAttempts()
 {
     Q_ASSERT(Preferences::instance()->getWebUIMaxAuthFailCount() > 0);
 
-    FailedLogin &failedLogin = m_clientFailedLogins[sessionManager()->clientId()];
+    FailedLogin &failedLogin = m_clientFailedLogins[m_sessionManager->clientId()];
     ++failedLogin.failedAttemptsCount;
 
     if (failedLogin.failedAttemptsCount >= Preferences::instance()->getWebUIMaxAuthFailCount())

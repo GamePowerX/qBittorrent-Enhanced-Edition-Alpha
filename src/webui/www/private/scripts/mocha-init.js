@@ -88,6 +88,7 @@ let copyInfohashFN = function(policy) {};
 let copyMagnetLinkFN = function() {};
 let copyIdFN = function() {};
 let setQueuePositionFN = function() {};
+let exportTorrentFN = function() {};
 
 const initializeWindows = function() {
     saveWindowSize = function(windowId) {
@@ -489,7 +490,7 @@ const initializeWindows = function() {
                 loadMethod: 'iframe',
                 contentURL: new URI("setlocation.html").setData("hashes", hashes.join('|')).setData("path", encodeURIComponent(row.full_data.save_path)).toString(),
                 scrollbars: false,
-                resizable: false,
+                resizable: true,
                 maximizable: false,
                 paddingVertical: 0,
                 paddingHorizontal: 0,
@@ -511,11 +512,11 @@ const initializeWindows = function() {
                     loadMethod: 'iframe',
                     contentURL: new URI("rename.html").setData("hash", hash).setData("name", row.full_data.name).toString(),
                     scrollbars: false,
-                    resizable: false,
+                    resizable: true,
                     maximizable: false,
                     paddingVertical: 0,
                     paddingHorizontal: 0,
-                    width: 250,
+                    width: 400,
                     height: 100
                 });
             }
@@ -532,11 +533,11 @@ const initializeWindows = function() {
                 loadMethod: 'iframe',
                 contentURL: new URI("newcategory.html").setData("action", action).setData("hashes", hashes.join('|')).toString(),
                 scrollbars: false,
-                resizable: false,
+                resizable: true,
                 maximizable: false,
                 paddingVertical: 0,
                 paddingHorizontal: 0,
-                width: 250,
+                width: 400,
                 height: 150
             });
         }
@@ -567,11 +568,11 @@ const initializeWindows = function() {
             loadMethod: 'iframe',
             contentURL: new URI("newcategory.html").setData("action", action).toString(),
             scrollbars: false,
-            resizable: false,
+            resizable: true,
             maximizable: false,
             paddingVertical: 0,
             paddingHorizontal: 0,
-            width: 250,
+            width: 400,
             height: 150
         });
         updateMainData();
@@ -587,11 +588,11 @@ const initializeWindows = function() {
             loadMethod: 'iframe',
             contentURL: new URI('newcategory.html').setData("action", action).setData("categoryName", categoryName).setData("savePath", savePath).toString(),
             scrollbars: false,
-            resizable: false,
+            resizable: true,
             maximizable: false,
             paddingVertical: 0,
             paddingHorizontal: 0,
-            width: 250,
+            width: 400,
             height: 150
         });
         updateMainData();
@@ -682,7 +683,7 @@ const initializeWindows = function() {
                 loadMethod: 'iframe',
                 contentURL: new URI("newtag.html").setData("action", action).setData("hashes", hashes.join("|")).toString(),
                 scrollbars: false,
-                resizable: false,
+                resizable: true,
                 maximizable: false,
                 paddingVertical: 0,
                 paddingHorizontal: 0,
@@ -728,7 +729,7 @@ const initializeWindows = function() {
             loadMethod: 'iframe',
             contentURL: new URI("newtag.html").setData("action", action).toString(),
             scrollbars: false,
-            resizable: false,
+            resizable: true,
             maximizable: false,
             paddingVertical: 0,
             paddingHorizontal: 0,
@@ -878,7 +879,7 @@ const initializeWindows = function() {
                 hashes = torrentsTable.getFilteredTorrentsHashes('all', CATEGORIES_ALL, TAGS_ALL, TRACKERS_TRACKERLESS);
                 break;
             default:
-                hashes = trackerList.get(trackerHashInt).torrents
+                hashes = trackerList.get(trackerHashInt).torrents;
                 break;
         }
 
@@ -955,6 +956,27 @@ const initializeWindows = function() {
 
     copyIdFN = function() {
         return torrentsTable.selectedRowsIds().join("\n");
+    };
+
+    exportTorrentFN = function() {
+        const hashes = torrentsTable.selectedRowsIds();
+        for (const hash of hashes) {
+            const row = torrentsTable.rows.get(hash);
+            if (!row)
+                return;
+
+            const name = row.full_data.name;
+            const url = new URI("api/v2/torrents/export");
+            url.setData("hash", hash);
+
+            // download response to file
+            const element = document.createElement("a");
+            element.setAttribute("href", url);
+            element.setAttribute("download", name + ".torrent");
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
     };
 
     ['pause', 'resume'].each(function(item) {

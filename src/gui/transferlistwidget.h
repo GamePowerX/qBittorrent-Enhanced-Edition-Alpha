@@ -36,6 +36,7 @@
 #include "base/bittorrent/infohash.h"
 
 class MainWindow;
+class Path;
 class TransferListModel;
 class TransferListSortModel;
 
@@ -91,14 +92,13 @@ public slots:
     void setTorrentOptions();
     void previewSelectedTorrents();
     void hideQueuePosColumn(bool hide);
-    void displayDLHoSMenu(const QPoint &);
     void applyNameFilter(const QString &name);
     void applyStatusFilter(int f);
     void applyCategoryFilter(const QString &category);
     void applyTagFilter(const QString &tag);
     void applyTrackerFilterAll();
     void applyTrackerFilter(const QSet<BitTorrent::TorrentID> &torrentIDs);
-    void previewFile(const QString &filePath);
+    void previewFile(const Path &filePath);
     void renameSelectedTorrent();
 
 signals:
@@ -106,7 +106,8 @@ signals:
 
 private slots:
     void torrentDoubleClicked();
-    void displayListMenu(const QPoint &);
+    void displayListMenu();
+    void displayColumnHeaderMenu();
     void currentChanged(const QModelIndex &current, const QModelIndex&) override;
     void setSelectedTorrentsSuperSeeding(bool enabled) const;
     void setSelectedTorrentsSequentialDownload(bool enabled) const;
@@ -123,10 +124,12 @@ private:
     QVector<BitTorrent::Torrent *> getSelectedTorrents() const;
     void askAddTagsForSelection();
     void editTorrentTrackers();
+    void exportTorrent();
     void confirmRemoveAllTagsForSelection();
     QStringList askTagsForSelection(const QString &dialogTitle);
     void applyToSelectedTorrents(const std::function<void (BitTorrent::Torrent *const)> &fn);
     QVector<BitTorrent::Torrent *> getVisibleTorrents() const;
+    int visibleColumnsCount() const;
 
     TransferListModel *m_listModel;
     TransferListSortModel *m_sortFilterModel;

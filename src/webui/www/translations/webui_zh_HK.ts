@@ -1,6 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.1" language="zh_HK">
+<?xml version="1.0" ?><!DOCTYPE TS><TS version="2.1" language="zh_HK">
 <context>
     <name>AboutDlg</name>
     <message>
@@ -39,7 +37,7 @@
         <translation>建立子資料夾</translation>
     </message>
     <message>
-        <source>Don't create subfolder</source>
+        <source>Don&apos;t create subfolder</source>
         <translation>不创建子文件夹</translation>
     </message>
 </context>
@@ -573,7 +571,7 @@
     </message>
     <message>
         <source>Filters Sidebar</source>
-        <translation type="vanished">筛选器侧边栏</translation>
+        <translation>筛选器侧边栏</translation>
     </message>
 </context>
 <context>
@@ -957,8 +955,8 @@
         <translation>【%T】目前追蹤器</translation>
     </message>
     <message>
-        <source>Tip: Encapsulate parameter with quotation marks to avoid text being cut off at whitespace (e.g., "%N")</source>
-        <translation>提示：以引號包起參數可避免於空格被切斷（例如："%N"）</translation>
+        <source>Tip: Encapsulate parameter with quotation marks to avoid text being cut off at whitespace (e.g., &quot;%N&quot;)</source>
+        <translation>提示：以引號包起參數可避免於空格被切斷（例如：&quot;%N&quot;）</translation>
     </message>
     <message>
         <source>The Web UI username must be at least 3 characters long.</source>
@@ -1429,7 +1427,7 @@
         <translation>原始</translation>
     </message>
     <message>
-        <source>Don't create subfolder</source>
+        <source>Don&apos;t create subfolder</source>
         <translation>不创建子文件夹</translation>
     </message>
     <message>
@@ -1482,19 +1480,43 @@
     </message>
     <message>
         <source>Disk queue size:</source>
-        <translation type="vanished">磁碟佇列大小：</translation>
+        <translation>磁碟佇列大小：</translation>
     </message>
     <message>
         <source>Log performance warnings</source>
-        <translation type="vanished">记录性能警报</translation>
+        <translation>记录性能警报</translation>
     </message>
     <message>
         <source>Maximum outstanding requests to a single peer:</source>
-        <translation type="vanished">對單個 peer 的最多未完成請求：</translation>
+        <translation>對單個 peer 的最多未完成請求：</translation>
     </message>
     <message>
         <source>Max active checking torrents:</source>
-        <translation type="vanished">最大活躍的正在檢查 torrent 數：</translation>
+        <translation>最大活躍的正在檢查 torrent 數：</translation>
+    </message>
+    <message>
+        <source>Memory mapped files</source>
+        <translation>内存映射文件</translation>
+    </message>
+    <message>
+        <source>Default</source>
+        <translation>默认</translation>
+    </message>
+    <message>
+        <source>POSIX-compliant</source>
+        <translation>遵循 POSIX</translation>
+    </message>
+    <message>
+        <source>This option is less effective on Linux</source>
+        <translation>这个选项在 Linux 上没那么有效</translation>
+    </message>
+    <message>
+        <source>Disk IO type (libtorrent &gt;= 2.0; requires restart):</source>
+        <translation>磁盘 IO 类型（libtorrent &gt;= 2.0；需要重启）</translation>
+    </message>
+    <message>
+        <source>Physical memory (RAM) usage limit:</source>
+        <translation>物理内存（RAM）使用限制：</translation>
     </message>
 </context>
 <context>
@@ -2184,10 +2206,6 @@
         <translation>訊息</translation>
     </message>
     <message>
-        <source>Downloaded</source>
-        <translation>已下載</translation>
-    </message>
-    <message>
         <source>Tracker URL:</source>
         <translation>追蹤器網址：</translation>
     </message>
@@ -2269,11 +2287,11 @@
     </message>
     <message>
         <source>Total Size</source>
-        <translation type="vanished">總大小</translation>
+        <translation>總大小</translation>
     </message>
     <message>
-        <source>Size</source>
-        <translation type="unfinished" />
+        <source>Times Downloaded</source>
+        <translation>下载时间</translation>
     </message>
 </context>
 <context>
@@ -2570,6 +2588,10 @@
         <source>Torrent ID</source>
         <translation>Torrent ID</translation>
     </message>
+    <message>
+        <source>Export .torrent</source>
+        <translation>导出 .torrent</translation>
+    </message>
 </context>
 <context>
     <name>UpDownRatioDialog</name>
@@ -2835,7 +2857,7 @@
         <translation>已啟用</translation>
     </message>
     <message>
-        <source>Warning: Be sure to comply with your country's copyright laws when downloading torrents from any of these search engines.</source>
+        <source>Warning: Be sure to comply with your country&apos;s copyright laws when downloading torrents from any of these search engines.</source>
         <translation>警告：請確保從此等搜尋器下載Torrent時遵守你所在地的版權規定。</translation>
     </message>
     <message>
@@ -3450,7 +3472,7 @@ Supports the formats: S01E01, 1x1, 2017.12.31 and 31.12.2017 (Date formats also 
         <translation>原始</translation>
     </message>
     <message>
-        <source>Don't create subfolder</source>
+        <source>Don&apos;t create subfolder</source>
         <translation>不要创建子文件夹</translation>
     </message>
 </context>

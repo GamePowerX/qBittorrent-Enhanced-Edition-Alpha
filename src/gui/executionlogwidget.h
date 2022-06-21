@@ -44,6 +44,7 @@ class LogListView;
 class ExecutionLogWidget : public QWidget
 {
     Q_OBJECT
+    Q_DISABLE_COPY_MOVE(ExecutionLogWidget)
 
 public:
     ExecutionLogWidget(Log::MsgTypes types, QWidget *parent);
@@ -52,7 +53,7 @@ public:
     void setMessageTypes(Log::MsgTypes types);
 
 private:
-    void displayContextMenu(const QPoint &pos, const LogListView *view, const BaseLogModel *model) const;
+    void displayContextMenu(const LogListView *view, const BaseLogModel *model) const;
 
     Ui::ExecutionLogWidget *m_ui;
     LogFilterModel *m_messageFilterModel;

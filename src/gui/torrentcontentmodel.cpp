@@ -53,6 +53,7 @@
 #include "base/bittorrent/abstractfilestorage.h"
 #include "base/bittorrent/downloadpriority.h"
 #include "base/global.h"
+#include "base/path.h"
 #include "base/utils/fs.h"
 #include "torrentcontentmodelfile.h"
 #include "torrentcontentmodelfolder.h"
@@ -68,14 +69,20 @@ namespace
     class UnifiedFileIconProvider : public QFileIconProvider
     {
     public:
+        UnifiedFileIconProvider()
+            : m_textPlainIcon {UIThemeManager::instance()->getIcon(u"text-plain"_qs)}
+        {
+        }
+
         using QFileIconProvider::icon;
 
-        QIcon icon(const QFileInfo &info) const override
+        QIcon icon(const QFileInfo &) const override
         {
-            Q_UNUSED(info);
-            static QIcon cached = UIThemeManager::instance()->getIcon("text-plain");
-            return cached;
+            return m_textPlainIcon;
         }
+
+    private:
+        QIcon m_textPlainIcon;
     };
 
 #ifdef QBT_PIXMAP_CACHE_FOR_FILE_ICONS
@@ -90,7 +97,8 @@ namespace
             if (!ext.isEmpty())
             {
                 QPixmap cached;
-                if (QPixmapCache::find(ext, &cached)) return {cached};
+                if (QPixmapCache::find(ext, &cached))
+                    return {cached};
 
                 const QPixmap pixmap = pixmapForExtension(ext);
                 if (!pixmap.isNull())
@@ -113,17 +121,18 @@ namespace
     {
         QPixmap pixmapForExtension(const QString &ext) const override
         {
-            const std::wstring extWStr = QString(QLatin1Char('.') + ext).toStdWString();
-            SHFILEINFO sfi {};
-            HRESULT hr = ::SHGetFileInfoW(extWStr.c_str(),
-                FILE_ATTRIBUTE_NORMAL, &sfi, sizeof(sfi), SHGFI_ICON | SHGFI_USEFILEATTRIBUTES);
+            const std::wstring extWStr = QString(u'.' + ext).toStdWString();
+
+            SHFILEINFOW sfi {};
+            const HRESULT hr = ::SHGetFileInfoW(extWStr.c_str(),
+                FILE_ATTRIBUTE_NORMAL, &sfi, sizeof(sfi), (SHGFI_ICON | SHGFI_USEFILEATTRIBUTES));
             if (FAILED(hr))
                 return {};
 
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
-            auto iconPixmap = QPixmap::fromImage(QImage::fromHICON(sfi.hIcon));
+            const auto iconPixmap = QPixmap::fromImage(QImage::fromHICON(sfi.hIcon));
 #else
-            QPixmap iconPixmap = QtWin::fromHICON(sfi.hIcon);
+            const QPixmap iconPixmap = QtWin::fromHICON(sfi.hIcon);
 #endif
             ::DestroyIcon(sfi.hIcon);
             return iconPixmap;
@@ -150,56 +159,46 @@ namespace
      */
     bool doesQFileIconProviderWork()
     {
+        const Path PSEUDO_UNIQUE_FILE_NAME = Utils::Fs::tempPath() / Path(u"qBittorrent-test-QFileIconProvider-845eb448-7ad5-4cdb-b764-b3f322a266a9"_qs);
         QFileIconProvider provider;
-        const char PSEUDO_UNIQUE_FILE_NAME[] = "/tmp/qBittorrent-test-QFileIconProvider-845eb448-7ad5-4cdb-b764-b3f322a266a9";
-        QIcon testIcon1 = provider.icon(QFileInfo(
-            QLatin1String(PSEUDO_UNIQUE_FILE_NAME) + QLatin1String(".pdf")));
-        QIcon testIcon2 = provider.icon(QFileInfo(
-            QLatin1String(PSEUDO_UNIQUE_FILE_NAME) + QLatin1String(".png")));
-
+        const QIcon testIcon1 = provider.icon(QFileInfo((PSEUDO_UNIQUE_FILE_NAME + u".pdf").data()));
+        const QIcon testIcon2 = provider.icon(QFileInfo((PSEUDO_UNIQUE_FILE_NAME + u".png").data()));
         return (!testIcon1.isNull() || !testIcon2.isNull());
     }
 
-    class MimeFileIconProvider : public UnifiedFileIconProvider
+    class MimeFileIconProvider final : public UnifiedFileIconProvider
     {
         using QFileIconProvider::icon;
 
         QIcon icon(const QFileInfo &info) const override
         {
-            const QMimeType mimeType = m_db.mimeTypeForFile(info, QMimeDatabase::MatchExtension);
-            QIcon res = QIcon::fromTheme(mimeType.iconName());
-            if (!res.isNull())
-            {
-                return res;
-            }
+            const QMimeType mimeType = QMimeDatabase().mimeTypeForFile(info, QMimeDatabase::MatchExtension);
 
-            res = QIcon::fromTheme(mimeType.genericIconName());
-            if (!res.isNull())
-            {
-                return res;
-            }
+            const auto mimeIcon = QIcon::fromTheme(mimeType.iconName());
+            if (!mimeIcon.isNull())
+                return mimeIcon;
+
+            const auto genericIcon = QIcon::fromTheme(mimeType.genericIconName());
+            if (!genericIcon.isNull())
+                return genericIcon;
 
             return UnifiedFileIconProvider::icon(info);
         }
-
-    private:
-        QMimeDatabase m_db;
     };
 #endif // Q_OS_WIN
 }
 
 TorrentContentModel::TorrentContentModel(QObject *parent)
     : QAbstractItemModel(parent)
-    , m_rootItem(new TorrentContentModelFolder(QVector<QString>({ tr("Name"), tr("Size"), tr("Progress"), tr("Download Priority"), tr("Remaining"), tr("Availability") })))
-{
+    , m_rootItem(new TorrentContentModelFolder(QVector<QString>({ tr("Name"), tr("Total Size"), tr("Progress"), tr("Download Priority"), tr("Remaining"), tr("Availability") })))
 #if defined(Q_OS_WIN)
-    m_fileIconProvider = new WinShellFileIconProvider();
+    , m_fileIconProvider {new WinShellFileIconProvider}
 #elif defined(Q_OS_MACOS)
-    m_fileIconProvider = new MacFileIconProvider();
+    , m_fileIconProvider {new MacFileIconProvider}
 #else
-    static bool doesBuiltInProviderWork = doesQFileIconProviderWork();
-    m_fileIconProvider = doesBuiltInProviderWork ? new QFileIconProvider() : new MimeFileIconProvider();
+    , m_fileIconProvider {doesQFileIconProviderWork() ? new QFileIconProvider : new MimeFileIconProvider}
 #endif
+{
 }
 
 TorrentContentModel::~TorrentContentModel()
@@ -506,32 +505,46 @@ void TorrentContentModel::setupModelData(const BitTorrent::AbstractFileStorage &
     qDebug("Torrent contains %d files", filesCount);
     m_filesIndex.reserve(filesCount);
 
-    TorrentContentModelFolder *currentParent;
+    QHash<TorrentContentModelFolder *, QHash<QString, TorrentContentModelFolder *>> folderMap;
+    QVector<QString> lastParentPath;
+    TorrentContentModelFolder *lastParent = m_rootItem;
     // Iterate over files
     for (int i = 0; i < filesCount; ++i)
     {
-        currentParent = m_rootItem;
-        const QString path = Utils::Fs::toUniformPath(info.filePath(i));
+        const QString path = info.filePath(i).data();
 
         // Iterate of parts of the path to create necessary folders
         QList<QStringView> pathFolders = QStringView(path).split(u'/', Qt::SkipEmptyParts);
-        pathFolders.removeLast();
+        const QString fileName = pathFolders.takeLast().toString();
 
-        for (const QStringView pathPart : asConst(pathFolders))
+        if (!std::equal(lastParentPath.begin(), lastParentPath.end()
+                        , pathFolders.begin(), pathFolders.end()))
         {
-            const QString folderPath = pathPart.toString();
-            TorrentContentModelFolder *newParent = currentParent->childFolderWithName(folderPath);
-            if (!newParent)
+            lastParentPath.clear();
+            lastParentPath.reserve(pathFolders.size());
+
+            // rebuild the path from the root
+            lastParent = m_rootItem;
+            for (const QStringView pathPart : asConst(pathFolders))
             {
-                newParent = new TorrentContentModelFolder(folderPath, currentParent);
-                currentParent->appendChild(newParent);
+                const QString folderName = pathPart.toString();
+                lastParentPath.push_back(folderName);
+
+                TorrentContentModelFolder *&newParent = folderMap[lastParent][folderName];
+                if (!newParent)
+                {
+                    newParent = new TorrentContentModelFolder(folderName, lastParent);
+                    lastParent->appendChild(newParent);
+                }
+
+                lastParent = newParent;
             }
-            currentParent = newParent;
         }
+
         // Actually create the file
         TorrentContentModelFile *fileItem = new TorrentContentModelFile(
-                    Utils::Fs::fileName(info.filePath(i)), info.fileSize(i), currentParent, i);
-        currentParent->appendChild(fileItem);
+                    fileName, info.fileSize(i), lastParent, i);
+        lastParent->appendChild(fileItem);
         m_filesIndex.push_back(fileItem);
     }
     emit layoutChanged();

@@ -45,21 +45,8 @@
 #include "apierror.h"
 #include "isessionmanager.h"
 
-using SearchHandlerPtr = QSharedPointer<SearchHandler>;
-using SearchHandlerDict = QMap<int, SearchHandlerPtr>;
-
 namespace
 {
-    const QLatin1String ACTIVE_SEARCHES("activeSearches");
-    const QLatin1String SEARCH_HANDLERS("searchHandlers");
-
-    void removeActiveSearch(ISession *session, const int id)
-    {
-        auto activeSearches = session->getData<QSet<int>>(ACTIVE_SEARCHES);
-        if (activeSearches.remove(id))
-            session->setData(ACTIVE_SEARCHES, QVariant::fromValue(activeSearches));
-    }
-
     /**
     * Returns the search categories in JSON format.
     *
@@ -72,8 +59,8 @@ namespace
     {
         QJsonArray categoriesInfo
         {QJsonObject {
-            {QLatin1String("id"), "all"},
-            {QLatin1String("name"), SearchPluginManager::categoryFullName("all")}
+            {u"id"_qs, u"all"_qs},
+            {u"name"_qs, SearchPluginManager::categoryFullName(u"all"_qs)}
         }};
 
         categories.sort(Qt::CaseInsensitive);
@@ -81,8 +68,8 @@ namespace
         {
             categoriesInfo << QJsonObject
             {
-                {QLatin1String("id"), category},
-                {QLatin1String("name"), SearchPluginManager::categoryFullName(category)}
+                {u"id"_qs, category},
+                {u"name"_qs, SearchPluginManager::categoryFullName(category)}
             };
         }
 
@@ -92,22 +79,22 @@ namespace
 
 void SearchController::startAction()
 {
-    requireParams({"pattern", "category", "plugins"});
+    requireParams({u"pattern"_qs, u"category"_qs, u"plugins"_qs});
 
     if (!Utils::ForeignApps::pythonInfo().isValid())
         throw APIError(APIErrorType::Conflict, tr("Python must be installed to use the Search Engine."));
 
-    const QString pattern = params()["pattern"].trimmed();
-    const QString category = params()["category"].trimmed();
-    const QStringList plugins = params()["plugins"].split('|');
+    const QString pattern = params()[u"pattern"_qs].trimmed();
+    const QString category = params()[u"category"_qs].trimmed();
+    const QStringList plugins = params()[u"plugins"_qs].split(u'|');
 
     QStringList pluginsToUse;
     if (plugins.size() == 1)
     {
         const QString pluginsLower = plugins[0].toLower();
-        if (pluginsLower == "all")
+        if (pluginsLower == u"all")
             pluginsToUse = SearchPluginManager::instance()->allPlugins();
-        else if ((pluginsLower == "enabled") || (pluginsLower == "multi"))
+        else if ((pluginsLower == u"enabled") || (pluginsLower == u"multi"))
             pluginsToUse = SearchPluginManager::instance()->enabledPlugins();
         else
             pluginsToUse << plugins;
@@ -117,66 +104,59 @@ void SearchController::startAction()
         pluginsToUse << plugins;
     }
 
-    ISession *const session = sessionManager()->session();
-    auto activeSearches = session->getData<QSet<int>>(ACTIVE_SEARCHES);
-    if (activeSearches.size() >= MAX_CONCURRENT_SEARCHES)
+    if (m_activeSearches.size() >= MAX_CONCURRENT_SEARCHES)
         throw APIError(APIErrorType::Conflict, tr("Unable to create more than %1 concurrent searches.").arg(MAX_CONCURRENT_SEARCHES));
 
     const auto id = generateSearchId();
-    const SearchHandlerPtr searchHandler {SearchPluginManager::instance()->startSearch(pattern, category, pluginsToUse)};
-    QObject::connect(searchHandler.data(), &SearchHandler::searchFinished, this, [session, id, this]() { searchFinished(session, id); });
-    QObject::connect(searchHandler.data(), &SearchHandler::searchFailed, this, [session, id, this]() { searchFailed(session, id); });
+    const std::shared_ptr<SearchHandler> searchHandler {SearchPluginManager::instance()->startSearch(pattern, category, pluginsToUse)};
+    QObject::connect(searchHandler.get(), &SearchHandler::searchFinished, this, [id, this]() { m_activeSearches.remove(id); });
+    QObject::connect(searchHandler.get(), &SearchHandler::searchFailed, this, [id, this]() { m_activeSearches.remove(id); });
 
-    auto searchHandlers = session->getData<SearchHandlerDict>(SEARCH_HANDLERS);
-    searchHandlers.insert(id, searchHandler);
-    session->setData(SEARCH_HANDLERS, QVariant::fromValue(searchHandlers));
+    m_searchHandlers.insert(id, searchHandler);
 
-    activeSearches.insert(id);
-    session->setData(ACTIVE_SEARCHES, QVariant::fromValue(activeSearches));
+    m_activeSearches.insert(id);
 
-    const QJsonObject result = {{"id", id}};
+    const QJsonObject result = {{u"id"_qs, id}};
     setResult(result);
 }
 
 void SearchController::stopAction()
 {
-    requireParams({"id"});
+    requireParams({u"id"_qs});
 
-    const int id = params()["id"].toInt();
-    ISession *const session = sessionManager()->session();
+    const int id = params()[u"id"_qs].toInt();
 
-    const auto searchHandlers = session->getData<SearchHandlerDict>(SEARCH_HANDLERS);
-    if (!searchHandlers.contains(id))
+    const auto iter = m_searchHandlers.find(id);
+    if (iter == m_searchHandlers.end())
         throw APIError(APIErrorType::NotFound);
 
-    const SearchHandlerPtr searchHandler = searchHandlers[id];
+    const std::shared_ptr<SearchHandler> &searchHandler = iter.value();
 
     if (searchHandler->isActive())
     {
         searchHandler->cancelSearch();
-        removeActiveSearch(session, id);
+        m_activeSearches.remove(id);
     }
 }
 
 void SearchController::statusAction()
 {
-    const int id = params()["id"].toInt();
+    const int id = params()[u"id"_qs].toInt();
 
-    const auto searchHandlers = sessionManager()->session()->getData<SearchHandlerDict>(SEARCH_HANDLERS);
-    if ((id != 0) && !searchHandlers.contains(id))
+    if ((id != 0) && !m_searchHandlers.contains(id))
         throw APIError(APIErrorType::NotFound);
 
     QJsonArray statusArray;
-    const QList<int> searchIds {(id == 0) ? searchHandlers.keys() : QList<int> {id}};
+    const QList<int> searchIds {(id == 0) ? m_searchHandlers.keys() : QList<int> {id}};
 
     for (const int searchId : searchIds)
     {
-        const SearchHandlerPtr searchHandler = searchHandlers[searchId];
+        const std::shared_ptr<SearchHandler> &searchHandler = m_searchHandlers[searchId];
         statusArray << QJsonObject
         {
-            {"id", searchId},
-            {"status", searchHandler->isActive() ? "Running" : "Stopped"},
-            {"total", searchHandler->results().size()}
+            {u"id"_qs, searchId},
+            {u"status"_qs, searchHandler->isActive() ? u"Running"_qs : u"Stopped"_qs},
+            {u"total"_qs, searchHandler->results().size()}
         };
     }
 
@@ -185,17 +165,17 @@ void SearchController::statusAction()
 
 void SearchController::resultsAction()
 {
-    requireParams({"id"});
+    requireParams({u"id"_qs});
 
-    const int id = params()["id"].toInt();
-    int limit = params()["limit"].toInt();
-    int offset = params()["offset"].toInt();
+    const int id = params()[u"id"_qs].toInt();
+    int limit = params()[u"limit"_qs].toInt();
+    int offset = params()[u"offset"_qs].toInt();
 
-    const auto searchHandlers = sessionManager()->session()->getData<SearchHandlerDict>(SEARCH_HANDLERS);
-    if (!searchHandlers.contains(id))
+    const auto iter = m_searchHandlers.find(id);
+    if (iter == m_searchHandlers.end())
         throw APIError(APIErrorType::NotFound);
 
-    const SearchHandlerPtr searchHandler = searchHandlers[id];
+    const std::shared_ptr<SearchHandler> &searchHandler = iter.value();
     const QList<SearchResult> searchResults = searchHandler->results();
     const int size = searchResults.size();
 
@@ -218,21 +198,18 @@ void SearchController::resultsAction()
 
 void SearchController::deleteAction()
 {
-    requireParams({"id"});
+    requireParams({u"id"_qs});
 
-    const int id = params()["id"].toInt();
-    ISession *const session = sessionManager()->session();
+    const int id = params()[u"id"_qs].toInt();
 
-    auto searchHandlers = session->getData<SearchHandlerDict>(SEARCH_HANDLERS);
-    if (!searchHandlers.contains(id))
+    const auto iter = m_searchHandlers.find(id);
+    if (iter == m_searchHandlers.end())
         throw APIError(APIErrorType::NotFound);
 
-    const SearchHandlerPtr searchHandler = searchHandlers[id];
+    const std::shared_ptr<SearchHandler> &searchHandler = iter.value();
     searchHandler->cancelSearch();
-    searchHandlers.remove(id);
-    session->setData(SEARCH_HANDLERS, QVariant::fromValue(searchHandlers));
-
-    removeActiveSearch(session, id);
+    m_activeSearches.remove(id);
+    m_searchHandlers.erase(iter);
 }
 
 void SearchController::pluginsAction()
@@ -243,28 +220,28 @@ void SearchController::pluginsAction()
 
 void SearchController::installPluginAction()
 {
-    requireParams({"sources"});
+    requireParams({u"sources"_qs});
 
-    const QStringList sources = params()["sources"].split('|');
+    const QStringList sources = params()[u"sources"_qs].split(u'|');
     for (const QString &source : sources)
         SearchPluginManager::instance()->installPlugin(source);
 }
 
 void SearchController::uninstallPluginAction()
 {
-    requireParams({"names"});
+    requireParams({u"names"_qs});
 
-    const QStringList names = params()["names"].split('|');
+    const QStringList names = params()[u"names"_qs].split(u'|');
     for (const QString &name : names)
         SearchPluginManager::instance()->uninstallPlugin(name.trimmed());
 }
 
 void SearchController::enablePluginAction()
 {
-    requireParams({"names", "enable"});
+    requireParams({u"names"_qs, u"enable"_qs});
 
-    const QStringList names = params()["names"].split('|');
-    const bool enable = Utils::String::parseBool(params()["enable"].trimmed()).value_or(false);
+    const QStringList names = params()[u"names"_qs].split(u'|');
+    const bool enable = Utils::String::parseBool(params()[u"enable"_qs].trimmed()).value_or(false);
 
     for (const QString &name : names)
         SearchPluginManager::instance()->enablePlugin(name.trimmed(), enable);
@@ -302,24 +279,12 @@ void SearchController::checkForUpdatesFailed(const QString &reason)
     LogMsg(tr("Failed to check for plugin updates: %1").arg(reason), Log::INFO);
 }
 
-void SearchController::searchFinished(ISession *session, const int id)
-{
-    removeActiveSearch(session, id);
-}
-
-void SearchController::searchFailed(ISession *session, const int id)
-{
-    removeActiveSearch(session, id);
-}
-
 int SearchController::generateSearchId() const
 {
-    const auto searchHandlers = sessionManager()->session()->getData<SearchHandlerDict>(SEARCH_HANDLERS);
-
     while (true)
     {
         const int id = Utils::Random::rand(1, std::numeric_limits<int>::max());
-        if (!searchHandlers.contains(id))
+        if (!m_searchHandlers.contains(id))
             return id;
     }
 }
@@ -344,21 +309,21 @@ QJsonObject SearchController::getResults(const QList<SearchResult> &searchResult
     {
         searchResultsArray << QJsonObject
         {
-            {"fileName", searchResult.fileName},
-            {"fileUrl", searchResult.fileUrl},
-            {"fileSize", searchResult.fileSize},
-            {"nbSeeders", searchResult.nbSeeders},
-            {"nbLeechers", searchResult.nbLeechers},
-            {"siteUrl", searchResult.siteUrl},
-            {"descrLink", searchResult.descrLink}
+            {u"fileName"_qs, searchResult.fileName},
+            {u"fileUrl"_qs, searchResult.fileUrl},
+            {u"fileSize"_qs, searchResult.fileSize},
+            {u"nbSeeders"_qs, searchResult.nbSeeders},
+            {u"nbLeechers"_qs, searchResult.nbLeechers},
+            {u"siteUrl"_qs, searchResult.siteUrl},
+            {u"descrLink"_qs, searchResult.descrLink}
         };
     }
 
     const QJsonObject result =
     {
-        {"status", isSearchActive ? "Running" : "Stopped"},
-        {"results", searchResultsArray},
-        {"total", totalResults}
+        {u"status"_qs, isSearchActive ? u"Running"_qs : u"Stopped"_qs},
+        {u"results"_qs, searchResultsArray},
+        {u"total"_qs, totalResults}
     };
 
     return result;
@@ -387,12 +352,12 @@ QJsonArray SearchController::getPluginsInfo(const QStringList &plugins) const
 
         pluginsArray << QJsonObject
         {
-            {"name", pluginInfo->name},
-            {"version", QString(pluginInfo->version)},
-            {"fullName", pluginInfo->fullName},
-            {"url", pluginInfo->url},
-            {"supportedCategories", getPluginCategories(pluginInfo->supportedCategories)},
-            {"enabled", pluginInfo->enabled}
+            {u"name"_qs, pluginInfo->name},
+            {u"version"_qs, pluginInfo->version.toString()},
+            {u"fullName"_qs, pluginInfo->fullName},
+            {u"url"_qs, pluginInfo->url},
+            {u"supportedCategories"_qs, getPluginCategories(pluginInfo->supportedCategories)},
+            {u"enabled"_qs, pluginInfo->enabled}
         };
     }
 

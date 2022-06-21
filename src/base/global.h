@@ -35,11 +35,7 @@
 #define QBT_APP_64BIT
 #endif
 
-inline const char C_TORRENT_FILE_EXTENSION[] = ".torrent";
 inline const int MAX_TORRENT_SIZE = 100 * 1024 * 1024; // 100 MiB
-
-// quick and dirty but works
-inline QString globalExternalIP = "";
 
 template <typename T>
 constexpr typename std::add_const_t<T> &asConst(T &t) noexcept { return t; }
@@ -51,3 +47,16 @@ constexpr typename std::add_const_t<T> asConst(T &&t) noexcept { return std::mov
 // Prevent const rvalue arguments
 template <typename T>
 void asConst(const T &&) = delete;
+
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
+// https://doc.qt.io/qt-6/qstring.html#operator-22-22_qs
+inline QString operator"" _qs(const char16_t *str, const std::size_t size)
+{
+    return QString::fromRawData(reinterpret_cast<const QChar *>(str), static_cast<int>(size));
+}
+#endif
+
+inline const QString TORRENT_FILE_EXTENSION = u".torrent"_qs;
+
+// quick and dirty but works
+inline QString globalExternalIP = u""_qs;

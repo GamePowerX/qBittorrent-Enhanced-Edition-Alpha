@@ -1,3 +1,37 @@
+
+# CMAKE_AUTO_UI causes unncessary rebuilds
+qt_wrap_ui(UI_HEADERS
+    aboutdialog.ui
+    addnewtorrentdialog.ui
+    autoexpandabledialog.ui
+    banlistoptionsdialog.ui
+    cookiesdialog.ui
+    deletionconfirmationdialog.ui
+    downloadfromurldialog.ui
+    executionlogwidget.ui
+    ipsubnetwhitelistoptionsdialog.ui
+    mainwindow.ui
+    optionsdialog.ui
+    previewselectdialog.ui
+    properties/peersadditiondialog.ui
+    properties/propertieswidget.ui
+    properties/trackersadditiondialog.ui
+    rss/automatedrssdownloader.ui
+    rss/rsswidget.ui
+    search/pluginselectdialog.ui
+    search/pluginsourcedialog.ui
+    search/searchjobwidget.ui
+    search/searchwidget.ui
+    shutdownconfirmdialog.ui
+    speedlimitdialog.ui
+    statsdialog.ui
+    torrentcategorydialog.ui
+    torrentcreatordialog.ui
+    torrentoptionsdialog.ui
+    trackerentriesdialog.ui
+    watchedfolderoptionsdialog.ui
+)
+
 add_library(qbt_gui STATIC
     # headers
     aboutdialog.h
@@ -16,6 +50,7 @@ add_library(qbt_gui STATIC
     fspathedit.h
     fspathedit_p.h
     hidabletabwidget.h
+    interfaces/iguiapplication.h
     ipsubnetwhitelistoptionsdialog.h
     lineedit.h
     log/logfiltermodel.h
@@ -161,39 +196,14 @@ add_library(qbt_gui STATIC
     watchedfolderoptionsdialog.cpp
     watchedfoldersmodel.cpp
 
-    # forms
-    aboutdialog.ui
-    addnewtorrentdialog.ui
-    autoexpandabledialog.ui
-    banlistoptionsdialog.ui
-    cookiesdialog.ui
-    deletionconfirmationdialog.ui
-    downloadfromurldialog.ui
-    executionlogwidget.ui
-    ipsubnetwhitelistoptionsdialog.ui
-    mainwindow.ui
-    optionsdialog.ui
-    previewselectdialog.ui
-    properties/peersadditiondialog.ui
-    properties/propertieswidget.ui
-    properties/trackersadditiondialog.ui
-    rss/automatedrssdownloader.ui
-    rss/rsswidget.ui
-    search/pluginselectdialog.ui
-    search/pluginsourcedialog.ui
-    search/searchjobwidget.ui
-    search/searchwidget.ui
-    shutdownconfirmdialog.ui
-    speedlimitdialog.ui
-    statsdialog.ui
-    torrentcategorydialog.ui
-    torrentcreatordialog.ui
-    torrentoptionsdialog.ui
-    trackerentriesdialog.ui
-    watchedfolderoptionsdialog.ui
+    # generated .ui headers
+    ${UI_HEADERS}
 )
 
 target_sources(qbt_gui INTERFACE about.qrc)
+
+# UI headers will be generated in ${CMAKE_CURRENT_BINARY_DIR}
+target_include_directories(qbt_gui PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 target_link_libraries(qbt_gui
     PRIVATE
@@ -208,6 +218,16 @@ if (DBUS)
         qtnotify/notifications.cpp
         powermanagement/powermanagement_x11.h
         powermanagement/powermanagement_x11.cpp
+    )
+endif()
+
+if (STACKTRACE)
+    qt_wrap_ui(STACKTRACE_UI_HEADERS stacktracedialog.ui)
+
+    target_sources(qbt_gui PRIVATE
+        stacktracedialog.h
+        stacktracedialog.cpp
+        ${STACKTRACE_UI_HEADERS}
     )
 endif()
 

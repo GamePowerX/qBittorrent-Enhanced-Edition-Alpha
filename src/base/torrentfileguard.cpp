@@ -31,7 +31,15 @@
 #include "settingvalue.h"
 #include "utils/fs.h"
 
-FileGuard::FileGuard(const QString &path)
+namespace
+{
+    SettingValue<TorrentFileGuard::AutoDeleteMode> autoDeleteModeSetting()
+    {
+        return SettingValue<TorrentFileGuard::AutoDeleteMode> {u"Core/AutoDeleteAddedTorrentFile"_qs};
+    }
+}
+
+FileGuard::FileGuard(const Path &path)
     : m_path {path}
     , m_remove {true}
 {
@@ -45,17 +53,17 @@ void FileGuard::setAutoRemove(const bool remove) noexcept
 FileGuard::~FileGuard()
 {
     if (m_remove && !m_path.isEmpty())
-        Utils::Fs::forceRemove(m_path); // forceRemove() checks for file existence
+        Utils::Fs::removeFile(m_path); // removeFile() checks for file existence
 }
 
-TorrentFileGuard::TorrentFileGuard(const QString &path, const TorrentFileGuard::AutoDeleteMode mode)
-    : FileGuard {mode != Never ? path : QString()}
+TorrentFileGuard::TorrentFileGuard(const Path &path, const TorrentFileGuard::AutoDeleteMode mode)
+    : FileGuard {mode != Never ? path : Path()}
     , m_mode {mode}
     , m_wasAdded {false}
 {
 }
 
-TorrentFileGuard::TorrentFileGuard(const QString &path)
+TorrentFileGuard::TorrentFileGuard(const Path &path)
     : TorrentFileGuard {path, autoDeleteMode()}
 {
 }
@@ -76,13 +84,7 @@ TorrentFileGuard::AutoDeleteMode TorrentFileGuard::autoDeleteMode()
     return autoDeleteModeSetting().get(AutoDeleteMode::Never);
 }
 
-void TorrentFileGuard::setAutoDeleteMode(TorrentFileGuard::AutoDeleteMode mode)
+void TorrentFileGuard::setAutoDeleteMode(const TorrentFileGuard::AutoDeleteMode mode)
 {
     autoDeleteModeSetting() = mode;
-}
-
-SettingValue<TorrentFileGuard::AutoDeleteMode> &TorrentFileGuard::autoDeleteModeSetting()
-{
-    static SettingValue<AutoDeleteMode> setting {"Core/AutoDeleteAddedTorrentFile"};
-    return setting;
 }
