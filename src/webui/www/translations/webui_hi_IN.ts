@@ -1,10 +1,4 @@
-<<<<<<< HEAD
 <?xml version="1.0" ?><!DOCTYPE TS><TS version="2.1" language="hi_IN">
-=======
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.1" language="hi_IN">
->>>>>>> v4_4_x
 <context>
     <name>AboutDlg</name>
     <message>
@@ -2292,17 +2286,12 @@
         <translation>प्रगति</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>Total Size</source>
         <translation type="unfinished"/>
     </message>
     <message>
         <source>Times Downloaded</source>
         <translation type="unfinished"/>
-=======
-        <source>Size</source>
-        <translation type="unfinished" />
->>>>>>> v4_4_x
     </message>
 </context>
 <context>

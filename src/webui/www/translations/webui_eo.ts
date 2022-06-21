@@ -1,10 +1,4 @@
-<<<<<<< HEAD
 <?xml version="1.0" ?><!DOCTYPE TS><TS version="2.1" language="eo">
-=======
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.1" language="eo">
->>>>>>> v4_4_x
 <context>
     <name>AboutDlg</name>
     <message>

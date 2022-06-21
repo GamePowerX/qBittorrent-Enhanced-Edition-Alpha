@@ -1,10 +1,4 @@
-<<<<<<< HEAD
 <?xml version="1.0" ?><!DOCTYPE TS><TS version="2.1" language="hr">
-=======
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.1" language="hr">
->>>>>>> v4_4_x
 <context>
     <name>AboutDlg</name>
     <message>
@@ -43,11 +37,7 @@
         <translation>Stvori podmapu</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>Don&apos;t create subfolder</source>
-=======
-        <source>Don't create subfolder</source>
->>>>>>> v4_4_x
         <translation>Ne stvaraj podmapu</translation>
     </message>
 </context>
@@ -2216,13 +2206,6 @@
         <translation>Poruka</translation>
     </message>
     <message>
-<<<<<<< HEAD
-=======
-        <source>Downloaded</source>
-        <translation>Preuzeto</translation>
-    </message>
-    <message>
->>>>>>> v4_4_x
         <source>Tracker URL:</source>
         <translation type="unfinished"/>
     </message>

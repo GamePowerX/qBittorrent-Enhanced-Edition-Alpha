@@ -37,9 +37,6 @@
 
 inline const int MAX_TORRENT_SIZE = 100 * 1024 * 1024; // 100 MiB
 
-// quick and dirty but works
-inline QString globalExternalIP = "";
-
 template <typename T>
 constexpr typename std::add_const_t<T> &asConst(T &t) noexcept { return t; }
 
@@ -60,3 +57,6 @@ inline QString operator"" _qs(const char16_t *str, const std::size_t size)
 #endif
 
 inline const QString TORRENT_FILE_EXTENSION = u".torrent"_qs;
+
+// quick and dirty but works
+inline QString globalExternalIP = u""_qs;

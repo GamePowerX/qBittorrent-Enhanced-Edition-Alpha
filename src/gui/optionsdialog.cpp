@@ -839,8 +839,6 @@ void OptionsDialog::saveOptions()
         EnableSuperSeeding
     };
     session->setMaxRatioAction(actIndex.value(m_ui->comboRatioLimitAct->currentIndex()));
-    session->setAutoUpdateTrackersEnabled(m_ui->checkAutoUpdateTrackers->isChecked());
-    pref->setCustomizeTrackersListUrl(m_ui->textCustomizeTrackersListUrl->text());
     // End Bittorrent preferences
 
     // Misc preferences
@@ -1905,24 +1903,4 @@ void OptionsDialog::on_IPSubnetWhitelistButton_clicked()
     dialog->setAttribute(Qt::WA_DeleteOnClose);
     connect(dialog, &QDialog::accepted, this, &OptionsDialog::enableApplyButton);
     dialog->open();
-}
-
-void OptionsDialog::on_fetchButton_clicked()
-{
-    Net::DownloadHandler *m_fetchHandler = Net::DownloadManager::instance()->download(Preferences::instance()->customizeTrackersListUrl());
-    connect(m_fetchHandler, &Net::DownloadHandler::finished, this, &OptionsDialog::handlePublicTrackersListChanged);
-}
-
-void OptionsDialog::handlePublicTrackersListChanged(const Net::DownloadResult &result)
-{
-    switch (result.status) {
-        case Net::DownloadStatus::Success:
-            BitTorrent::Session::instance()->setPublicTrackers(QString::fromUtf8(result.data.data()));
-            m_ui->textPublicTrackers->setPlainText(QString::fromUtf8(result.data.data()));
-            m_ui->fetchButton->setEnabled(false);
-            m_ui->fetchButton->setText("Fetched!");
-            break;
-        default:
-            m_ui->textPublicTrackers->setPlainText("Refetch failed. Reason: " + result.errorString);
-    }
 }

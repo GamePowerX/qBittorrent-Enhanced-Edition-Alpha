@@ -651,10 +651,6 @@ void AppController::setPreferencesAction()
         session->setAddTrackersEnabled(it.value().toBool());
     if (hasKey(u"add_trackers"_qs))
         session->setAdditionalTrackers(it.value().toString());
-    if (hasKey(u"auto_update_trackers_enabled"_qs))
-        session->setAutoUpdateTrackersEnabled(it.value().toBool());
-    if (hasKey(u"customize_trackers_list_url"_qs))
-        pref->setCustomizeTrackersListUrl(it.value().toString());
 
     // Web UI
     // Language

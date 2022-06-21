@@ -49,27 +49,23 @@ AboutDialog::AboutDialog(QWidget *parent)
     m_ui->setupUi(this);
 
     // Title
-<<<<<<< HEAD
-    m_ui->labelName->setText(QStringLiteral("<b><h2>qBittorrent " QBT_VERSION " (%1-bit)</h2></b>").arg(QT_POINTER_SIZE * 8));
-=======
     m_ui->labelName->setText(QString::fromLatin1("<b><h2>qBittorrent Enhanced Edition " QBT_VERSION " (%1-bit)</h2></b>").arg(QT_POINTER_SIZE * 8));
->>>>>>> v4_4_x
 
     m_ui->logo->setPixmap(Utils::Gui::scaledPixmapSvg(UIThemeManager::instance()->getIconPath(u"qbittorrent-tray"_qs), this, 32));
 
     // About
-    const QString aboutText = QString(
-        "<p style=\"white-space: pre-wrap;\">"
-        "%1\n\n"
-        "%2\n\n"
-        "<table>"
-        "<tr><td>%3</td><td><a href=\"https://www.qbittorrent.org\">https://www.qbittorrent.org</a></td></tr>"
-        "<tr><td>%4</td><td><a href=\"http://forum.qbittorrent.org\">http://forum.qbittorrent.org</a></td></tr>"
-        "<tr><td>%5</td><td><a href=\"http://bugs.qbittorrent.org\">http://bugs.qbittorrent.org</a></td></tr>"
-        "<tr><td>%6</td><td><a href=\"https://github.com/c0re100/qBittorrent-Enhanced-Edition\">GitHub Repository</a></td></tr>"
-        "<tr><td>%7</td><td><a href=\"https://t.me/loli_make_the_world_great_again\">Husky</a></td></tr>"
-        "</table>"
-        "</p>")
+    const QString aboutText =
+        u"<p style=\"white-space: pre-wrap;\">"
+        u"%1\n\n"
+        u"%2\n\n"
+        u"<table>"
+        u"<tr><td>%3</td><td><a href=\"https://www.qbittorrent.org\">https://www.qbittorrent.org</a></td></tr>"
+        u"<tr><td>%4</td><td><a href=\"http://forum.qbittorrent.org\">http://forum.qbittorrent.org</a></td></tr>"
+        u"<tr><td>%5</td><td><a href=\"http://bugs.qbittorrent.org\">http://bugs.qbittorrent.org</a></td></tr>"
+        u"<tr><td>%6</td><td><a href=\"https://github.com/c0re100/qBittorrent-Enhanced-Edition\">GitHub Repository</a></td></tr>"
+        u"<tr><td>%7</td><td><a href=\"https://t.me/loli_make_the_world_great_again\">Husky</a></td></tr>"
+        u"</table>"
+        u"</p>"_qs
         .arg(tr("An advanced BitTorrent client programmed in C++, based on Qt toolkit and libtorrent-rasterbar.")
                 .replace(u"C++"_qs, u"C\u2060+\u2060+"_qs) // make C++ non-breaking
             , tr("Copyright %1 2006-2022 The qBittorrent project").arg(C_COPYRIGHT)

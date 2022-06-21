@@ -1,10 +1,4 @@
-<<<<<<< HEAD
 <?xml version="1.0" ?><!DOCTYPE TS><TS version="2.1" language="es">
-=======
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.1" language="es">
->>>>>>> v4_4_x
 <context>
     <name>AboutDlg</name>
     <message>
@@ -577,11 +571,7 @@
     </message>
     <message>
         <source>Filters Sidebar</source>
-<<<<<<< HEAD
         <translation>Barra lateral de filtros</translation>
-=======
-        <translation type="vanished">Barra lateral de filtros</translation>
->>>>>>> v4_4_x
     </message>
 </context>
 <context>
@@ -1490,7 +1480,6 @@
     </message>
     <message>
         <source>Disk queue size:</source>
-<<<<<<< HEAD
         <translation>Tamaño de la cola de disco:</translation>
     </message>
     <message>
@@ -1528,21 +1517,6 @@
     <message>
         <source>Physical memory (RAM) usage limit:</source>
         <translation type="unfinished"/>
-=======
-        <translation type="vanished">Tamaño de la cola de disco:</translation>
-    </message>
-    <message>
-        <source>Log performance warnings</source>
-        <translation type="vanished">Registrar advertencias de rendimiento</translation>
-    </message>
-    <message>
-        <source>Maximum outstanding requests to a single peer:</source>
-        <translation type="vanished">Máximo de solicitudes pendientes a un único par:</translation>
-    </message>
-    <message>
-        <source>Max active checking torrents:</source>
-        <translation type="vanished">Máximo de torrents de comprobación activos:</translation>
->>>>>>> v4_4_x
     </message>
 </context>
 <context>
@@ -2313,19 +2287,11 @@
     </message>
     <message>
         <source>Total Size</source>
-<<<<<<< HEAD
         <translation>Tamaño total</translation>
     </message>
     <message>
         <source>Times Downloaded</source>
         <translation type="unfinished"/>
-=======
-        <translation type="vanished">Tamaño total</translation>
-    </message>
-    <message>
-        <source>Size</source>
-        <translation type="unfinished" />
->>>>>>> v4_4_x
     </message>
 </context>
 <context>

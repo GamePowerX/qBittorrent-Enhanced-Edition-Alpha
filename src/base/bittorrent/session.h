@@ -599,9 +599,6 @@ namespace BitTorrent
         void networkConfigurationChange(const QNetworkConfiguration &);
 #endif
 
-        // Public Tracker handle slots
-        void handlePublicTrackerTxtDownloadFinished(const Net::DownloadResult &result);
-
     private:
         struct MoveStorageJob
         {

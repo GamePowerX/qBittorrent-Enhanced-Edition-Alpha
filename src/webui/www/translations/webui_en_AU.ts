@@ -1,10 +1,4 @@
-<<<<<<< HEAD
 <?xml version="1.0" ?><!DOCTYPE TS><TS version="2.1" language="en_AU">
-=======
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.1" language="en_AU">
->>>>>>> v4_4_x
 <context>
     <name>AboutDlg</name>
     <message>
@@ -149,11 +143,7 @@
     </message>
     <message>
         <source>Unknown</source>
-<<<<<<< HEAD
         <translation type="unfinished"/>
-=======
-        <translation type="unfinished" />
->>>>>>> v4_4_x
     </message>
     <message>
         <source>Share ratio limit must be between 0 and 9998.</source>
@@ -185,11 +175,7 @@
     </message>
     <message>
         <source>Login</source>
-<<<<<<< HEAD
         <translation type="unfinished"/>
-=======
-        <translation type="unfinished" />
->>>>>>> v4_4_x
     </message>
     <message>
         <source>Apply</source>
@@ -582,13 +568,10 @@
     <message>
         <source>RSS</source>
         <translation>RSS</translation>
-<<<<<<< HEAD
     </message>
     <message>
         <source>Filters Sidebar</source>
         <translation type="unfinished"/>
-=======
->>>>>>> v4_4_x
     </message>
 </context>
 <context>
@@ -619,11 +602,7 @@
     </message>
     <message>
         <source>Language</source>
-<<<<<<< HEAD
         <translation type="unfinished"/>
-=======
-        <translation type="unfinished" />
->>>>>>> v4_4_x
     </message>
     <message>
         <source>User Interface Language:</source>
@@ -820,7 +799,6 @@
     <message>
         <source>Upload:</source>
         <translation>Upload:</translation>
-<<<<<<< HEAD
     </message>
     <message>
         <source>Download:</source>
@@ -997,184 +975,6 @@
         <translation>KiB/s</translation>
     </message>
     <message>
-=======
-    </message>
-    <message>
-        <source>Download:</source>
-        <translation>Download:</translation>
-    </message>
-    <message>
-        <source>Alternative Rate Limits</source>
-        <translation>Alternative Rate Limits</translation>
-    </message>
-    <message>
-        <source>From:</source>
-        <extracomment>from (time1 to time2)</extracomment>
-        <translation type="unfinished" />
-    </message>
-    <message>
-        <source>To:</source>
-        <extracomment>time1 to time2</extracomment>
-        <translation type="unfinished" />
-    </message>
-    <message>
-        <source>When:</source>
-        <translation>When:</translation>
-    </message>
-    <message>
-        <source>Every day</source>
-        <translation>Every day</translation>
-    </message>
-    <message>
-        <source>Weekdays</source>
-        <translation>Weekdays</translation>
-    </message>
-    <message>
-        <source>Weekends</source>
-        <translation>Weekends</translation>
-    </message>
-    <message>
-        <source>Rate Limits Settings</source>
-        <translation>Rate Limits Settings</translation>
-    </message>
-    <message>
-        <source>Apply rate limit to transport overhead</source>
-        <translation>Apply rate limit to transport overhead</translation>
-    </message>
-    <message>
-        <source>Apply rate limit to µTP protocol</source>
-        <translation>Apply rate limit to µTP protocol</translation>
-    </message>
-    <message>
-        <source>Privacy</source>
-        <translation>Privacy</translation>
-    </message>
-    <message>
-        <source>Enable DHT (decentralized network) to find more peers</source>
-        <translation>Enable DHT (decentralised network) to find more peers</translation>
-    </message>
-    <message>
-        <source>Enable Peer Exchange (PeX) to find more peers</source>
-        <translation>Enable Peer Exchange (PeX) to find more peers</translation>
-    </message>
-    <message>
-        <source>Enable Local Peer Discovery to find more peers</source>
-        <translation>Enable Local Peer Discovery to find more peers</translation>
-    </message>
-    <message>
-        <source>Encryption mode:</source>
-        <translation>Encryption mode:</translation>
-    </message>
-    <message>
-        <source>Require encryption</source>
-        <translation>Require encryption</translation>
-    </message>
-    <message>
-        <source>Disable encryption</source>
-        <translation>Disable encryption</translation>
-    </message>
-    <message>
-        <source>Enable anonymous mode</source>
-        <translation>Enable anonymous mode</translation>
-    </message>
-    <message>
-        <source>Maximum active downloads:</source>
-        <translation>Maximum active downloads:</translation>
-    </message>
-    <message>
-        <source>Maximum active uploads:</source>
-        <translation>Maximum active uploads:</translation>
-    </message>
-    <message>
-        <source>Maximum active torrents:</source>
-        <translation>Maximum active torrents:</translation>
-    </message>
-    <message>
-        <source>Do not count slow torrents in these limits</source>
-        <translation>Do not count slow torrents in these limits</translation>
-    </message>
-    <message>
-        <source>then</source>
-        <translation>then</translation>
-    </message>
-    <message>
-        <source>Use UPnP / NAT-PMP to forward the port from my router</source>
-        <translation>Use UPnP / NAT-PMP to forward the port from my router</translation>
-    </message>
-    <message>
-        <source>Certificate:</source>
-        <translation>Certificate:</translation>
-    </message>
-    <message>
-        <source>Key:</source>
-        <translation>Key:</translation>
-    </message>
-    <message>
-        <source>Register</source>
-        <translation>Register</translation>
-    </message>
-    <message>
-        <source>Domain name:</source>
-        <translation>Domain name:</translation>
-    </message>
-    <message>
-        <source>Supported parameters (case sensitive):</source>
-        <translation>Supported parameters (case sensitive):</translation>
-    </message>
-    <message>
-        <source>%N: Torrent name</source>
-        <translation>%N: Torrent name</translation>
-    </message>
-    <message>
-        <source>%L: Category</source>
-        <translation>%L: Category</translation>
-    </message>
-    <message>
-        <source>%F: Content path (same as root path for multifile torrent)</source>
-        <translation>%F: Content path (same as root path for multi-file torrent)</translation>
-    </message>
-    <message>
-        <source>%R: Root path (first torrent subdirectory path)</source>
-        <translation>%R: Root path (first torrent subdirectory path)</translation>
-    </message>
-    <message>
-        <source>%D: Save path</source>
-        <translation>%D: Save path</translation>
-    </message>
-    <message>
-        <source>%C: Number of files</source>
-        <translation>%C: Number of files</translation>
-    </message>
-    <message>
-        <source>%Z: Torrent size (bytes)</source>
-        <translation>%Z: Torrent size (bytes)</translation>
-    </message>
-    <message>
-        <source>%T: Current tracker</source>
-        <translation>%T: Current tracker</translation>
-    </message>
-    <message>
-        <source>Tip: Encapsulate parameter with quotation marks to avoid text being cut off at whitespace (e.g., "%N")</source>
-        <translation>Tip: Encapsulate parameter with quotation marks to avoid text being cut off at white-space (e.g., "%N")</translation>
-    </message>
-    <message>
-        <source>The Web UI username must be at least 3 characters long.</source>
-        <translation>The Web UI username must be at least 3 characters long.</translation>
-    </message>
-    <message>
-        <source>The Web UI password must be at least 6 characters long.</source>
-        <translation>The Web UI password must be at least 6 characters long.</translation>
-    </message>
-    <message>
-        <source>minutes</source>
-        <translation type="unfinished" />
-    </message>
-    <message>
-        <source>KiB/s</source>
-        <translation>KiB/s</translation>
-    </message>
-    <message>
->>>>>>> v4_4_x
         <source>Enable clickjacking protection</source>
         <translation type="unfinished"/>
     </message>
@@ -2325,20 +2125,12 @@
     <message>
         <source>Downloaded</source>
         <comment>Amount of data downloaded (e.g. in MB)</comment>
-<<<<<<< HEAD
         <translation type="unfinished"/>
-=======
-        <translation type="unfinished" />
->>>>>>> v4_4_x
     </message>
     <message>
         <source>Uploaded</source>
         <comment>Amount of data uploaded (e.g. in MB)</comment>
-<<<<<<< HEAD
         <translation type="unfinished"/>
-=======
-        <translation type="unfinished" />
->>>>>>> v4_4_x
     </message>
     <message>
         <source>Session Download</source>

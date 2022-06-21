@@ -265,6 +265,7 @@ namespace BitTorrent
         void handleFileRenamedAlert(const lt::file_renamed_alert *p);
         void handleFileRenameFailedAlert(const lt::file_rename_failed_alert *p);
         void handleMetadataReceivedAlert(const lt::metadata_received_alert *p);
+        void handlePerformanceAlert(const lt::performance_alert *p) const;
         void handleSaveResumeDataAlert(const lt::save_resume_data_alert *p);
         void handleSaveResumeDataFailedAlert(const lt::save_resume_data_failed_alert *p);
         void handleTorrentCheckedAlert(const lt::torrent_checked_alert *p);
@@ -296,11 +297,15 @@ namespace BitTorrent
         PathList m_filePaths;
         QHash<lt::file_index_t, int> m_indexMap;
         QVector<DownloadPriority> m_filePriorities;
+        QBitArray m_completedFiles;
         // m_moveFinishedTriggers is activated only when the following conditions are met:
         // all file rename jobs complete, all file move jobs complete
         QQueue<EventTrigger> m_moveFinishedTriggers;
         int m_renameCount = 0;
         bool m_storageIsMoving = false;
+        SpeedMonitor m_speedMonitor;
+
+        InfoHash m_infoHash;
 
         QQueue<EventTrigger> m_statusUpdatedTriggers;
 

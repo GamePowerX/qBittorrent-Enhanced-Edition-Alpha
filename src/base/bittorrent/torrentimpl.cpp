@@ -223,14 +223,6 @@ namespace
         outVector.resize(size, defaultValue);
         return outVector;
     }
-
-    template <typename Vector>
-    Vector resized(const Vector &inVector, const typename Vector::size_type size, const typename Vector::value_type &defaultValue)
-    {
-        Vector outVector = inVector;
-        outVector.resize(size, defaultValue);
-        return outVector;
-    }
 }
 
 // TorrentImpl
@@ -2309,12 +2301,13 @@ void TorrentImpl::prioritizeFiles(const QVector<DownloadPriority> &priorities)
 
     // Reset 'm_hasSeedStatus' if needed in order to react again to
     // 'torrent_finished_alert' and eg show tray notifications
+    const QVector<qreal> progress = filesProgress();
     const QVector<DownloadPriority> oldPriorities = filePriorities();
     for (int i = 0; i < oldPriorities.size(); ++i)
     {
         if ((oldPriorities[i] == DownloadPriority::Ignored)
             && (priorities[i] > DownloadPriority::Ignored)
-            && !m_completedFiles.at(i))
+            && (progress[i] < 1.0))
         {
             m_hasSeedStatus = false;
             break;

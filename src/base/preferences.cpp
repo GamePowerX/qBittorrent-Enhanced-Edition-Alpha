@@ -1625,31 +1625,31 @@ void Preferences::setSpeedWidgetGraphEnable(const int id, const bool enable)
 
 bool Preferences::getAutoBanUnknownPeer() const
 {
-    return value("Preferences/Advanced/AutoBanUnknownPeer", false);
+    return value(u"Preferences/Advanced/AutoBanUnknownPeer"_qs, false);
 }
 
 void Preferences::setAutoBanUnknownPeer(const bool checked)
 {
-    setValue("Preferences/Advanced/AutoBanUnknownPeer", checked);
+    setValue(u"Preferences/Advanced/AutoBanUnknownPeer"_qs, checked);
 }
 
 bool Preferences::getAutoBanBTPlayerPeer() const
 {
-    return value("Preferences/Advanced/AutoBanBTPlayerPeer", false);
+    return value(u"Preferences/Advanced/AutoBanBTPlayerPeer"_qs, false);
 }
 
 void Preferences::setAutoBanBTPlayerPeer(const bool checked)
 {
-    setValue("Preferences/Advanced/AutoBanBTPlayerPeer", checked);
+    setValue(u"Preferences/Advanced/AutoBanBTPlayerPeer"_qs, checked);
 }
 
 QString Preferences::customizeTrackersListUrl() const
 {
-    return value("Preferences/Bittorrent/CustomizeTrackersListUrl", QString("https://cdn.jsdelivr.net/gh/ngosang/trackerslist/trackers_best.txt"));
+    return value(u"Preferences/Bittorrent/CustomizeTrackersListUrl"_qs, QString(u"https://cdn.jsdelivr.net/gh/ngosang/trackerslist/trackers_best.txt"_qs));
 }
 
 void Preferences::setCustomizeTrackersListUrl(const QString &trackersUrl) {
-    setValue("Preferences/Bittorrent/CustomizeTrackersListUrl", trackersUrl);
+    setValue(u"Preferences/Bittorrent/CustomizeTrackersListUrl"_qs, trackersUrl);
 }
 
 void Preferences::apply()

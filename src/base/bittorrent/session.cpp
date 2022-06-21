@@ -526,15 +526,6 @@ Session::Session(QObject *parent)
     new PortForwarderImpl {m_nativeSession};
 
     initMetrics();
-
-    // Update Tracker
-    m_updateTimer = new QTimer(this);
-    m_updateTimer->setInterval(86400*1000);
-    connect(m_updateTimer, &QTimer::timeout, this, &Session::updatePublicTracker);
-    if (isAutoUpdateTrackersEnabled()) {
-        updatePublicTracker();
-        m_updateTimer->start();
-    }
 }
 
 bool Session::isDHTEnabled() const
@@ -971,47 +962,9 @@ bool Session::isAutoUpdateTrackersEnabled() const
     return m_isAutoUpdateTrackersEnabled;
 }
 
-void Session::setAutoUpdateTrackersEnabled(bool enabled)
-{
-    m_isAutoUpdateTrackersEnabled = enabled;
-
-    if(!enabled) {
-        m_updateTimer->stop();
-    } else {
-        m_updateTimer->start();
-        updatePublicTracker();
-    }
-}
-
 QString Session::publicTrackers() const
 {
     return m_publicTrackers;
-}
-
-void Session::setPublicTrackers(const QString &trackers)
-{
-    if (trackers != publicTrackers()) {
-        m_publicTrackers = trackers;
-        populatePublicTrackers();
-    }
-}
-
-void Session::updatePublicTracker()
-{
-    Preferences *const pref = Preferences::instance();
-    Net::DownloadManager::instance()->download({pref->customizeTrackersListUrl()}, this, &Session::handlePublicTrackerTxtDownloadFinished);
-}
-
-void Session::handlePublicTrackerTxtDownloadFinished(const Net::DownloadResult &result)
-{
-    switch (result.status) {
-        case Net::DownloadStatus::Success:
-            setPublicTrackers(QString::fromUtf8(result.data.data()));
-            Logger::instance()->addMessage("The public tracker list updated.", Log::INFO);
-            break;
-        default:
-            Logger::instance()->addMessage("Updating the public tracker list failed: " + result.errorString, Log::WARNING);
-    }
 }
 
 qreal Session::globalMaxRatio() const
@@ -1206,7 +1159,7 @@ void Session::initializeNativeSession()
         m_nativeSession->add_extension(&lt::create_ut_pex_plugin);
 
     // Enhanced features
-    db_connection::instance().init(QDir(specialFolderLocation(SpecialFolder::Data)).absoluteFilePath("peers.db"));
+    db_connection::instance().init(QDir(specialFolderLocation(SpecialFolder::Data).toString()).absoluteFilePath(u"peers.db"_qs));
     m_nativeSession->add_extension(&create_drop_bad_peers_plugin);
     if (isAutoBanUnknownPeerEnabled()) {
         m_nativeSession->add_extension(&create_drop_unknown_peers_plugin);
@@ -1733,18 +1686,7 @@ void Session::populateAdditionalTrackers()
     }
 }
 
-void Session::populatePublicTrackers()
-{
-    m_publicTrackerList.clear();
 
-    const QString trackers = publicTrackers();
-    for (QStringView tracker : asConst(QStringView(trackers).split(u'\n')))
-    {
-        tracker = tracker.trimmed();
-        if (!tracker.isEmpty())
-            m_publicTrackerList.append({tracker.toString()});
-    }
-}
 
 void Session::processShareLimits()
 {
@@ -2660,6 +2602,11 @@ void Session::setSavePath(const Path &path)
             const CategoryOptions &categoryOptions = it.value();
             if (categoryOptions.savePath.isRelative())
                 affectedCatogories.insert(categoryName);
+        }
+
+        for (TorrentImpl *const torrent : asConst(m_torrents))
+        {
+            if (affectedCatogories.contains(torrent->category()))
                 torrent->setAutoTMMEnabled(false);
         }
     }
@@ -5077,7 +5024,7 @@ void Session::createTorrent(const lt::torrent_handle &nativeHandle)
 
     if (!params.restored)
     {
-        m_resumeDataStorage->store(resumeDataID(torrent), params);
+        m_resumeDataStorage->store(torrent->id(), params);
 
         // The following is useless for newly added magnet
         if (hasMetadata)
@@ -5085,15 +5032,6 @@ void Session::createTorrent(const lt::torrent_handle &nativeHandle)
             if (!torrentExportDirectory().isEmpty())
                 exportTorrentFile(torrent, torrentExportDirectory());
         }
-
-        if (isAddTrackersEnabled() && !torrent->isPrivate())
-            torrent->addTrackers(m_additionalTrackerList);
-
-        if (isAutoUpdateTrackersEnabled() && !torrent->isPrivate())
-            torrent->addTrackers(m_publicTrackerList);
-
-        LogMsg(tr("'%1' added to download list.", "'torrent name' was added to download list.")
-            .arg(torrent->name()));
     }
 
     if (((torrent->ratioLimit() >= 0) || (torrent->seedingTimeLimit() >= 0))
