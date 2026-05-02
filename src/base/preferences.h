@@ -258,6 +258,12 @@ public:
     QByteArray getUILockPassword() const;
     void setUILockPassword(const QByteArray &password);
     bool isUILocked() const;
+    bool getAutoBanUnknownPeer() const;
+    void setAutoBanUnknownPeer(bool checked);
+    bool getAutoBanBTPlayerPeer() const;
+    void setAutoBanBTPlayerPeer(bool checked);
+    QString customizeTrackersListUrl() const;
+    void setCustomizeTrackersListUrl(const QString &trackersUrl);
     void setUILocked(bool locked);
 
     bool isAutoRunOnTorrentAddedEnabled() const;

@@ -274,8 +274,8 @@ void AppController::preferencesAction()
     data[u"ip_filter_path"_s] = session->IPFilterFile().toString();
     data[u"ip_filter_trackers"_s] = session->isTrackerFilteringEnabled();
     data[u"banned_IPs"_s] = session->bannedIPs().join(u'\n');
-    data[u"auto_ban_unknown_peer"_s] = session->isAutoBanUnknownPeerEnabled();
-    data[u"auto_ban_bt_player_peer"_s] = session->isAutoBanBTPlayerPeerEnabled();
+    data[u"auto_ban_unknown_peer"_s] = pref->getAutoBanUnknownPeer();
+    data[u"auto_ban_bt_player_peer"_s] = pref->getAutoBanBTPlayerPeer();
 
     // Speed
     // Global Rate Limits
@@ -788,9 +788,9 @@ void AppController::setPreferencesAction()
     if (hasKey(u"banned_IPs"_s))
         session->setBannedIPs(it.value().toString().split(u'\n', Qt::SkipEmptyParts));
     if (hasKey(u"auto_ban_unknown_peer"_s))
-        session->setAutoBanUnknownPeerEnabled(it.value().toBool());
+        pref->setAutoBanUnknownPeer(it.value().toBool());
     if (hasKey(u"auto_ban_bt_player_peer"_s))
-        session->setAutoBanBTPlayerPeerEnabled(it.value().toBool());
+        pref->setAutoBanBTPlayerPeer(it.value().toBool());
 
     // Speed
     // Global Rate Limits

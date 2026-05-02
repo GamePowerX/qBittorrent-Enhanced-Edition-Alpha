@@ -79,6 +79,7 @@ namespace BitTorrent
         QString I2PAddress() const;
         QString client() const;
         QString peerIdClient() const;
+        QString peerId() const;
         qreal progress() const;
         int payloadUpSpeed() const;
         int payloadDownSpeed() const;
