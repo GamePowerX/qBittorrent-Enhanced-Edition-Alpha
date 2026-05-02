@@ -87,6 +87,8 @@ namespace
         LIST_REFRESH,
         RESOLVE_HOSTS,
         RESOLVE_COUNTRIES,
+        CONFIRM_AUTO_BAN_UNKNOWN_PEER,
+        CONFIRM_AUTO_BAN_BT_PLAYER,
         PROGRAM_NOTIFICATIONS,
         TORRENT_ADDED_NOTIFICATIONS,
 #ifdef QBT_USES_DBUS
@@ -302,6 +304,9 @@ void AdvancedSettings::saveAdvancedSettings() const
     // Peer resolution
     pref->resolvePeerCountries(m_checkBoxResolveCountries.isChecked());
     pref->resolvePeerHostNames(m_checkBoxResolveHosts.isChecked());
+    // Auto-ban options
+    pref->setAutoBanUnknownPeer(m_checkBoxAutoBanUnknownPeer.isChecked());
+    pref->setAutoBanBTPlayerPeer(m_checkBoxAutoBanBTPlayerPeer.isChecked());
     // Network interface
     session->setNetworkInterface(m_comboBoxInterface.currentData().toString());
     session->setNetworkInterfaceName((m_comboBoxInterface.currentIndex() == 0)
@@ -791,6 +796,10 @@ void AdvancedSettings::loadAdvancedSettings()
     // Resolve peer hosts
     m_checkBoxResolveHosts.setChecked(pref->resolvePeerHostNames());
     addRow(RESOLVE_HOSTS, tr("Resolve peer host names"), &m_checkBoxResolveHosts);
+    m_checkBoxAutoBanUnknownPeer.setChecked(pref->getAutoBanUnknownPeer());
+    addRow(CONFIRM_AUTO_BAN_UNKNOWN_PEER, tr("Auto Ban Unknown Peer from China"), &m_checkBoxAutoBanUnknownPeer);
+    m_checkBoxAutoBanBTPlayerPeer.setChecked(pref->getAutoBanBTPlayerPeer());
+    addRow(CONFIRM_AUTO_BAN_BT_PLAYER, tr("Auto Ban Bittorrent Media Player Peer"), &m_checkBoxAutoBanBTPlayerPeer);
     // Network interface
     m_comboBoxInterface.addItem(tr("Any interface", "i.e. Any network interface"), QString());
     for (const QNetworkInterface &iface : asConst(QNetworkInterface::allInterfaces()))
