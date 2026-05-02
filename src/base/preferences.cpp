@@ -2196,6 +2196,36 @@ void Preferences::setAutoBanBTPlayerPeer(const bool checked)
     setValue(u"Preferences/Advanced/AutoBanBTPlayerPeer"_qs, checked);
 }
 
+bool Preferences::getAutoBanBadPeers() const
+{
+    return value(u"Preferences/Advanced/AutoBanBadPeers"_qs, true);
+}
+
+void Preferences::setAutoBanBadPeers(const bool checked)
+{
+    setValue(u"Preferences/Advanced/AutoBanBadPeers"_qs, checked);
+}
+
+bool Preferences::getAutoBanOfflineDownloaders() const
+{
+    return value(u"Preferences/Advanced/AutoBanOfflineDownloaders"_qs, true);
+}
+
+void Preferences::setAutoBanOfflineDownloaders(const bool checked)
+{
+    setValue(u"Preferences/Advanced/AutoBanOfflineDownloaders"_qs, checked);
+}
+
+bool Preferences::getEnablePeerListFilters() const
+{
+    return value(u"Preferences/Advanced/EnablePeerListFilters"_qs, true);
+}
+
+void Preferences::setEnablePeerListFilters(const bool enabled)
+{
+    setValue(u"Preferences/Advanced/EnablePeerListFilters"_qs, enabled);
+}
+
 QString Preferences::customizeTrackersListUrl() const
 {
     return value(u"Preferences/Bittorrent/CustomizeTrackersListUrl"_qs, QString(u"https://cdn.jsdelivr.net/gh/ngosang/trackerslist/trackers_best.txt"_qs));

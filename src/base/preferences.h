@@ -262,6 +262,12 @@ public:
     void setAutoBanUnknownPeer(bool checked);
     bool getAutoBanBTPlayerPeer() const;
     void setAutoBanBTPlayerPeer(bool checked);
+    bool getAutoBanBadPeers() const;
+    void setAutoBanBadPeers(bool checked);
+    bool getAutoBanOfflineDownloaders() const;
+    void setAutoBanOfflineDownloaders(bool checked);
+    bool getEnablePeerListFilters() const;
+    void setEnablePeerListFilters(bool enabled);
     QString customizeTrackersListUrl() const;
     void setCustomizeTrackersListUrl(const QString &trackersUrl);
     void setUILocked(bool locked);

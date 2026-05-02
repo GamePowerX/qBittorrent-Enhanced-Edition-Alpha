@@ -42,6 +42,7 @@
 #include "base/global.h"
 #include "base/preferences.h"
 #include "base/unicodestrings.h"
+#include "base/utils/misc.h"
 #include "gui/desktopintegration.h"
 #include "gui/mainwindow.h"
 #include "interfaces/iguiapplication.h"
@@ -87,8 +88,6 @@ namespace
         LIST_REFRESH,
         RESOLVE_HOSTS,
         RESOLVE_COUNTRIES,
-        CONFIRM_AUTO_BAN_UNKNOWN_PEER,
-        CONFIRM_AUTO_BAN_BT_PLAYER,
         PROGRAM_NOTIFICATIONS,
         TORRENT_ADDED_NOTIFICATIONS,
 #ifdef QBT_USES_DBUS
@@ -115,6 +114,12 @@ namespace
         PYTHON_EXECUTABLE_PATH,
         START_SESSION_PAUSED,
         SESSION_SHUTDOWN_TIMEOUT,
+        ENHANCED_HEADER,
+        CONFIRM_AUTO_BAN_BAD_PEERS,
+        CONFIRM_AUTO_BAN_OFFLINE_DOWNLOADERS,
+        CONFIRM_AUTO_BAN_UNKNOWN_PEER,
+        CONFIRM_AUTO_BAN_BT_PLAYER,
+        CONFIRM_ENABLE_PEER_LIST_FILTERS,
 
         // libtorrent section
         LIBTORRENT_HEADER,
@@ -305,8 +310,11 @@ void AdvancedSettings::saveAdvancedSettings() const
     pref->resolvePeerCountries(m_checkBoxResolveCountries.isChecked());
     pref->resolvePeerHostNames(m_checkBoxResolveHosts.isChecked());
     // Auto-ban options
+    pref->setAutoBanBadPeers(m_checkBoxAutoBanBadPeers.isChecked());
+    pref->setAutoBanOfflineDownloaders(m_checkBoxAutoBanOfflineDownloaders.isChecked());
     pref->setAutoBanUnknownPeer(m_checkBoxAutoBanUnknownPeer.isChecked());
     pref->setAutoBanBTPlayerPeer(m_checkBoxAutoBanBTPlayerPeer.isChecked());
+    pref->setEnablePeerListFilters(m_checkBoxEnablePeerListFilters.isChecked());
     // Network interface
     session->setNetworkInterface(m_comboBoxInterface.currentData().toString());
     session->setNetworkInterfaceName((m_comboBoxInterface.currentIndex() == 0)
@@ -796,10 +804,20 @@ void AdvancedSettings::loadAdvancedSettings()
     // Resolve peer hosts
     m_checkBoxResolveHosts.setChecked(pref->resolvePeerHostNames());
     addRow(RESOLVE_HOSTS, tr("Resolve peer host names"), &m_checkBoxResolveHosts);
+    auto *labelEnhancedLink = new QLabel(makeLink(u"https://github.com/GamePowerX/qBittorrent-Enhanced-Edition-Alpha", tr("Documentation")), this);
+    labelEnhancedLink->setOpenExternalLinks(true);
+    addRow(ENHANCED_HEADER, u"<b>%1</b>"_s.arg(tr("Enhanced Edition Section")), labelEnhancedLink);
+    static_cast<QLabel *>(cellWidget(ENHANCED_HEADER, PROPERTY))->setAlignment(Qt::AlignCenter | Qt::AlignVCenter);
+    m_checkBoxAutoBanBadPeers.setChecked(pref->getAutoBanBadPeers());
+    addRow(CONFIRM_AUTO_BAN_BAD_PEERS, tr("Auto Ban Xunlei, QQ, Baidu, Xfplay, DLBT peers"), &m_checkBoxAutoBanBadPeers);
+    m_checkBoxAutoBanOfflineDownloaders.setChecked(pref->getAutoBanOfflineDownloaders());
+    addRow(CONFIRM_AUTO_BAN_OFFLINE_DOWNLOADERS, tr("Auto Ban Offline downloader peers"), &m_checkBoxAutoBanOfflineDownloaders);
     m_checkBoxAutoBanUnknownPeer.setChecked(pref->getAutoBanUnknownPeer());
     addRow(CONFIRM_AUTO_BAN_UNKNOWN_PEER, tr("Auto Ban Unknown Peer from China"), &m_checkBoxAutoBanUnknownPeer);
     m_checkBoxAutoBanBTPlayerPeer.setChecked(pref->getAutoBanBTPlayerPeer());
     addRow(CONFIRM_AUTO_BAN_BT_PLAYER, tr("Auto Ban Bittorrent Media Player Peer"), &m_checkBoxAutoBanBTPlayerPeer);
+    m_checkBoxEnablePeerListFilters.setChecked(pref->getEnablePeerListFilters());
+    addRow(CONFIRM_ENABLE_PEER_LIST_FILTERS, tr("Enable peer whitelist/blacklist filters"), &m_checkBoxEnablePeerListFilters);
     // Network interface
     m_comboBoxInterface.addItem(tr("Any interface", "i.e. Any network interface"), QString());
     for (const QNetworkInterface &iface : asConst(QNetworkInterface::allInterfaces()))
