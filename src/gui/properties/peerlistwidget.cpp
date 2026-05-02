@@ -541,10 +541,13 @@ void PeerListWidget::updatePeer(const int row, const BitTorrent::Torrent *torren
     if (m_resolveCountries)
     {
         const QIcon icon = UIThemeManager::instance()->getFlagIcon(peer.country());
+        const QString countryName = Net::GeoIPManager::CountryName(peer.country());
+        if (!countryName.isEmpty())
+            m_listModel->setData(m_listModel->index(row, PeerListColumns::COUNTRY), countryName, Qt::DisplayRole);
+
         if (!icon.isNull())
         {
             m_listModel->setData(m_listModel->index(row, PeerListColumns::COUNTRY), icon, Qt::DecorationRole);
-            const QString countryName = Net::GeoIPManager::CountryName(peer.country());
             m_listModel->setData(m_listModel->index(row, PeerListColumns::COUNTRY), countryName, Qt::ToolTipRole);
         }
     }
