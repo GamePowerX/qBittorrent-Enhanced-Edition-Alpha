@@ -41,6 +41,8 @@ public:
 private slots:
     void addFolderAction();
     void addFeedAction();
+    void setFeedURLAction();
+    void setFeedRefreshIntervalAction();
     void removeItemAction();
     void moveItemAction();
     void itemsAction();
@@ -49,6 +51,7 @@ private slots:
     void setRuleAction();
     void renameRuleAction();
     void removeRuleAction();
+    void cloneRuleAction();
     void rulesAction();
     void matchingArticlesAction();
 };

@@ -1,6 +1,6 @@
 /*
  * Bittorrent Client using Qt and libtorrent.
- * Copyright (C) 2015  Vladimir Golovnev <glassez@yandex.ru>
+ * Copyright (C) 2015-2026  Vladimir Golovnev <glassez@yandex.ru>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,19 +28,21 @@
 
 #include "peerinfo.h"
 
+#include <libtorrent/version.hpp>
+
 #include <QBitArray>
 
 #include "base/bittorrent/ltqbitarray.h"
-#include "base/bittorrent/torrent.h"
 #include "base/net/geoipmanager.h"
 #include "base/unicodestrings.h"
+#include "base/utils/bytearray.h"
 #include "peeraddress.h"
 
 using namespace BitTorrent;
 
-PeerInfo::PeerInfo(const Torrent *torrent, const lt::peer_info &nativeInfo)
+PeerInfo::PeerInfo(const lt::peer_info &nativeInfo, const QBitArray &allPieces)
     : m_nativeInfo(nativeInfo)
-    , m_relevance(calcRelevance(torrent))
+    , m_relevance(calcRelevance(allPieces))
 {
     determineFlags();
 }
@@ -94,7 +96,11 @@ bool PeerInfo::isSupportsExtensions() const
 
 bool PeerInfo::isLocalConnection() const
 {
+#if QBT_USES_LIBTORRENT2
+    return static_cast<bool>(m_nativeInfo.flags & lt::peer_info::outgoing_connection);
+#else
     return static_cast<bool>(m_nativeInfo.flags & lt::peer_info::local_connection);
+#endif
 }
 
 bool PeerInfo::isHandshake() const
@@ -169,16 +175,71 @@ bool PeerInfo::isPlaintextEncrypted() const
 
 PeerAddress PeerInfo::address() const
 {
+    if (useI2PSocket())
+        return {};
+
+#if LIBTORRENT_VERSION_NUM >= 20100
+    const lt::tcp::endpoint ip = m_nativeInfo.remote_endpoint();
+#else
+    const lt::tcp::endpoint &ip = m_nativeInfo.ip;
+#endif
     // fast path for platforms which boost.asio internal struct maps to `sockaddr`
-    return {QHostAddress(m_nativeInfo.ip.data()), m_nativeInfo.ip.port()};
+    return {QHostAddress(ip.data()), ip.port()};
     // slow path for the others
     //return {QHostAddress(QString::fromStdString(m_nativeInfo.ip.address().to_string()))
     //    , m_nativeInfo.ip.port()};
 }
 
+QString PeerInfo::I2PAddress() const
+{
+    if (!useI2PSocket())
+        return {};
+
+#if defined(QBT_USES_LIBTORRENT2) && TORRENT_USE_I2P
+    if (m_I2PAddress.isEmpty())
+    {
+        const lt::sha256_hash destHash = m_nativeInfo.i2p_destination();
+        const QByteArray base32Dest = Utils::ByteArray::toBase32({destHash.data(), destHash.size()}).replace('=', "").toLower();
+        m_I2PAddress = QString::fromLatin1(base32Dest) + u".b32.i2p";
+    }
+#endif
+
+    return m_I2PAddress;
+}
+
 QString PeerInfo::client() const
 {
-    return QString::fromStdString(m_nativeInfo.client);
+    auto client = QString::fromStdString(m_nativeInfo.client).simplified();
+
+    // remove non-printable characters
+    erase_if(client, [](const QChar &c) { return !c.isPrint(); });
+
+    return client;
+}
+
+QString PeerInfo::peerIdClient() const
+{
+    // when peer ID is not known yet it contains only zero bytes,
+    // do not create string in such case, return empty string instead
+    if (m_nativeInfo.pid.is_all_zeros())
+        return {};
+
+    QString result;
+
+    // interesting part of a typical peer ID is first 8 chars
+    for (int i = 0; i < 8; ++i)
+    {
+        const std::uint8_t c = m_nativeInfo.pid[i];
+
+        // ensure that the peer ID slice consists only of printable ASCII characters,
+        // this should filter out most of the improper IDs
+        if ((c < 32) || (c > 126))
+            return tr("Unknown");
+
+        result += QChar::fromLatin1(c);
+    }
+
+    return result;
 }
 
 QString PeerInfo::peerId() const
@@ -227,19 +288,18 @@ QString PeerInfo::connectionType() const
         return C_UTP;
 
     return (m_nativeInfo.connection_type == lt::peer_info::standard_bittorrent)
-        ? u"BT"_qs
-        : u"Web"_qs;
+        ? u"BT"_s
+        : u"Web"_s;
 }
 
-qreal PeerInfo::calcRelevance(const Torrent *torrent) const
+qreal PeerInfo::calcRelevance(const QBitArray &allPieces) const
 {
-    const QBitArray allPieces = torrent->pieces();
-    const int localMissing = allPieces.count(false);
+    const qsizetype localMissing = allPieces.count(false);
     if (localMissing <= 0)
         return 0;
 
     const QBitArray peerPieces = pieces();
-    const int remoteHaves = (peerPieces & (~allPieces)).count(true);
+    const qsizetype remoteHaves = (peerPieces & (~allPieces)).count(true);
     return static_cast<qreal>(remoteHaves) / localMissing;
 }
 
@@ -253,7 +313,7 @@ void PeerInfo::determineFlags()
     const auto updateFlags = [this](const QChar specifier, const QString &explanation)
     {
         m_flags += (specifier + u' ');
-        m_flagsDescription += u"%1 = %2\n"_qs.arg(specifier, explanation);
+        m_flagsDescription += u"%1 = %2\n"_s.arg(specifier, explanation);
     };
 
     if (isInteresting())
@@ -327,6 +387,10 @@ void PeerInfo::determineFlags()
     // P = Peer is using uTorrent uTP
     if (useUTPSocket())
         updateFlags(u'P', C_UTP);
+
+    // h = Peer is using NAT hole punching
+    if (isHolepunched())
+        updateFlags(u'h', tr("Peer is using NAT hole punching"));
 
     m_flags.chop(1);
     m_flagsDescription.chop(1);

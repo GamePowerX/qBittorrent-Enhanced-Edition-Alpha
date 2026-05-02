@@ -48,7 +48,7 @@ namespace
             unsigned char octetIndex = 0;
 
             const char *octetStart = str;
-            char *endptr;
+            char *endptr = nullptr;
             for (; *str; ++str)
             {
                 if (*str == '.')
@@ -89,7 +89,7 @@ namespace
         }
 
     private:
-        lt::address_v4::bytes_type m_buf;
+        lt::address_v4::bytes_type m_buf {};
     };
 
     bool parseIPAddress(const char *data, lt::address &address)
@@ -111,7 +111,6 @@ namespace
 
 FilterParserThread::FilterParserThread(QObject *parent)
     : QThread(parent)
-    , m_abort(false)
 {
 }
 
@@ -134,7 +133,7 @@ int FilterParserThread::parseDATFilterFile()
         return ruleCount;
     }
 
-    std::vector<char> buffer(BUFFER_SIZE, 0); // seems a bit faster than QVector
+    std::vector<char> buffer(BUFFER_SIZE, 0); // seems a bit faster than QList
     qint64 bytesRead = 0;
     int offset = 0;
     int start = 0;
@@ -194,7 +193,7 @@ int FilterParserThread::parseDATFilterFile()
 
             if ((buffer[start] == '#')
                 || ((buffer[start] == '/') && ((start + 1 < dataSize) && (buffer[start + 1] == '/'))))
-                {
+            {
                 start = endOfLine;
                 continue;
             }
@@ -252,9 +251,17 @@ int FilterParserThread::parseDATFilterFile()
 
             if ((startAddr.is_v4() != endAddr.is_v4())
                 || (startAddr.is_v6() != endAddr.is_v6()))
-                {
+            {
                 ++parseErrorCount;
                 addLog(tr("IP filter line %1 is malformed. One IP is IPv4 and the other is IPv6!").arg(nbLine));
+                start = endOfLine;
+                continue;
+            }
+
+            if (startAddr > endAddr)
+            {
+                ++parseErrorCount;
+                addLog(tr("IP filter line %1 is malformed. End IP is lower than Start IP!").arg(nbLine));
                 start = endOfLine;
                 continue;
             }
@@ -298,7 +305,7 @@ int FilterParserThread::parseP2PFilterFile()
         return ruleCount;
     }
 
-    std::vector<char> buffer(BUFFER_SIZE, 0); // seems a bit faster than QVector
+    std::vector<char> buffer(BUFFER_SIZE, 0); // seems a bit faster than QList
     qint64 bytesRead = 0;
     int offset = 0;
     int start = 0;
@@ -484,9 +491,9 @@ int FilterParserThread::parseP2BFilterFile()
     char buf[7];
     unsigned char version;
     if (!stream.readRawData(buf, sizeof(buf))
-        || memcmp(buf, "\xFF\xFF\xFF\xFFP2B", 7)
+        || (memcmp(buf, "\xFF\xFF\xFF\xFFP2B", 7) != 0)
         || !stream.readRawData(reinterpret_cast<char*>(&version), sizeof(version)))
-        {
+    {
         LogMsg(tr("Parsing Error: The filter file is not a valid PeerGuardian P2B file."), Log::CRITICAL);
         return ruleCount;
     }
@@ -618,17 +625,17 @@ void FilterParserThread::run()
 {
     qDebug("Processing filter file");
     int ruleCount = 0;
-    if (m_filePath.hasExtension(u".p2p"_qs))
+    if (m_filePath.hasExtension(u".p2p"_s))
     {
         // PeerGuardian p2p file
         ruleCount = parseP2PFilterFile();
     }
-    else if (m_filePath.hasExtension(u".p2b"_qs))
+    else if (m_filePath.hasExtension(u".p2b"_s))
     {
         // PeerGuardian p2b file
         ruleCount = parseP2BFilterFile();
     }
-    else if (m_filePath.hasExtension(u".dat"_qs))
+    else if (m_filePath.hasExtension(u".dat"_s))
     {
         // eMule DAT format
         ruleCount = parseDATFilterFile();

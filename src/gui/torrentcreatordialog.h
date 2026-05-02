@@ -1,5 +1,6 @@
 /*
  * Bittorrent Client using Qt and libtorrent.
+ * Copyright (C) 2024  Radu Carpa <radu.carpa@cern.ch>
  * Copyright (C) 2017  Mike Tzou (Chocobo1)
  * Copyright (C) 2010  Christophe Dumez <chris@qbittorrent.org>
  *
@@ -30,10 +31,16 @@
 #pragma once
 
 #include <QDialog>
+#include <QThreadPool>
 
-#include "base/bittorrent/torrentcreatorthread.h"
 #include "base/path.h"
 #include "base/settingvalue.h"
+
+namespace BitTorrent
+{
+    enum class TorrentFormat;
+    struct TorrentCreatorResult;
+}
 
 namespace Ui
 {
@@ -52,12 +59,12 @@ public:
 
 private slots:
     void updateProgressBar(int progress);
-    void updatePiecesCount();
+    void onCalculatePiecesButtonClicked();
     void onCreateButtonClicked();
     void onAddFileButtonClicked();
     void onAddFolderButtonClicked();
     void handleCreationFailure(const QString &msg);
-    void handleCreationSuccess(const Path &path, const Path &branchPath);
+    void handleCreationSuccess(const BitTorrent::TorrentCreatorResult &result);
 
 private:
     void dropEvent(QDropEvent *event) override;
@@ -74,8 +81,8 @@ private:
     int getPaddedFileSizeLimit() const;
 #endif
 
-    Ui::TorrentCreatorDialog *m_ui;
-    BitTorrent::TorrentCreatorThread *m_creatorThread;
+    Ui::TorrentCreatorDialog *m_ui = nullptr;
+    QThreadPool m_threadPool;
 
     // settings
     SettingValue<QSize> m_storeDialogSize;

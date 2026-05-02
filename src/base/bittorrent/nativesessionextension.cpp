@@ -1,6 +1,6 @@
 /*
  * Bittorrent Client using Qt and libtorrent.
- * Copyright (C) 2020-2022  Vladimir Golovnev <glassez@yandex.ru>
+ * Copyright (C) 2020-2023  Vladimir Golovnev <glassez@yandex.ru>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -42,6 +42,17 @@ namespace
     }
 }
 
+bool NativeSessionExtension::isSessionListening() const
+{
+    const QReadLocker locker {&m_lock};
+    return m_isSessionListening;
+}
+
+void NativeSessionExtension::added(const lt::session_handle &nativeSession)
+{
+    m_nativeSession = nativeSession;
+}
+
 lt::feature_flags_t NativeSessionExtension::implemented_features()
 {
     return alert_feature;
@@ -56,8 +67,19 @@ void NativeSessionExtension::on_alert(const lt::alert *alert)
 {
     switch (alert->type())
     {
+    case lt::session_stats_alert::alert_type:
+        handleSessionStatsAlert(static_cast<const lt::session_stats_alert *>(alert));
+        break;
     case lt::fastresume_rejected_alert::alert_type:
         handleFastresumeRejectedAlert(static_cast<const lt::fastresume_rejected_alert *>(alert));
         break;
+    default:
+        break;
     }
+}
+
+void NativeSessionExtension::handleSessionStatsAlert([[maybe_unused]] const lt::session_stats_alert *alert)
+{
+    const QWriteLocker locker {&m_lock};
+    m_isSessionListening = m_nativeSession.is_listening();
 }

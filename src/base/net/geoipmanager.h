@@ -40,7 +40,7 @@ namespace Net
 {
     struct DownloadResult;
 
-    class GeoIPManager : public QObject
+    class GeoIPManager final : public QObject
     {
         Q_OBJECT
         Q_DISABLE_COPY_MOVE(GeoIPManager)
@@ -66,8 +66,8 @@ namespace Net
         void manageDatabaseUpdate();
         void downloadDatabaseFile();
 
-        bool m_enabled;
-        GeoIPDatabase *m_geoIPDatabase;
+        bool m_enabled = false;
+        GeoIPDatabase *m_geoIPDatabase = nullptr;
 
         static GeoIPManager *m_instance;
     };

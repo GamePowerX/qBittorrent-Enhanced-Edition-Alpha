@@ -1,6 +1,6 @@
 /*
  * Bittorrent Client using Qt and libtorrent.
- * Copyright (C) 2015, 2018  Vladimir Golovnev <glassez@yandex.ru>
+ * Copyright (C) 2015-2025  Vladimir Golovnev <glassez@yandex.ru>
  * Copyright (C) 2006  Christophe Dumez <chris@qbittorrent.org>
  *
  * This program is free software; you can redistribute it and/or
@@ -30,6 +30,7 @@
 #pragma once
 
 #include <QByteArray>
+#include <QDateTime>
 #include <QList>
 #include <QObject>
 #include <QString>
@@ -42,11 +43,13 @@ struct SearchResult
 {
     QString fileName;
     QString fileUrl;
-    qlonglong fileSize;
-    qlonglong nbSeeders;
-    qlonglong nbLeechers;
+    qlonglong fileSize = 0;
+    qlonglong nbSeeders = 0;
+    qlonglong nbLeechers = 0;
+    QString engineName;
     QString siteUrl;
     QString descrLink;
+    QDateTime pubDate;
 };
 
 class SearchPluginManager;
@@ -71,21 +74,20 @@ public:
 
 signals:
     void searchFinished(bool cancelled = false);
-    void searchFailed();
-    void newSearchResults(const QVector<SearchResult> &results);
+    void searchFailed(const QString &errorMessage);
+    void newSearchResults(const QList<SearchResult> &results);
 
 private:
     void readSearchOutput();
-    void processFailed();
     void processFinished(int exitcode);
-    bool parseSearchResult(QStringView line, SearchResult &searchResult);
+    bool parseSearchResult(QByteArrayView line, SearchResult &searchResult);
 
     const QString m_pattern;
     const QString m_category;
     const QStringList m_usedPlugins;
-    SearchPluginManager *m_manager;
-    QProcess *m_searchProcess;
-    QTimer *m_searchTimeout;
+    SearchPluginManager *m_manager = nullptr;
+    QProcess *m_searchProcess = nullptr;
+    QTimer *m_searchTimeout = nullptr;
     QByteArray m_searchResultLineTruncated;
     bool m_searchCancelled = false;
     QList<SearchResult> m_results;

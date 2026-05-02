@@ -1,5 +1,6 @@
 /*
  * Bittorrent Client using Qt and libtorrent.
+ * Copyright (C) 2026  Vladimir Golovnev <glassez@yandex.ru>
  * Copyright (C) 2013  Mladen Milinkovic <max@smoothware.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -37,34 +38,31 @@
 #include <QScrollBar>
 #include <QStyle>
 
-#include "base/global.h"
 #include "base/path.h"
 #include "base/profile.h"
+
+using namespace Qt::Literals::StringLiterals;
 
 HtmlBrowser::HtmlBrowser(QWidget *parent)
     : QTextBrowser(parent)
 {
     m_netManager = new QNetworkAccessManager(this);
     m_diskCache = new QNetworkDiskCache(this);
-    m_diskCache->setCacheDirectory((specialFolderLocation(SpecialFolder::Cache) / Path(u"rss"_qs)).data());
+    m_diskCache->setCacheDirectory((specialFolderLocation(SpecialFolder::Cache) / Path(u"rss"_s)).data());
     m_diskCache->setMaximumCacheSize(50 * 1024 * 1024);
-    qDebug() << "HtmlBrowser  cache path:" << m_diskCache->cacheDirectory() << " max size:" << m_diskCache->maximumCacheSize() / 1024 / 1024 << "MB";
+    qDebug() << "HtmlBrowser cache path:" << m_diskCache->cacheDirectory() << " max size:" << m_diskCache->maximumCacheSize() / 1024 / 1024 << "MB";
     m_netManager->setCache(m_diskCache);
 
     connect(m_netManager, &QNetworkAccessManager::finished, this, &HtmlBrowser::resourceLoaded);
-}
-
-HtmlBrowser::~HtmlBrowser()
-{
 }
 
 QVariant HtmlBrowser::loadResource(int type, const QUrl &name)
 {
     if (type == QTextDocument::ImageResource)
     {
-        QUrl url(name);
+        QUrl url {name};
         if (url.scheme().isEmpty())
-            url.setScheme(u"http"_qs);
+            url.setScheme(u"http"_s);
 
         QIODevice *dev = m_diskCache->data(url);
         if (dev)
@@ -79,7 +77,7 @@ QVariant HtmlBrowser::loadResource(int type, const QUrl &name)
         {
             m_activeRequests.insert(url, true);
             qDebug() << "HtmlBrowser::loadResource() get " << url.toString();
-            QNetworkRequest req(url);
+            QNetworkRequest req {url};
             req.setAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::PreferCache);
             m_netManager->get(req);
         }
@@ -108,19 +106,21 @@ void HtmlBrowser::resourceLoaded(QNetworkReply *reply)
         metaData.setUrl(reply->request().url());
         metaData.setSaveToDisk(true);
         atts[QNetworkRequest::HttpStatusCodeAttribute] = 200;
-        atts[QNetworkRequest::HttpReasonPhraseAttribute] = u"Ok"_qs;
+        atts[QNetworkRequest::HttpReasonPhraseAttribute] = u"Ok"_s;
         metaData.setAttributes(atts);
-        metaData.setLastModified(QDateTime::currentDateTime());
-        metaData.setExpirationDate(QDateTime::currentDateTime().addDays(1));
+        const auto currentDateTime = QDateTime::currentDateTime();
+        metaData.setLastModified(currentDateTime);
+        metaData.setExpirationDate(currentDateTime.addDays(1));
         QIODevice *dev = m_diskCache->prepare(metaData);
-        if (!dev) return;
+        if (!dev)
+            return;
 
         QApplication::style()->standardIcon(QStyle::SP_MessageBoxWarning).pixmap(32, 32).save(dev, "PNG");
         m_diskCache->insert(dev);
     }
     // Refresh the document display and keep scrollbars where they are
-    int sx = horizontalScrollBar()->value();
-    int sy = verticalScrollBar()->value();
+    const int sx = horizontalScrollBar()->value();
+    const int sy = verticalScrollBar()->value();
     document()->setHtml(document()->toHtml());
     horizontalScrollBar()->setValue(sx);
     verticalScrollBar()->setValue(sy);

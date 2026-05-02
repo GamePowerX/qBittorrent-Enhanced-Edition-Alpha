@@ -28,8 +28,11 @@
 
 #pragma once
 
-#include <QHostAddress>
+#include <optional>
+#include <utility>
+
 #include <QtContainerFwd>
+#include <QHostAddress>
 
 class QSslCertificate;
 class QSslKey;
@@ -37,19 +40,21 @@ class QString;
 
 namespace Utils::Net
 {
-    using Subnet = QPair<QHostAddress, int>;
+    // alias for `QHostAddress::parseSubnet()` return type
+    using Subnet = std::pair<QHostAddress, int>;
+    using IPRange = std::pair<QHostAddress, QHostAddress>;
 
     bool isValidIP(const QString &ip);
-    Subnet parseSubnet(const QString &subnetStr, bool *ok = nullptr);
-    bool canParseSubnet(const QString &subnetStr);
-    bool isLoopbackAddress(const QHostAddress &addr);
-    bool isIPInRange(const QHostAddress &addr, const QVector<Subnet> &subnets);
+    std::optional<Subnet> parseSubnet(const QString &subnetStr);
+    bool isIPInSubnets(const QHostAddress &addr, const QList<Subnet> &subnets);
     QString subnetToString(const Subnet &subnet);
+    IPRange subnetToIPRange(const Subnet &subnet);
     QHostAddress canonicalIPv6Addr(const QHostAddress &addr);
 
-    const int MAX_SSL_FILE_SIZE = 1024 * 1024;
+    std::optional<IPRange> parseIPRange(QStringView filterStr, bool isStrictIPv4 = false);
+    QString ipRangeToString(const IPRange &ipRange);
+
+    inline const int MAX_SSL_FILE_SIZE = 1024 * 1024;
     QList<QSslCertificate> loadSSLCertificate(const QByteArray &data);
     bool isSSLCertificatesValid(const QByteArray &data);
-    QSslKey loadSSLKey(const QByteArray &data);
-    bool isSSLKeyValid(const QByteArray &data);
 }

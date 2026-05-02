@@ -68,48 +68,28 @@
 
 #include "qtlocalpeer.h"
 
-#include <QtGlobal>
+#include <QtSystemDetection>
 
 #if defined(Q_OS_WIN)
-#include <Windows.h>
+#include <windows.h>
 #endif
 
+#include <QByteArray>
 #include <QDataStream>
 #include <QFileInfo>
 #include <QLocalServer>
 #include <QLocalSocket>
 
-namespace QtLP_Private
-{
-#include "qtlockedfile.cpp"
-
-#if defined(Q_OS_WIN)
-#include "qtlockedfile_win.cpp"
-#else
-#include "qtlockedfile_unix.cpp"
-#endif
-}
-
-const char ACK[] = "ack";
+const QByteArray ACK = QByteArrayLiteral("ack");
 
 QtLocalPeer::QtLocalPeer(const QString &path, QObject *parent)
     : QObject(parent)
     , m_socketName(path + u"/ipc-socket")
     , m_server(new QLocalServer(this))
+    , m_lockFile(path + u"/lockfile")
 {
     m_server->setSocketOptions(QLocalServer::UserAccessOption);
-
-    m_lockFile.setFileName(path + u"/lockfile");
-    m_lockFile.open(QIODevice::ReadWrite);
-}
-
-QtLocalPeer::~QtLocalPeer()
-{
-    if (!isClient())
-    {
-        m_lockFile.unlock();
-        m_lockFile.remove();
-    }
+    m_lockFile.setStaleLockTime(0);
 }
 
 bool QtLocalPeer::isClient()
@@ -117,7 +97,7 @@ bool QtLocalPeer::isClient()
     if (m_lockFile.isLocked())
         return false;
 
-    if (!m_lockFile.lock(QtLP_Private::QtLockedFile::WriteLock, false))
+    if (!m_lockFile.tryLock())
         return true;
 
     bool res = m_server->listen(m_socketName);
@@ -152,10 +132,10 @@ bool QtLocalPeer::sendMessage(const QString &message, const int timeout)
             break;
         int ms = 250;
 #if defined(Q_OS_WIN)
-        Sleep(DWORD(ms));
+        ::Sleep(DWORD(ms));
 #else
         struct timespec ts = { ms / 1000, (ms % 1000) * 1000 * 1000 };
-        nanosleep(&ts, NULL);
+        ::nanosleep(&ts, nullptr);
 #endif
     }
     if (!connOk)
@@ -169,7 +149,7 @@ bool QtLocalPeer::sendMessage(const QString &message, const int timeout)
     {
         res &= socket.waitForReadyRead(timeout);   // wait for ack
         if (res)
-            res &= (socket.read(qstrlen(ACK)) == ACK);
+            res &= (socket.read(ACK.size()) == ACK);
     }
     return res;
 }
@@ -220,7 +200,7 @@ void QtLocalPeer::receiveConnection()
         return;
     }
     QString message(QString::fromUtf8(uMsg));
-    socket->write(ACK, qstrlen(ACK));
+    socket->write(ACK);
     socket->waitForBytesWritten(1000);
     socket->waitForDisconnected(1000); // make sure client reads ack
     delete socket;

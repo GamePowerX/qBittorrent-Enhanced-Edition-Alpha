@@ -29,7 +29,7 @@
 #pragma once
 
 #include <QDialog>
-#include <QVector>
+#include <QList>
 
 #include "base/bittorrent/peerinfo.h"
 
@@ -47,12 +47,12 @@ public:
     PeersAdditionDialog(QWidget *parent);
     ~PeersAdditionDialog();
 
-    static QVector<BitTorrent::PeerAddress> askForPeers(QWidget *parent);
+    static QList<BitTorrent::PeerAddress> askForPeers(QWidget *parent);
 
 protected slots:
     void validateInput();
 
 private:
-    Ui::PeersAdditionDialog *m_ui;
-    QVector<BitTorrent::PeerAddress> m_peersList;
+    Ui::PeersAdditionDialog *m_ui = nullptr;
+    QList<BitTorrent::PeerAddress> m_peersList;
 };

@@ -30,15 +30,42 @@
 
 #pragma once
 
-class QString;
+#include <QtSystemDetection>
+#include <QtTypes>
+#include <QMetaObject>
 
-class Path;
+#include "base/pathfwd.h"
+
+class AddTorrentManager;
+class WebUI;
 struct QBtCommandLineParameters;
+
+#ifdef Q_OS_WIN
+inline namespace ApplicationSettingsEnums
+{
+    Q_NAMESPACE
+
+    enum class MemoryPriority : int
+    {
+        Normal = 0,
+        BelowNormal = 1,
+        Medium = 2,
+        Low = 3,
+        VeryLow = 4
+    };
+    Q_ENUM_NS(MemoryPriority)
+}
+#endif
 
 class IApplication
 {
 public:
     virtual ~IApplication() = default;
+
+    virtual QString instanceName() const = 0;
+    virtual void setInstanceName(const QString &name) = 0;
+
+    virtual qint64 launchTimeSecsSinceEpoch() const = 0;
 
     // FileLogger properties
     virtual bool isFileLoggerEnabled() const = 0;
@@ -58,4 +85,16 @@ public:
 
     virtual int memoryWorkingSetLimit() const = 0;
     virtual void setMemoryWorkingSetLimit(int size) = 0;
+
+    virtual void sendTestEmail() const = 0;
+
+#ifdef Q_OS_WIN
+    virtual MemoryPriority processMemoryPriority() const = 0;
+    virtual void setProcessMemoryPriority(MemoryPriority priority) = 0;
+#endif
+
+    virtual AddTorrentManager *addTorrentManager() const = 0;
+#ifndef DISABLE_WEBUI
+    virtual WebUI *webUI() const = 0;
+#endif
 };

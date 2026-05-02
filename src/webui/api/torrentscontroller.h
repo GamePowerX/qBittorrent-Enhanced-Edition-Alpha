@@ -28,7 +28,25 @@
 
 #pragma once
 
+#include <QHash>
+#include <QSet>
+
+#include "base/bittorrent/torrentdescriptor.h"
 #include "apicontroller.h"
+
+class QByteArray;
+
+namespace BitTorrent
+{
+    class InfoHash;
+    class TorrentID;
+    class TorrentInfo;
+}
+
+namespace Net
+{
+    struct DownloadResult;
+}
 
 class TorrentsController : public APIController
 {
@@ -36,27 +54,34 @@ class TorrentsController : public APIController
     Q_DISABLE_COPY_MOVE(TorrentsController)
 
 public:
-    using APIController::APIController;
+    explicit TorrentsController(IApplication *app, QObject *parent = nullptr);
 
 private slots:
+    void countAction();
     void infoAction();
     void propertiesAction();
     void trackersAction();
     void webseedsAction();
+    void addWebSeedsAction();
+    void editWebSeedAction();
+    void removeWebSeedsAction();
     void filesAction();
     void pieceHashesAction();
     void pieceStatesAction();
-    void resumeAction();
-    void pauseAction();
+    void pieceAvailabilityAction();
+    void startAction();
+    void stopAction();
     void recheckAction();
     void reannounceAction();
     void renameAction();
+    void setCommentAction();
     void setCategoryAction();
     void createCategoryAction();
     void editCategoryAction();
     void removeCategoriesAction();
     void categoriesAction();
     void addTagsAction();
+    void setTagsAction();
     void removeTagsAction();
     void createTagsAction();
     void deleteTagsAction();
@@ -88,4 +113,20 @@ private slots:
     void renameFileAction();
     void renameFolderAction();
     void exportAction();
+    void SSLParametersAction();
+    void setSSLParametersAction();
+    void fetchMetadataAction();
+    void parseMetadataAction();
+    void saveMetadataAction();
+
+private:
+    void onDownloadFinished(const Net::DownloadResult &result);
+    void onMetadataDownloaded(const BitTorrent::TorrentInfo &info);
+    void onSearchPluginTorrentDownloaded(const QString &source, const QString &data);
+    void cacheTorrentFile(const QString &source, const QByteArray &data);
+    void cacheMagnetURI(const QString &source, const BitTorrent::TorrentDescriptor &torrentDescr);
+
+    QHash<QString, BitTorrent::InfoHash> m_torrentSourceCache;
+    QHash<BitTorrent::TorrentID, BitTorrent::TorrentDescriptor> m_torrentMetadataCache;
+    QSet<QString> m_requestedTorrentSource;
 };

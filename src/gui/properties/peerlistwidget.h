@@ -47,10 +47,6 @@ namespace BitTorrent
     class PeerInfo;
 }
 
-namespace Net
-{
-    class ReverseResolution;
-}
 
 class PeerListWidget final : public QTreeView
 {
@@ -66,7 +62,7 @@ public:
         CONNECTION,
         FLAGS,
         CLIENT,
-        PEERID,
+        PEERID_CLIENT,
         PROGRESS,
         DOWN_SPEED,
         UP_SPEED,
@@ -75,7 +71,7 @@ public:
         RELEVANCE,
         DOWNLOADING_PIECE,
         IP_HIDDEN,
-        DOWNLOADING_PIECE_NUMBER,
+
         COL_COUNT
     };
 
@@ -88,7 +84,7 @@ public:
     void clear();
 
 private slots:
-    void loadSettings();
+    bool loadSettings();
     void saveSettings() const;
     void displayColumnHeaderMenu();
     void showPeerListMenu();
@@ -98,7 +94,7 @@ private slots:
     void handleResolved(const QHostAddress &ip, const QString &hostname) const;
 
 private:
-    void updatePeer(const BitTorrent::Torrent *torrent, const BitTorrent::PeerInfo &peer, bool &isNewPeer);
+    void updatePeer(int row, const BitTorrent::Torrent *torrent, const BitTorrent::PeerInfo &peer, bool hideZeroValues);
     int visibleColumnsCount() const;
 
     void wheelEvent(QWheelEvent *event) override;
@@ -106,8 +102,9 @@ private:
     QStandardItemModel *m_listModel = nullptr;
     PeerListSortModel *m_proxyModel = nullptr;
     PropertiesWidget *m_properties = nullptr;
-    Net::ReverseResolution *m_resolver = nullptr;
     QHash<PeerEndpoint, QStandardItem *> m_peerItems;
+    QList<QStandardItem *> m_I2PPeerItems;
     QHash<QHostAddress, QSet<QStandardItem *>> m_itemsByIP;  // must be kept in sync with `m_peerItems`
-    bool m_resolveCountries;
+    bool m_resolveCountries = false;
+    bool m_resolveHostNames = false;
 };

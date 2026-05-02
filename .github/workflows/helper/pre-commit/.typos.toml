@@ -1,0 +1,24 @@
+# https://github.com/crate-ci/typos/blob/master/docs/reference.md
+# https://github.com/crate-ci/typos/blob/master/docs/design.md#identifiers-and-words
+
+# try adding to `identifiers` list first, if doesn't work then `words` list
+
+[default.extend-identifiers]
+additionals = "additionals"
+caf = "caf"
+Categor = "Categor"
+curren = "curren"
+FO = "FO"
+ket = "ket"
+Q_INVOKABLE = "Q_INVOKABLE"
+switchs = "switchs"
+ths = "ths"
+utomatically = "utomatically"
+
+[default.extend-words]
+BA = "BA"
+Cpy = "Cpy"
+connec = "connec"
+helo = "helo"
+Pn = "Pn"
+UIU = "UIU"

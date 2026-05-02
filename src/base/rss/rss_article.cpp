@@ -37,27 +37,27 @@
 
 using namespace RSS;
 
-const QString Article::KeyId = u"id"_qs;
-const QString Article::KeyDate = u"date"_qs;
-const QString Article::KeyTitle = u"title"_qs;
-const QString Article::KeyAuthor = u"author"_qs;
-const QString Article::KeyDescription = u"description"_qs;
-const QString Article::KeyTorrentURL = u"torrentURL"_qs;
-const QString Article::KeyLink = u"link"_qs;
-const QString Article::KeyIsRead = u"isRead"_qs;
+const QString Article::KeyId = u"id"_s;
+const QString Article::KeyDate = u"date"_s;
+const QString Article::KeyTitle = u"title"_s;
+const QString Article::KeyAuthor = u"author"_s;
+const QString Article::KeyDescription = u"description"_s;
+const QString Article::KeyTorrentURL = u"torrentURL"_s;
+const QString Article::KeyLink = u"link"_s;
+const QString Article::KeyIsRead = u"isRead"_s;
 
 Article::Article(Feed *feed, const QVariantHash &varHash)
     : QObject(feed)
-    , m_feed(feed)
-    , m_guid(varHash.value(KeyId).toString())
-    , m_date(varHash.value(KeyDate).toDateTime())
-    , m_title(varHash.value(KeyTitle).toString())
-    , m_author(varHash.value(KeyAuthor).toString())
-    , m_description(varHash.value(KeyDescription).toString())
-    , m_torrentURL(varHash.value(KeyTorrentURL).toString())
-    , m_link(varHash.value(KeyLink).toString())
-    , m_isRead(varHash.value(KeyIsRead, false).toBool())
-    , m_data(varHash)
+    , m_feed {feed}
+    , m_guid {varHash.value(KeyId).toString()}
+    , m_date {varHash.value(KeyDate).toDateTime()}
+    , m_title {varHash.value(KeyTitle).toString()}
+    , m_author {varHash.value(KeyAuthor).toString()}
+    , m_description {varHash.value(KeyDescription).toString()}
+    , m_torrentURL {varHash.value(KeyTorrentURL).toString()}
+    , m_link {varHash.value(KeyLink).toString()}
+    , m_isRead {varHash.value(KeyIsRead, false).toBool()}
+    , m_data {varHash}
 {
 }
 

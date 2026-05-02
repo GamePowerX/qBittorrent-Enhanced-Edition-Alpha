@@ -37,7 +37,8 @@ enum class ShutdownDialogAction
     Exit,
     Shutdown,
     Suspend,
-    Hibernate
+    Hibernate,
+    Reboot
 };
 
-typedef QMap<QString, QString> QStringMap;
+using QStringMap = QMap<QString, QString>;

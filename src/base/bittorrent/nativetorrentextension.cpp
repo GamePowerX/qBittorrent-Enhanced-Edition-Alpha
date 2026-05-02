@@ -1,6 +1,6 @@
 /*
  * Bittorrent Client using Qt and libtorrent.
- * Copyright (C) 2020-2022  Vladimir Golovnev <glassez@yandex.ru>
+ * Copyright (C) 2020-2023  Vladimir Golovnev <glassez@yandex.ru>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,26 +30,20 @@
 
 #include <libtorrent/torrent_status.hpp>
 
-namespace
-{
-    bool isAutoManaged(const lt::torrent_status &torrentStatus)
-    {
-        return static_cast<bool>(torrentStatus.flags & lt::torrent_flags::auto_managed);
-    }
-}
-
 NativeTorrentExtension::NativeTorrentExtension(const lt::torrent_handle &torrentHandle, ExtensionData *data)
     : m_torrentHandle {torrentHandle}
     , m_data {data}
 {
-    lt::torrent_status torrentStatus = m_torrentHandle.status({});
-    on_state(torrentStatus.state);
+    // NOTE: `data` may not exist if a torrent is added behind the scenes to download metadata
 
     if (m_data)
     {
-        m_data->status = std::move(torrentStatus);
+        m_data->status = m_torrentHandle.status();
         m_data->trackers = m_torrentHandle.trackers();
+        m_data->urlSeeds = m_torrentHandle.url_seeds();
     }
+
+    on_state(m_data ? m_data->status.state : m_torrentHandle.status({}).state);
 }
 
 NativeTorrentExtension::~NativeTorrentExtension()
@@ -57,19 +51,10 @@ NativeTorrentExtension::~NativeTorrentExtension()
     delete m_data;
 }
 
-bool NativeTorrentExtension::on_pause()
-{
-    if (!isAutoManaged(m_torrentHandle.status({})))
-        m_torrentHandle.unset_flags(lt::torrent_flags::stop_when_ready);
-
-    // return `false` to allow standard handler
-    // and other extensions to be also invoked.
-    return false;
-}
-
 void NativeTorrentExtension::on_state(const lt::torrent_status::state_t state)
 {
-    if (m_state == lt::torrent_status::downloading_metadata)
+    if ((m_state == lt::torrent_status::downloading_metadata)
+            || (m_state == lt::torrent_status::checking_files))
     {
         m_torrentHandle.unset_flags(lt::torrent_flags::auto_managed);
         m_torrentHandle.pause();

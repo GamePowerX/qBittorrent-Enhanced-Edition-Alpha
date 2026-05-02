@@ -30,7 +30,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "request.h"
 
 namespace Http
 {
@@ -41,15 +41,16 @@ namespace Http
         {
             OK,
             Incomplete,
+            BadMethod,
             BadRequest
         };
 
         struct ParseResult
         {
             // when `status != ParseStatus::OK`, `request` & `frameSize` are undefined
-            ParseStatus status;
+            ParseStatus status = ParseStatus::BadRequest;
             Request request;
-            long frameSize;  // http request frame size (bytes)
+            qsizetype frameSize = 0;  // http request frame size (bytes)
         };
 
         static ParseResult parse(const QByteArray &data);
@@ -57,14 +58,14 @@ namespace Http
         static const long MAX_CONTENT_SIZE = 64 * 1024 * 1024;  // 64 MB
 
     private:
-        RequestParser();
+        RequestParser() = default;
 
-        ParseResult doParse(const QByteArray &data);
-        bool parseStartLines(QStringView data);
-        bool parseRequestLine(const QString &line);
+        ParseResult doParse(QByteArrayView data);
+        bool parseStartLines(QByteArrayView data);
+        bool parseRequestLine(QByteArrayView line);
 
-        bool parsePostMessage(const QByteArray &data);
-        bool parseFormData(const QByteArray &data);
+        bool parsePostMessage(QByteArrayView data);
+        bool parseFormData(QByteArrayView data);
 
         Request m_request;
     };

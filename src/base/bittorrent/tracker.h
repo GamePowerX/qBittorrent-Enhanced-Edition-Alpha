@@ -1,7 +1,7 @@
 /*
  * Bittorrent Client using Qt and libtorrent.
+ * Copyright (C) 2015-2026  Vladimir Golovnev <glassez@yandex.ru>
  * Copyright (C) 2019  Mike Tzou (Chocobo1)
- * Copyright (C) 2015  Vladimir Golovnev <glassez@yandex.ru>
  * Copyright (C) 2010  Christophe Dumez <chris@qbittorrent.org>
  *
  * This program is free software; you can redistribute it and/or
@@ -30,18 +30,18 @@
 
 #pragma once
 
-#include <string>
-
 #include <libtorrent/entry.hpp>
 
-#include <QtGlobal>
+#include <QtTypes>
 #include <QHash>
 #include <QObject>
 #include <QSet>
 
 #include "base/bittorrent/infohash.h"
+#include "base/http/environment.h"
 #include "base/http/irequesthandler.h"
-#include "base/http/responsebuilder.h"
+#include "base/http/request.h"
+#include "base/http/response.h"
 
 namespace Http
 {
@@ -64,17 +64,12 @@ namespace BitTorrent
     };
 
     bool operator==(const Peer &left, const Peer &right);
-    bool operator!=(const Peer &left, const Peer &right);
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
     std::size_t qHash(const Peer &key, std::size_t seed = 0);
-#else
-    uint qHash(const Peer &key, uint seed = 0);
-#endif
 
     // *Basic* Bittorrent tracker implementation
     // [BEP-3] The BitTorrent Protocol Specification
     // also see: https://wiki.theory.org/index.php/BitTorrentSpecification#Tracker_HTTP.2FHTTPS_Protocol
-    class Tracker final : public QObject, public Http::IRequestHandler, private Http::ResponseBuilder
+    class Tracker final : public QObject, public Http::IRequestHandler
     {
         Q_OBJECT
         Q_DISABLE_COPY_MOVE(Tracker)
@@ -103,9 +98,10 @@ namespace BitTorrent
         void unregisterPeer(const TrackerAnnounceRequest &announceReq);
         void prepareAnnounceResponse(const TrackerAnnounceRequest &announceReq);
 
-        Http::Server *m_server;
+        Http::Server *m_server = nullptr;
         Http::Request m_request;
         Http::Environment m_env;
+        Http::Response m_response;
 
         QHash<TorrentID, TorrentStats> m_torrents;
     };

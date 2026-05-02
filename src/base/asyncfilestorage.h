@@ -1,6 +1,6 @@
 /*
  * Bittorrent Client using Qt and libtorrent.
- * Copyright (C) 2017  Vladimir Golovnev <glassez@yandex.ru>
+ * Copyright (C) 2017-2025  Vladimir Golovnev <glassez@yandex.ru>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,26 +28,17 @@
 
 #pragma once
 
-#include <QFile>
 #include <QObject>
 
-#include "base/exceptions.h"
 #include "base/path.h"
 
-class AsyncFileStorageError : public RuntimeError
-{
-public:
-    using RuntimeError::RuntimeError;
-};
-
-class AsyncFileStorage : public QObject
+class AsyncFileStorage final : public QObject
 {
     Q_OBJECT
     Q_DISABLE_COPY_MOVE(AsyncFileStorage)
 
 public:
     explicit AsyncFileStorage(const Path &storageFolderPath, QObject *parent = nullptr);
-    ~AsyncFileStorage() override;
 
     void store(const Path &filePath, const QByteArray &data);
 
@@ -60,5 +51,4 @@ private:
     Q_INVOKABLE void store_impl(const Path &fileName, const QByteArray &data);
 
     Path m_storageDir;
-    QFile m_lockFile;
 };

@@ -1,6 +1,6 @@
 /*
  * Bittorrent Client using Qt and libtorrent.
- * Copyright (C) 2015  Vladimir Golovnev <glassez@yandex.ru>
+ * Copyright (C) 2015-2025  Vladimir Golovnev <glassez@yandex.ru>
  * Copyright (C) 2006  Christophe Dumez <chris@qbittorrent.org>
  *
  * This program is free software; you can redistribute it and/or
@@ -29,40 +29,31 @@
 
 #include "torrent.h"
 
+#include <limits>
+
 #include <QHash>
 
 #include "infohash.h"
 
 namespace BitTorrent
 {
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
     std::size_t qHash(const TorrentState key, const std::size_t seed)
-#else
-    uint qHash(const TorrentState key, const uint seed)
-#endif
     {
         return ::qHash(static_cast<std::underlying_type_t<TorrentState>>(key), seed);
     }
 
     // Torrent
 
-    const qreal Torrent::USE_GLOBAL_RATIO = -2;
-    const qreal Torrent::NO_RATIO_LIMIT = -1;
-
-    const int Torrent::USE_GLOBAL_SEEDING_TIME = -2;
-    const int Torrent::NO_SEEDING_TIME_LIMIT = -1;
-
-    const qreal Torrent::MAX_RATIO = 9999;
-    const int Torrent::MAX_SEEDING_TIME = 525600;
+    const qreal Torrent::MAX_RATIO = std::numeric_limits<qreal>::infinity();
 
     TorrentID Torrent::id() const
     {
         return infoHash().toTorrentID();
     }
 
-    bool Torrent::isResumed() const
+    bool Torrent::isRunning() const
     {
-        return !isPaused();
+        return !isStopped();
     }
 
     qlonglong Torrent::remainingSize() const

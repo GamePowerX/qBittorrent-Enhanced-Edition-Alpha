@@ -37,12 +37,7 @@
 #include <QDebug>
 #include <QHostInfo>
 #include <QStringList>
-
-#ifndef QT_NO_OPENSSL
 #include <QSslSocket>
-#else
-#include <QTcpSocket>
-#endif
 
 #include "base/global.h"
 #include "base/logger.h"
@@ -51,11 +46,6 @@
 
 namespace
 {
-    const short DEFAULT_PORT = 25;
-#ifndef QT_NO_OPENSSL
-    const short DEFAULT_PORT_SSL = 465;
-#endif
-
     QByteArray hmacMD5(QByteArray key, const QByteArray &msg)
     {
         const int blockSize = 64; // HMAC-MD5 block size
@@ -67,7 +57,7 @@ namespace
         // ascii characters 0x36 ("6") and 0x5c ("\") are selected because they have large
         // Hamming distance (http://en.wikipedia.org/wiki/Hamming_distance)
 
-        for (int i = 0; i < key.length(); ++i)
+        for (qsizetype i = 0; i < key.length(); ++i)
         {
             innerPadding[i] = innerPadding[i] ^ key.at(i); // XOR operation between every byte in key and innerpadding, of key length
             outerPadding[i] = outerPadding[i] ^ key.at(i); // XOR operation between every byte in key and outerpadding, of key length
@@ -85,14 +75,14 @@ namespace
     {
         QString hostname = QHostInfo::localHostName();
         if (hostname.isEmpty())
-            hostname = u"localhost"_qs;
+            hostname = u"localhost"_s;
 
         return hostname.toLocal8Bit();
     }
 
     bool canEncodeAsLatin1(const QStringView string)
     {
-        return std::none_of(string.cbegin(), string.cend(), [](const QChar &ch)
+        return std::ranges::none_of(string, [](const QChar &ch)
         {
             return ch > QChar(0xff);
         });
@@ -103,9 +93,6 @@ using namespace Net;
 
 Smtp::Smtp(QObject *parent)
     : QObject(parent)
-    , m_state(Init)
-    , m_useSsl(false)
-    , m_authType(AuthPlain)
 {
     static bool needToRegisterMetaType = true;
 
@@ -115,11 +102,7 @@ Smtp::Smtp(QObject *parent)
         needToRegisterMetaType = false;
     }
 
-#ifndef QT_NO_OPENSSL
     m_socket = new QSslSocket(this);
-#else
-    m_socket = new QTcpSocket(this);
-#endif
 
     connect(m_socket, &QIODevice::readyRead, this, &Smtp::readyRead);
     connect(m_socket, &QAbstractSocket::disconnected, this, &QObject::deleteLater);
@@ -141,18 +124,17 @@ void Smtp::sendMail(const QString &from, const QString &to, const QString &subje
 {
     const Preferences *const pref = Preferences::instance();
     m_message = "Date: " + getCurrentDateTime().toLatin1() + "\r\n"
-                + encodeMimeHeader(u"From"_qs, from)
-                + encodeMimeHeader(u"Subject"_qs, subject)
-                + encodeMimeHeader(u"To"_qs, to)
+                + encodeMimeHeader(u"From"_s, u"qBittorrent <%1>"_s.arg(from))
+                + encodeMimeHeader(u"Subject"_s, subject)
+                + encodeMimeHeader(u"To"_s, to)
                 + "MIME-Version: 1.0\r\n"
                 + "Content-Type: text/plain; charset=UTF-8\r\n"
                 + "Content-Transfer-Encoding: base64\r\n"
                 + "\r\n";
     // Encode the body in base64
     QString crlfBody = body;
-    const QByteArray b = crlfBody.replace(u"\n"_qs, u"\r\n"_qs).toUtf8().toBase64();
-    const int ct = b.length();
-    for (int i = 0; i < ct; i += 78)
+    const QByteArray b = crlfBody.replace(u"\n"_s, u"\r\n"_s).toUtf8().toBase64();
+    for (qsizetype i = 0, end = b.length(); i < end; i += 78)
         m_message += b.mid(i, 78);
     m_from = from;
     m_rcpt = to;
@@ -165,36 +147,43 @@ void Smtp::sendMail(const QString &from, const QString &to, const QString &subje
 
     // Connect to SMTP server
     const QStringList serverEndpoint = pref->getMailNotificationSMTP().split(u':');
-    const QString serverAddress = serverEndpoint[0];
+    const QString &serverAddress = serverEndpoint[0];
     const std::optional<int> serverPort = Utils::String::parseInt(serverEndpoint.value(1));
+    m_usingStartTls = false;
 
-#ifndef QT_NO_OPENSSL
-    if (pref->getMailNotificationSMTPSSL())
+    // Decide connection method based on requested SMTP encryption type
+    switch (pref->getMailNotificationSMTPEncryptionType())
     {
-        m_socket->connectToHostEncrypted(serverAddress, serverPort.value_or(DEFAULT_PORT_SSL));
-        m_useSsl = true;
+    case SMTPEncryptionType::SMTPS:
+        m_socket->connectToHostEncrypted(serverAddress, serverPort.value_or(SMTP_DEFAULT_PORT_SSL));
+        break;
+
+    case SMTPEncryptionType::STARTTLS:
+        m_socket->connectToHost(serverAddress, serverPort.value_or(SMTP_DEFAULT_PORT_STARTTLS));
+        break;
+
+    case SMTPEncryptionType::None:
+        m_socket->connectToHost(serverAddress, serverPort.value_or(SMTP_DEFAULT_PORT));
+        break;
     }
-    else
-    {
-#endif
-    m_socket->connectToHost(serverAddress, serverPort.value_or(DEFAULT_PORT));
-    m_useSsl = false;
-#ifndef QT_NO_OPENSSL
-    }
-#endif
 }
 
 void Smtp::readyRead()
 {
     qDebug() << Q_FUNC_INFO;
+    const Preferences *const pref = Preferences::instance();
     // SMTP is line-oriented
     m_buffer += m_socket->readAll();
     while (true)
     {
-        const int pos = m_buffer.indexOf("\r\n");
+        const qsizetype pos = m_buffer.indexOf("\r\n");
         if (pos < 0) return; // Loop exit condition
-        const QByteArray line = m_buffer.left(pos);
-        m_buffer = m_buffer.mid(pos + 2);
+        const QByteArray line = m_buffer.first(pos);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
+        m_buffer.slice(pos + 2);
+#else
+        m_buffer.remove(0, (pos + 2));
+#endif
         qDebug() << "Response line:" << line;
         // Extract response code
         const QByteArray code = line.left(3);
@@ -219,22 +208,30 @@ void Smtp::readyRead()
             break;
         case EhloSent:
         case HeloSent:
+        case EhloDone:
         case EhloGreetReceived:
             parseEhloResponse(code, (line[3] != ' '), QString::fromUtf8(line.mid(4)));
             break;
-#ifndef QT_NO_OPENSSL
         case StartTLSSent:
             if (code == "220")
             {
                 m_socket->startClientEncryption();
+                // After STARTTLS negotiation, the client should discard all information about the
+                // server's capabilities obtained from the EHLO command and repeat the EHLO command
+                // to obtain the new capabilities of the server in the TLS session. (RFC 3207, section 4)
+                m_extensions.clear();
                 ehlo();
+            }
+            else if (pref->getMailNotificationSMTPEncryptionType() == SMTPEncryptionType::STARTTLS)
+            {
+                logError(tr("STARTTLS is required but was not enabled by the server. Unable to send the email."));
+                m_state = Quit;
             }
             else
             {
                 authenticate();
             }
             break;
-#endif
         case AuthRequestSent:
         case AuthUsernameSent:
             if (m_authType == AuthPlain) authPlain();
@@ -310,7 +307,7 @@ void Smtp::readyRead()
                 m_state = Close;
             }
             break;
-        default:
+        case Close:
             qDebug() << "Disconnecting from host";
             m_socket->disconnectFromHost();
             return;
@@ -347,7 +344,7 @@ QByteArray Smtp::encodeMimeHeader(const QString &key, const QString &value, cons
         const QByteArray utf8 = value.toUtf8();
         // Use base64 encoding
         const QByteArray base64 = utf8.toBase64();
-        const int ct = base64.length();
+        const qsizetype ct = base64.length();
         line += "=?utf-8?b?";
         for (int i = 0; i < ct; i += 4)
         {
@@ -381,6 +378,7 @@ void Smtp::helo()
 
 void Smtp::parseEhloResponse(const QByteArray &code, const bool continued, const QString &line)
 {
+    const Preferences *const pref = Preferences::instance();
     if (code != "250")
     {
         // Error
@@ -427,10 +425,16 @@ void Smtp::parseEhloResponse(const QByteArray &code, const bool continued, const
 
     if (m_state != EhloDone) return;
 
-    if (m_extensions.contains(u"STARTTLS"_qs) && m_useSsl)
+    const Net::SMTPEncryptionType encryptionType = pref->getMailNotificationSMTPEncryptionType();
+    // Check if STARTTLS is available and should be used
+    if (m_extensions.contains(u"STARTTLS"_s) && (encryptionType == SMTPEncryptionType::STARTTLS))
     {
-        qDebug() << "STARTTLS";
         startTLS();
+    }
+    else if (!m_usingStartTls && (encryptionType == SMTPEncryptionType::STARTTLS))
+    {
+        logError(tr("STARTTLS is required but was not offered by the server. Unable to send the email."));
+        m_state = Quit;
     }
     else
     {
@@ -441,7 +445,7 @@ void Smtp::parseEhloResponse(const QByteArray &code, const bool continued, const
 void Smtp::authenticate()
 {
     qDebug() << Q_FUNC_INFO;
-    if (!m_extensions.contains(u"AUTH"_qs) ||
+    if (!m_extensions.contains(u"AUTH"_s) ||
         m_username.isEmpty() || m_password.isEmpty())
         {
         // Skip authentication
@@ -456,7 +460,7 @@ void Smtp::authenticate()
     // AUTH extension is supported, check which
     // authentication modes are supported by
     // the server
-    const QStringList auth = m_extensions[u"AUTH"_qs].toUpper().split(u' ', Qt::SkipEmptyParts);
+    const QStringList auth = m_extensions[u"AUTH"_s].toUpper().split(u' ', Qt::SkipEmptyParts);
     if (auth.contains(u"CRAM-MD5"))
     {
         qDebug() << "Using CRAM-MD5 authentication...";
@@ -489,13 +493,10 @@ void Smtp::authenticate()
 void Smtp::startTLS()
 {
     qDebug() << Q_FUNC_INFO;
-#ifndef QT_NO_OPENSSL
     m_socket->write("starttls\r\n");
     m_socket->flush();
     m_state = StartTLSSent;
-#else
-    authenticate();
-#endif
+    m_usingStartTls = true;
 }
 
 void Smtp::authCramMD5(const QByteArray &challenge)
@@ -563,40 +564,27 @@ void Smtp::authLogin()
 void Smtp::logError(const QString &msg)
 {
     qDebug() << "Email Notification Error:" << msg;
-    Logger::instance()->addMessage(tr("Email Notification Error: %1").arg(msg), Log::WARNING);
+    LogMsg(tr("Email Notification Error: %1").arg(msg), Log::WARNING);
 }
 
 QString Smtp::getCurrentDateTime() const
 {
-    // return date & time in the format specified in RFC 2822, section 3.3
-    const QDateTime nowDateTime = QDateTime::currentDateTime();
-    const QDate nowDate = nowDateTime.date();
-    const QLocale eng(QLocale::English);
-
-    const QString timeStr = nowDateTime.time().toString(u"HH:mm:ss");
-    const QString weekDayStr = eng.dayName(nowDate.dayOfWeek(), QLocale::ShortFormat);
-    const QString dayStr = QString::number(nowDate.day());
-    const QString monthStr = eng.monthName(nowDate.month(), QLocale::ShortFormat);
-    const QString yearStr = QString::number(nowDate.year());
-
-    QDateTime tmp = nowDateTime;
-    tmp.setTimeSpec(Qt::UTC);
-    const int timeOffsetHour = nowDateTime.secsTo(tmp) / 3600;
-    const int timeOffsetMin = nowDateTime.secsTo(tmp) / 60 - (60 * timeOffsetHour);
-    const int timeOffset = timeOffsetHour * 100 + timeOffsetMin;
-    // buf size = 11 to avoid format truncation warnings from snprintf
-    char buf[11] = {0};
-    std::snprintf(buf, sizeof(buf), "%+05d", timeOffset);
-    const auto timeOffsetStr = QString::fromUtf8(buf);
-
-    const QString ret = weekDayStr + u", " + dayStr + u' ' + monthStr + u' ' + yearStr + u' ' + timeStr + u' ' + timeOffsetStr;
-    return ret;
+    // [rfc2822] 3.3. Date and Time Specification
+    const auto now = QDateTime::currentDateTime();
+    const QLocale eng {QLocale::English};
+    const QString weekday = eng.dayName(now.date().dayOfWeek(), QLocale::ShortFormat);
+    return (weekday + u", " + now.toString(Qt::RFC2822Date));
 }
 
 void Smtp::error(QAbstractSocket::SocketError socketError)
 {
+    const Preferences *const pref = Preferences::instance();
     // Getting a remote host closed error is apparently normal, even when successfully sending
     // an email
     if (socketError != QAbstractSocket::RemoteHostClosedError)
+    {
         logError(m_socket->errorString());
+        if ((socketError == QAbstractSocket::SslHandshakeFailedError) && (pref->getMailNotificationSMTPEncryptionType() == Net::SMTPEncryptionType::SMTPS))
+            logError(tr("Check the email server supports SMTPS (SMTP over SSL) and you are using the correct port"));
+    }
 }

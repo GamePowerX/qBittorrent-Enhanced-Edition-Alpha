@@ -1,25 +1,8 @@
-qBittorrent Enhanced Edition Alpha
+qBittorrent - A BitTorrent client in Qt
 ------------------------------------------
-Unofficial version of the newest qBittorrent Alpha merged with the latest c0re100/qBittorrent-Enhanced-Edition with a few custom changes.
-********************************
-# Custom changes added in this repo:
-1. Country names of peers appear next to the country flag rather than in the tooltip
-2. External IP address is shown in the statusbar
-3. Number of connected peers showing in the statusbar
-4. Number of the downloading piece showing in the row of the peer
-------------------------------------------
-[Important Note for user and tracker operators](NOTE.md)
-********************************
-# Features from c0re100/qBittorrent-Enhanced-Edition:
-1. Auto Ban Xunlei, QQ, Baidu, Xfplay, DLBT and Offline downloader
 
-2. _Auto Ban Unknown Peer from China_ Option (Default: OFF)
-
-3. Auto Update Public Trackers List (Default: OFF)
-
-4. Auto Ban BitTorrent Media Player Peer Option (Default: OFF)
-
-5. Peer whitelist/blacklist
+[![GitHub Actions CI Status](https://github.com/qbittorrent/qBittorrent/actions/workflows/ci_ubuntu.yaml/badge.svg)](https://github.com/qbittorrent/qBittorrent/actions)
+[![Coverity Status](https://scan.coverity.com/projects/5494/badge.svg)](https://scan.coverity.com/projects/5494)
 ********************************
 ### Description:
 qBittorrent is a bittorrent client programmed in C++ / Qt that uses
@@ -32,28 +15,30 @@ support as well as many features.
 The free [IP to Country Lite database](https://db-ip.com/db/download/ip-to-country-lite) by [DB-IP](https://db-ip.com/) is used for resolving the countries of peers. The database is licensed under the [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/).
 
 ### Installation:
-For installation, follow the instructions from INSTALL file, but simple:
 
-```
-./configure
-make && make install
-qbittorrent
-```
+Refer to the [INSTALL](INSTALL) file.
 
-will install and execute qBittorrent hopefully without any problem.
+### Public key:
+Starting from v3.3.4 all source tarballs and binaries are signed.<br />
+The key currently used is 4096R/[5B7CC9A2](https://pgp.mit.edu/pks/lookup?op=get&search=0x6E4A2D025B7CC9A2) with fingerprint `D8F3DA77AAC6741053599C136E4A2D025B7CC9A2`.<br />
+You can also download it from [here](https://github.com/qbittorrent/qBittorrent/raw/master/5B7CC9A2.asc).<br />
+**PREVIOUSLY** the following key was used to sign the v3.3.4 source tarballs and v3.3.4 Windows installer **only**: 4096R/[520EC6F6](https://pgp.mit.edu/pks/lookup?op=get&search=0xA1ACCAE4520EC6F6) with fingerprint `F4A5FD201B117B1C2AB590E2A1ACCAE4520EC6F6`.<br />
 
 ### Misc:
 For more information please visit:
 https://www.qbittorrent.org
 
 or our wiki here:
-http://wiki.qbittorrent.org
+https://wiki.qbittorrent.org
 
 Use the forum for troubleshooting before reporting bugs:
-http://forum.qbittorrent.org
+https://forum.qbittorrent.org
 
 Please report any bug (or feature request) to:
-http://bugs.qbittorrent.org
+https://bugs.qbittorrent.org
 
-For enhanced features bug(such as Auto Ban, API, Auto Update Tracker lists or our custom features), please first report to:
-https://github.com/GamePowerX/qBittorrent-Enhanced-Edition-Alpha/issues
+Official IRC channel:
+[#qbittorrent on irc.libera.chat](ircs://irc.libera.chat:6697/qbittorrent)
+
+------------------------------------------
+sledgehammer999 \<sledgehammer999@qbittorrent.org\>

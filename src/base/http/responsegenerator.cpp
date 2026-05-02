@@ -31,15 +31,17 @@
 
 #include <QDateTime>
 
-#include "base/http/types.h"
+#include "base/http/constants.h"
+#include "base/http/response.h"
 #include "base/utils/gzip.h"
 
 QByteArray Http::toByteArray(Response response)
 {
     compressContent(response);
 
-    response.headers[HEADER_CONTENT_LENGTH] = QString::number(response.content.length());
     response.headers[HEADER_DATE] = httpDate();
+    if (QString &value = response.headers[HEADER_CONTENT_LENGTH]; value.isEmpty())
+        value = QString::number(response.content.length());
 
     QByteArray buf;
     buf.reserve(1024 + response.content.length());
@@ -63,7 +65,7 @@ QByteArray Http::toByteArray(Response response)
     // the first empty line
     buf += CRLF;
 
-    // message body  // TODO: support HEAD request
+    // message body
     buf += response.content;
 
     return buf;
@@ -74,7 +76,7 @@ QString Http::httpDate()
     // [RFC 7231] 7.1.1.1. Date/Time Formats
     // example: "Sun, 06 Nov 1994 08:49:37 GMT"
 
-    return QLocale::c().toString(QDateTime::currentDateTimeUtc(), u"ddd, dd MMM yyyy HH:mm:ss"_qs)
+    return QLocale::c().toString(QDateTime::currentDateTimeUtc(), u"ddd, dd MMM yyyy HH:mm:ss"_s)
         .append(u" GMT");
 }
 
@@ -86,13 +88,14 @@ void Http::compressContent(Response &response)
     response.headers.remove(HEADER_CONTENT_ENCODING);
 
     // for very small files, compressing them only wastes cpu cycles
-    const int contentSize = response.content.size();
+    const qsizetype contentSize = response.content.size();
     if (contentSize <= 1024)  // 1 kb
         return;
 
     // filter out known hard-to-compress types
     const QString contentType = response.headers[HEADER_CONTENT_TYPE];
-    if ((contentType == CONTENT_TYPE_GIF) || (contentType == CONTENT_TYPE_PNG))
+    if ((contentType == CONTENT_TYPE_GIF) || (contentType == CONTENT_TYPE_JPEG)
+        || (contentType == CONTENT_TYPE_PNG) || (contentType == CONTENT_TYPE_WEBP))
         return;
 
     // try compressing
@@ -106,5 +109,5 @@ void Http::compressContent(Response &response)
         return;
 
     response.content = compressedData;
-    response.headers[HEADER_CONTENT_ENCODING] = u"gzip"_qs;
+    response.headers[HEADER_CONTENT_ENCODING] = u"gzip"_s;
 }

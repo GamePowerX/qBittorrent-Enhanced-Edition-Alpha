@@ -1,6 +1,6 @@
 /*
  * Bittorrent Client using Qt and libtorrent.
- * Copyright (C) 2017  Thomas Piccirello <thomas.piccirello@gmail.com>
+ * Copyright (C) 2017  Thomas Piccirello <thomas@piccirello.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -56,10 +56,10 @@ private slots:
     void on_txtIPSubnet_textChanged(const QString &subnetStr);
 
 private:
-    Ui::IPSubnetWhitelistOptionsDialog *m_ui;
+    Ui::IPSubnetWhitelistOptionsDialog *m_ui = nullptr;
     SettingValue<QSize> m_storeDialogSize;
 
-    QStringListModel *m_model;
-    QSortFilterProxyModel *m_sortFilter;
+    QStringListModel *m_model = nullptr;
+    QSortFilterProxyModel *m_sortFilter = nullptr;
     bool m_modified = false;
 };

@@ -111,7 +111,7 @@ private:
     private:
         const milliseconds m_resolution;
         const milliseconds m_maxDuration;
-        milliseconds m_currentDuration {0ms};
+        milliseconds m_currentDuration {0};
         int m_counter = 0;
         SampleData m_accumulator {};
         DataCircularBuffer m_sink {};
@@ -139,5 +139,5 @@ private:
     Averager *m_currentAverager {&m_averager5Min};
 
     QMap<GraphID, GraphProperties> m_properties;
-    milliseconds m_currentMaxDuration;
+    milliseconds m_currentMaxDuration {0};
 };

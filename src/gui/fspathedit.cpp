@@ -46,8 +46,8 @@ namespace
 {
     struct TrStringWithComment
     {
-        const char *source;
-        const char *comment;
+        const char *source = nullptr;
+        const char *comment = nullptr;
 
         QString tr() const
         {
@@ -70,41 +70,44 @@ class FileSystemPathEdit::FileSystemPathEditPrivate
     Q_DECLARE_PUBLIC(FileSystemPathEdit)
     Q_DISABLE_COPY_MOVE(FileSystemPathEditPrivate)
 
-    FileSystemPathEditPrivate(FileSystemPathEdit *q, Private::FileEditorWithCompletion *editor);
+private:
+    FileSystemPathEditPrivate(FileSystemPathEdit *q, Private::IFileEditorWithCompletion *editor);
 
     void modeChanged();
     void browseActionTriggered();
     QString dialogCaptionOrDefault() const;
 
-    FileSystemPathEdit *q_ptr;
-    std::unique_ptr<Private::FileEditorWithCompletion> m_editor;
-    QAction *m_browseAction;
-    QToolButton *m_browseBtn;
+    FileSystemPathEdit *q_ptr = nullptr;
+    std::unique_ptr<Private::IFileEditorWithCompletion> m_editor;
+    QAction *m_browseAction = nullptr;
+    QToolButton *m_browseBtn = nullptr;
     QString m_fileNameFilter;
-    Mode m_mode;
+    Mode m_mode = FileSystemPathEdit::Mode::FileOpen;
     Path m_lastSignaledPath;
     QString m_dialogCaption;
-    Private::FileSystemPathValidator *m_validator;
+    Private::FileSystemPathValidator *m_validator = nullptr;
 };
 
 FileSystemPathEdit::FileSystemPathEditPrivate::FileSystemPathEditPrivate(
-                        FileSystemPathEdit *q, Private::FileEditorWithCompletion *editor)
+                        FileSystemPathEdit *q, Private::IFileEditorWithCompletion *editor)
     : q_ptr {q}
     , m_editor {editor}
-    , m_browseAction {new QAction(q)}
+    , m_browseAction {new QAction(QApplication::style()->standardIcon(QStyle::SP_DirOpenIcon), browseButtonFullText.tr(), q)}
     , m_browseBtn {new QToolButton(q)}
-    , m_mode {FileSystemPathEdit::Mode::FileOpen}
+    , m_fileNameFilter {tr("Any file") + u" (*)"}
     , m_validator {new Private::FileSystemPathValidator(q)}
 {
     m_browseAction->setIconText(browseButtonBriefText.tr());
-    m_browseAction->setText(browseButtonFullText.tr());
+    m_browseAction->setShortcut(Qt::CTRL | Qt::Key_B);
     m_browseAction->setToolTip(browseButtonFullText.tr().remove(u'&'));
-    m_browseAction->setShortcut(Qt::CTRL + Qt::Key_B);
+
     m_browseBtn->setDefaultAction(m_browseAction);
-    m_fileNameFilter = tr("Any file") + u" (*)";
-    m_editor->setBrowseAction(m_browseAction);
+
     m_validator->setStrictMode(false);
+
+    m_editor->setBrowseAction(m_browseAction);
     m_editor->setValidator(m_validator);
+
     modeChanged();
 }
 
@@ -132,6 +135,8 @@ void FileSystemPathEdit::FileSystemPathEditPrivate::browseActionTriggered()
         newPath = QFileDialog::getExistingDirectory(q, dialogCaptionOrDefault(),
                                 initialDirectory.data(), QFileDialog::ShowDirsOnly);
         break;
+    case FileSystemPathEdit::Mode::ReadOnly:
+        throw std::logic_error("Not supported");
     default:
         throw std::logic_error("Unknown FileSystemPathEdit mode");
     }
@@ -153,6 +158,8 @@ QString FileSystemPathEdit::FileSystemPathEditPrivate::dialogCaptionOrDefault() 
     case FileSystemPathEdit::Mode::DirectoryOpen:
     case FileSystemPathEdit::Mode::DirectorySave:
         return defaultDialogCaptionForDirectory.tr();
+    case FileSystemPathEdit::Mode::ReadOnly:
+        throw std::logic_error("Not supported");
     default:
         throw std::logic_error("Unknown FileSystemPathEdit mode");
     }
@@ -160,36 +167,26 @@ QString FileSystemPathEdit::FileSystemPathEditPrivate::dialogCaptionOrDefault() 
 
 void FileSystemPathEdit::FileSystemPathEditPrivate::modeChanged()
 {
-    bool showDirsOnly = false;
-    switch (m_mode)
-    {
-    case FileSystemPathEdit::Mode::FileOpen:
-    case FileSystemPathEdit::Mode::FileSave:
-        showDirsOnly = false;
-        break;
-    case FileSystemPathEdit::Mode::DirectoryOpen:
-    case FileSystemPathEdit::Mode::DirectorySave:
-        showDirsOnly = true;
-        break;
-    default:
-        throw std::logic_error("Unknown FileSystemPathEdit mode");
-    }
-    m_browseAction->setIcon(QApplication::style()->standardIcon(QStyle::SP_DirOpenIcon));
-    m_editor->completeDirectoriesOnly(showDirsOnly);
+    m_browseBtn->setVisible(m_mode != FileSystemPathEdit::Mode::ReadOnly);
+    m_editor->completeDirectoriesOnly((m_mode == FileSystemPathEdit::Mode::DirectoryOpen) || (m_mode == FileSystemPathEdit::Mode::DirectorySave));
 
-    m_validator->setExistingOnly(m_mode != FileSystemPathEdit::Mode::FileSave);
+    m_validator->setExistingOnly((m_mode == FileSystemPathEdit::Mode::FileOpen) || (m_mode == FileSystemPathEdit::Mode::DirectoryOpen) || (m_mode == FileSystemPathEdit::Mode::ReadOnly));
+    m_validator->setFilesOnly((m_mode == FileSystemPathEdit::Mode::FileOpen) || (m_mode == FileSystemPathEdit::Mode::FileSave));
     m_validator->setDirectoriesOnly((m_mode == FileSystemPathEdit::Mode::DirectoryOpen) || (m_mode == FileSystemPathEdit::Mode::DirectorySave));
-    m_validator->setCheckReadPermission((m_mode == FileSystemPathEdit::Mode::FileOpen) || (m_mode == FileSystemPathEdit::Mode::DirectoryOpen));
+    m_validator->setCheckReadPermission((m_mode == FileSystemPathEdit::Mode::FileOpen) || (m_mode == FileSystemPathEdit::Mode::DirectoryOpen) || (m_mode == FileSystemPathEdit::Mode::ReadOnly));
     m_validator->setCheckWritePermission((m_mode == FileSystemPathEdit::Mode::FileSave) || (m_mode == FileSystemPathEdit::Mode::DirectorySave));
 }
 
-FileSystemPathEdit::FileSystemPathEdit(Private::FileEditorWithCompletion *editor, QWidget *parent)
+FileSystemPathEdit::FileSystemPathEdit(Private::IFileEditorWithCompletion *editor, QWidget *parent)
     : QWidget(parent)
     , d_ptr(new FileSystemPathEditPrivate(this, editor))
 {
     Q_D(FileSystemPathEdit);
     editor->widget()->setParent(this);
+
     setFocusProxy(editor->widget());
+    // required, otherwise the button cannot be selected via keyboard tab
+    setTabOrder(editor->widget(), d_ptr->m_browseBtn);
 
     auto *layout = new QHBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
@@ -233,18 +230,18 @@ void FileSystemPathEdit::setFileNameFilter(const QString &val)
     // QFileSystemModel applies name filters to directories too.
     // To use the filters we have to subclass QFileSystemModel and skip directories while filtering
     // extract file masks
-    const int openBracePos = val.indexOf(u'(');
-    const int closeBracePos = val.indexOf(u')', (openBracePos + 1));
+    const qsizetype openBracePos = val.indexOf(u'(');
+    const qsizetype closeBracePos = val.indexOf(u')', (openBracePos + 1));
     if ((openBracePos > 0) && (closeBracePos > 0) && (closeBracePos > openBracePos + 2))
     {
-        QString filterString = val.mid(openBracePos + 1, closeBracePos - openBracePos - 1);
+        const QString filterString = val.sliced((openBracePos + 1), (closeBracePos - openBracePos - 1));
         if (filterString == u"*")
         {        // no filters
             d->m_editor->setFilenameFilters({});
         }
         else
         {
-            QStringList filters = filterString.split(u' ', Qt::SkipEmptyParts);
+            const QStringList filters = filterString.split(u' ', Qt::SkipEmptyParts);
             d->m_editor->setFilenameFilters(filters);
         }
     }
@@ -298,10 +295,10 @@ FileSystemPathEdit::Mode FileSystemPathEdit::mode() const
     return d->m_mode;
 }
 
-void FileSystemPathEdit::setMode(FileSystemPathEdit::Mode theMode)
+void FileSystemPathEdit::setMode(const Mode mode)
 {
     Q_D(FileSystemPathEdit);
-    d->m_mode = theMode;
+    d->m_mode = mode;
     d->modeChanged();
 }
 

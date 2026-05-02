@@ -28,6 +28,7 @@
 
 #include "geoipdatabase.h"
 
+#include <QByteArray>
 #include <QDateTime>
 #include <QDebug>
 #include <QFile>
@@ -41,7 +42,7 @@ namespace
 {
     const qint32 MAX_FILE_SIZE = 67108864; // 64MB
     const quint32 MAX_METADATA_SIZE = 131072; // 128KB
-    const char METADATA_BEGIN_MARK[] = "\xab\xcd\xefMaxMind.com";
+    const QByteArray METADATA_BEGIN_MARK = QByteArrayLiteral("\xab\xcd\xefMaxMind.com");
     const char DATA_SECTION_SEPARATOR[16] = {0};
 
     enum class DataType
@@ -76,22 +77,17 @@ struct DataFieldDescriptor
 };
 
 GeoIPDatabase::GeoIPDatabase(const quint32 size)
-    : m_ipVersion(0)
-    , m_recordSize(0)
-    , m_nodeCount(0)
-    , m_nodeSize(0)
-    , m_indexSize(0)
-    , m_recordBytes(0)
-    , m_size(size)
+    : m_size(size)
     , m_data(new uchar[size])
 {
 }
 
 GeoIPDatabase *GeoIPDatabase::load(const Path &filename, QString &error)
 {
-    GeoIPDatabase *db = nullptr;
     QFile file {filename.data()};
-    if (file.size() > MAX_FILE_SIZE)
+
+    const qint64 fileSize = file.size();
+    if ((fileSize <= 0) || (fileSize > MAX_FILE_SIZE))
     {
         error = tr("Unsupported database file size.");
         return nullptr;
@@ -103,9 +99,9 @@ GeoIPDatabase *GeoIPDatabase::load(const Path &filename, QString &error)
         return nullptr;
     }
 
-    db = new GeoIPDatabase(file.size());
+    auto *db = new GeoIPDatabase(static_cast<quint32>(fileSize));
 
-    if (file.read(reinterpret_cast<char *>(db->m_data), db->m_size) != db->m_size)
+    if (file.read(reinterpret_cast<char *>(db->m_data), fileSize) != fileSize)
     {
         error = file.errorString();
         delete db;
@@ -124,16 +120,16 @@ GeoIPDatabase *GeoIPDatabase::load(const Path &filename, QString &error)
 
 GeoIPDatabase *GeoIPDatabase::load(const QByteArray &data, QString &error)
 {
-    GeoIPDatabase *db = nullptr;
-    if (data.size() > MAX_FILE_SIZE)
+    const qint64 dataSize = data.size();
+    if ((dataSize <= 0) || (dataSize > MAX_FILE_SIZE))
     {
         error = tr("Unsupported database file size.");
         return nullptr;
     }
 
-    db = new GeoIPDatabase(data.size());
+    auto *db = new GeoIPDatabase(static_cast<quint32>(dataSize));
 
-    memcpy(reinterpret_cast<char *>(db->m_data), data.constData(), db->m_size);
+    memcpy(reinterpret_cast<char *>(db->m_data), data.constData(), dataSize);
 
     if (!db->parseMetadata(db->readMetadata(), error) || !db->loadDB(error))
     {
@@ -198,7 +194,7 @@ QString GeoIPDatabase::lookup(const QHostAddress &hostAddr) const
                     const QVariant val = readDataField(tmp);
                     if (val.userType() == QMetaType::QVariantHash)
                     {
-                        country = val.toHash()[u"country"_qs].toHash()[u"iso_code"_qs].toString();
+                        country = val.toHash()[u"country"_s].toHash()[u"iso_code"_s].toString();
                         m_countries[id] = country;
                     }
                 }
@@ -241,26 +237,26 @@ bool GeoIPDatabase::parseMetadata(const QVariantHash &metadata, QString &error)
 
     qDebug() << "Parsing MaxMindDB metadata...";
 
-    CHECK_METADATA_REQ(u"binary_format_major_version"_qs, UShort);
-    CHECK_METADATA_REQ(u"binary_format_minor_version"_qs, UShort);
-    const uint versionMajor = metadata.value(u"binary_format_major_version"_qs).toUInt();
-    const uint versionMinor = metadata.value(u"binary_format_minor_version"_qs).toUInt();
+    CHECK_METADATA_REQ(u"binary_format_major_version"_s, UShort);
+    CHECK_METADATA_REQ(u"binary_format_minor_version"_s, UShort);
+    const uint versionMajor = metadata.value(u"binary_format_major_version"_s).toUInt();
+    const uint versionMinor = metadata.value(u"binary_format_minor_version"_s).toUInt();
     if (versionMajor != 2)
     {
         error = tr("Unsupported database version: %1.%2").arg(versionMajor).arg(versionMinor);
         return false;
     }
 
-    CHECK_METADATA_REQ(u"ip_version"_qs, UShort);
-    m_ipVersion = metadata.value(u"ip_version"_qs).value<quint16>();
+    CHECK_METADATA_REQ(u"ip_version"_s, UShort);
+    m_ipVersion = metadata.value(u"ip_version"_s).value<quint16>();
     if (m_ipVersion != 6)
     {
         error = tr("Unsupported IP version: %1").arg(m_ipVersion);
         return false;
     }
 
-    CHECK_METADATA_REQ(u"record_size"_qs, UShort);
-    m_recordSize = metadata.value(u"record_size"_qs).value<quint16>();
+    CHECK_METADATA_REQ(u"record_size"_s, UShort);
+    m_recordSize = metadata.value(u"record_size"_s).value<quint16>();
     if (m_recordSize != 24)
     {
         error = tr("Unsupported record size: %1").arg(m_recordSize);
@@ -269,18 +265,18 @@ bool GeoIPDatabase::parseMetadata(const QVariantHash &metadata, QString &error)
     m_nodeSize = m_recordSize / 4;
     m_recordBytes = m_nodeSize / 2;
 
-    CHECK_METADATA_REQ(u"node_count"_qs, UInt);
-    m_nodeCount = metadata.value(u"node_count"_qs).value<quint32>();
+    CHECK_METADATA_REQ(u"node_count"_s, UInt);
+    m_nodeCount = metadata.value(u"node_count"_s).value<quint32>();
     m_indexSize = m_nodeCount * m_nodeSize;
 
-    CHECK_METADATA_REQ(u"database_type"_qs, QString);
-    m_dbType = metadata.value(u"database_type"_qs).toString();
+    CHECK_METADATA_REQ(u"database_type"_s, QString);
+    m_dbType = metadata.value(u"database_type"_s).toString();
 
-    CHECK_METADATA_REQ(u"build_epoch"_qs, ULongLong);
-    m_buildEpoch = QDateTime::fromSecsSinceEpoch(metadata.value(u"build_epoch"_qs).toULongLong());
+    CHECK_METADATA_REQ(u"build_epoch"_s, ULongLong);
+    m_buildEpoch = QDateTime::fromSecsSinceEpoch(metadata.value(u"build_epoch"_s).toULongLong());
 
-    CHECK_METADATA_OPT(u"languages"_qs, QVariantList);
-    CHECK_METADATA_OPT(u"description"_qs, QVariantHash);
+    CHECK_METADATA_OPT(u"languages"_s, QVariantList);
+    CHECK_METADATA_OPT(u"description"_s, QVariantHash);
 
     return true;
 }
@@ -312,12 +308,12 @@ QVariantHash GeoIPDatabase::readMetadata() const
     }
 
     const QByteArray data = QByteArray::fromRawData(ptr, size);
-    int index = data.lastIndexOf(METADATA_BEGIN_MARK);
+    qsizetype index = data.lastIndexOf(METADATA_BEGIN_MARK);
     if (index >= 0)
     {
         if (m_size > MAX_METADATA_SIZE)
             index += (m_size - MAX_METADATA_SIZE); // from begin of all data
-        auto offset = static_cast<quint32>(index + strlen(METADATA_BEGIN_MARK));
+        auto offset = static_cast<quint32>(index + METADATA_BEGIN_MARK.size());
         const QVariant metadata = readDataField(offset);
         if (metadata.userType() == QMetaType::QVariantHash)
             return metadata.toHash();
@@ -470,13 +466,10 @@ bool GeoIPDatabase::readDataFieldDescriptor(quint32 &offset, DataFieldDescriptor
     return true;
 }
 
-void GeoIPDatabase::fromBigEndian(uchar *buf, const quint32 len) const
+void GeoIPDatabase::fromBigEndian([[maybe_unused]] uchar *buf, [[maybe_unused]] const quint32 len) const
 {
 #if (Q_BYTE_ORDER == Q_LITTLE_ENDIAN)
     std::reverse(buf, buf + len);
-#else
-    Q_UNUSED(buf);
-    Q_UNUSED(len);
 #endif
 }
 
@@ -492,7 +485,7 @@ QVariant GeoIPDatabase::readMapValue(quint32 &offset, const quint32 count) const
 
         const QString key = field.toString();
         field = readDataField(offset);
-        if (field.userType() == QVariant::Invalid)
+        if (field.userType() == QMetaType::UnknownType)
             return {};
 
         map[key] = field;
@@ -508,7 +501,7 @@ QVariant GeoIPDatabase::readArrayValue(quint32 &offset, const quint32 count) con
     for (quint32 i = 0; i < count; ++i)
     {
         const QVariant field = readDataField(offset);
-        if (field.userType() == QVariant::Invalid)
+        if (field.userType() == QMetaType::UnknownType)
             return {};
 
         array.append(field);

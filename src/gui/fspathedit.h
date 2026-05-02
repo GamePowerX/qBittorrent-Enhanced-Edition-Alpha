@@ -35,8 +35,8 @@
 namespace Private
 {
     class FileComboEdit;
-    class FileEditorWithCompletion;
     class FileLineEdit;
+    class IFileEditorWithCompletion;
 }
 
 /*!
@@ -63,7 +63,8 @@ public:
         FileOpen,        //!< opening files, shows open file dialog
         FileSave,        //!< saving files, shows save file dialog
         DirectoryOpen,   //!< selecting existing directories
-        DirectorySave    //!< selecting directories for saving
+        DirectorySave,   //!< selecting directories for saving
+        ReadOnly         //!< no browse button and no dialog, only validate path and check read permission
     };
     Q_ENUM(Mode)
 
@@ -92,7 +93,7 @@ signals:
     void selectedPathChanged(const Path &path);
 
 protected:
-    explicit FileSystemPathEdit(Private::FileEditorWithCompletion *editor, QWidget *parent);
+    explicit FileSystemPathEdit(Private::IFileEditorWithCompletion *editor, QWidget *parent);
 
     template <class Widget>
     Widget *editWidget() const
@@ -111,7 +112,7 @@ private:
 
     QWidget *editWidgetImpl() const;
 
-    FileSystemPathEditPrivate *d_ptr;
+    FileSystemPathEditPrivate *d_ptr = nullptr;
 };
 
 /// Widget which uses QLineEdit for path editing

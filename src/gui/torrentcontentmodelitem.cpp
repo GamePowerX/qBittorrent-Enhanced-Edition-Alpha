@@ -37,11 +37,6 @@
 
 TorrentContentModelItem::TorrentContentModelItem(TorrentContentModelFolder *parent)
     : m_parentItem(parent)
-    , m_size(0)
-    , m_remaining(0)
-    , m_priority(BitTorrent::DownloadPriority::Normal)
-    , m_progress(0)
-    , m_availability(-1.)
 {
 }
 
@@ -117,7 +112,7 @@ QString TorrentContentModelItem::displayData(const int column) const
         case BitTorrent::DownloadPriority::Mixed:
             return tr("Mixed", "Mixed (priorities");
         case BitTorrent::DownloadPriority::Ignored:
-            return tr("Not downloaded");
+            return tr("Do not download", "Do not download (priority)");
         case BitTorrent::DownloadPriority::High:
             return tr("High", "High (priority)");
         case BitTorrent::DownloadPriority::Maximum:
@@ -127,7 +122,7 @@ QString TorrentContentModelItem::displayData(const int column) const
         }
     case COL_PROGRESS:
         return (m_progress >= 1)
-               ? u"100%"_qs
+               ? u"100%"_s
                : (Utils::String::fromDouble((m_progress * 100), 1) + u'%');
     case COL_SIZE:
         return Utils::Misc::friendlyUnit(m_size);
@@ -140,14 +135,16 @@ QString TorrentContentModelItem::displayData(const int column) const
                 return tr("N/A");
 
             const QString value = (avail >= 1)
-                                  ? u"100"_qs
+                                  ? u"100"_s
                                   : Utils::String::fromDouble((avail * 100), 1);
-            return (value + C_THIN_SPACE + u'%');
+            return (value + u'%');
         }
     default:
-        Q_ASSERT(false);
-        return {};
+        Q_UNREACHABLE();
+        break;
     }
+
+    return {};
 }
 
 QVariant TorrentContentModelItem::underlyingData(const int column) const
@@ -170,9 +167,11 @@ QVariant TorrentContentModelItem::underlyingData(const int column) const
     case COL_AVAILABILITY:
         return availability();
     default:
-        Q_ASSERT(false);
-        return {};
+        Q_UNREACHABLE();
+        break;
     }
+
+    return {};
 }
 
 int TorrentContentModelItem::row() const

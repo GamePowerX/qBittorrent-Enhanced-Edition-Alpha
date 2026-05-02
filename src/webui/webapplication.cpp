@@ -1,6 +1,7 @@
 /*
  * Bittorrent Client using Qt and libtorrent.
- * Copyright (C) 2014, 2022  Vladimir Golovnev <glassez@yandex.ru>
+ * Copyright (C) 2014-2026  Vladimir Golovnev <glassez@yandex.ru>
+ * Copyright (C) 2024  Radu Carpa <radu.carpa@cern.ch>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,47 +29,59 @@
 
 #include "webapplication.h"
 
-#include <algorithm>
-
 #include <QDateTime>
 #include <QDebug>
-#include <QFile>
+#include <QDir>
 #include <QFileInfo>
 #include <QJsonDocument>
+#include <QMetaObject>
 #include <QMimeDatabase>
 #include <QMimeType>
 #include <QNetworkCookie>
 #include <QRegularExpression>
+#include <QThread>
 #include <QUrl>
 
 #include "base/algorithm.h"
-#include "base/global.h"
+#include "base/bittorrent/session.h"
+#include "base/bittorrent/torrentcreationmanager.h"
 #include "base/http/httperror.h"
 #include "base/logger.h"
 #include "base/preferences.h"
 #include "base/types.h"
-#include "base/utils/bytearray.h"
+#include "base/utils/apikey.h"
 #include "base/utils/fs.h"
+#include "base/utils/io.h"
 #include "base/utils/misc.h"
+#include "base/utils/password.h"
 #include "base/utils/random.h"
 #include "base/utils/string.h"
 #include "api/apierror.h"
 #include "api/appcontroller.h"
 #include "api/authcontroller.h"
+#include "api/clientdatacontroller.h"
 #include "api/logcontroller.h"
 #include "api/rsscontroller.h"
 #include "api/searchcontroller.h"
 #include "api/synccontroller.h"
+#include "api/torrentcreatorcontroller.h"
 #include "api/torrentscontroller.h"
 #include "api/transfercontroller.h"
+#include "clientdatastorage.h"
+#include "websession.h"
 
 const int MAX_ALLOWED_FILESIZE = 10 * 1024 * 1024;
-const auto C_SID = QByteArrayLiteral("SID"); // name of session id cookie
+const QString SESSION_COOKIE_NAME_PREFIX = u"QBT_SID_"_s;
 
-const QString PATH_PREFIX_ICONS = u"/icons/"_qs;
-const QString WWW_FOLDER = u":/www"_qs;
-const QString PUBLIC_FOLDER = u"/public"_qs;
-const QString PRIVATE_FOLDER = u"/private"_qs;
+const QString WWW_FOLDER = u":/www"_s;
+const QString PUBLIC_FOLDER = u"/public"_s;
+const QString PRIVATE_FOLDER = u"/private"_s;
+const QString INDEX_HTML = u"/index.html"_s;
+
+const QString BASIC_AUTH = u"Basic"_s;
+const QString BEARER_AUTH = u"Bearer"_s;
+
+const QString API_PATH = u"/api/v2/"_s;
 
 namespace
 {
@@ -78,23 +91,41 @@ namespace
         QStringMap ret;
         const QList<QStringView> cookies = cookieStr.split(u';', Qt::SkipEmptyParts);
 
-        for (const auto &cookie : cookies)
+        for (const QStringView cookie : cookies)
         {
-            const int idx = cookie.indexOf(u'=');
+            const qsizetype idx = cookie.indexOf(u'=');
             if (idx < 0)
                 continue;
 
-            const QString name = cookie.left(idx).trimmed().toString();
-            const QString value = Utils::String::unquote(cookie.mid(idx + 1).trimmed()).toString();
+            const QString name = cookie.first(idx).trimmed().toString();
+            const QString value = Utils::String::unquote(cookie.sliced(idx + 1).trimmed()).toString();
             ret.insert(name, value);
         }
         return ret;
     }
 
+    std::tuple<QString, QString> parseAPIEndpoint(const QString &endpoint)
+    {
+        const QRegularExpression apiEndpointPattern {u"^(?<scope>[A-Za-z_][A-Za-z_0-9]*)/(?<action>[A-Za-z_][A-Za-z_0-9]*)$"_s};
+        if (const QRegularExpressionMatch match = apiEndpointPattern.match(endpoint); match.hasMatch())
+            return std::make_tuple(match.captured(u"scope"), match.captured(u"action"));
+
+        return {};
+    }
+
+    std::tuple<QString, QString> parseAuthorizationHeader(const QString &authHeader)
+    {
+        const QRegularExpression authHeaderPattern {u"^(?<scheme>\\S+)\\s+(?<value>.+)$"_s, QRegularExpression::DotMatchesEverythingOption};
+        if (const QRegularExpressionMatch match = authHeaderPattern.match(authHeader); match.hasMatch())
+            return std::make_tuple(match.captured(u"scheme"), match.captured(u"value"));
+
+        return {};
+    }
+
     QUrl urlFromHostHeader(const QString &hostHeader)
     {
         if (!hostHeader.contains(u"://"))
-            return {u"http://"_qs + hostHeader};
+            return {u"http://"_s + hostHeader};
         return hostHeader;
     }
 
@@ -103,25 +134,46 @@ namespace
         contentType = contentType.toLower();
 
         if (contentType.startsWith(u"image/"))
-            return u"private, max-age=604800"_qs;  // 1 week
+            return u"private, max-age=604800"_s;  // 1 week
 
-        if ((contentType == Http::CONTENT_TYPE_CSS)
-            || (contentType == Http::CONTENT_TYPE_JS))
-            {
+        if ((contentType == Http::CONTENT_TYPE_CSS) || (contentType == Http::CONTENT_TYPE_JS))
+        {
             // short interval in case of program update
-            return u"private, max-age=43200"_qs;  // 12 hrs
+            return u"private, max-age=43200"_s;  // 12 hrs
         }
 
-        return u"no-store"_qs;
+        return u"no-store"_s;
+    }
+
+    QString createLanguagesOptionsHtml()
+    {
+        // List language files
+        const QStringList langFiles = QDir(u":/www/translations"_s)
+            .entryList({u"webui_*.qm"_s}, QDir::Files, QDir::Name);
+
+        QStringList languages;
+        languages.reserve(langFiles.size());
+
+        for (const QString &langFile : langFiles)
+        {
+            const auto langCode = QStringView(langFile).sliced(6).chopped(3); // remove "webui_" and ".qm"
+            const QString entry = u"<option value=\"%1\">%2</option>"_s
+                .arg(langCode, Utils::Misc::languageToLocalizedString(langCode));
+            languages.append(entry);
+        }
+
+        return languages.join(u'\n');
     }
 }
 
-WebApplication::WebApplication(QObject *parent)
-    : QObject(parent)
+WebApplication::WebApplication(IApplication *app, QObject *parent)
+    : ApplicationComponent(app, parent)
     , m_cacheID {QString::number(Utils::Random::rand(), 36)}
-    , m_authController {new AuthController(this, this)}
+    , m_authController {new AuthController(this, app, this)}
+    , m_torrentCreationManager {new BitTorrent::TorrentCreationManager(app, this)}
+    , m_clientDataStorage {new ClientDataStorage(this)}
 {
-    declarePublicAPI(u"auth/login"_qs);
+    declarePublicAPI(u"auth/login"_s);
 
     configure();
     connect(Preferences::instance(), &Preferences::changed, this, &WebApplication::configure);
@@ -135,23 +187,18 @@ WebApplication::~WebApplication()
 
 void WebApplication::sendWebUIFile()
 {
-    const QStringList pathItems {request().path.split(u'/', Qt::SkipEmptyParts)};
-    if (pathItems.contains(u".") || pathItems.contains(u".."))
-        throw InternalServerErrorHTTPError();
+    if (request().path.contains(u'\\'))
+        throw BadRequestHTTPError();
 
-    if (!m_isAltUIUsed)
+    if (const QList<QStringView> pathItems = QStringView(request().path).split(u'/', Qt::SkipEmptyParts)
+            ; pathItems.contains(u".") || pathItems.contains(u".."))
     {
-        if (request().path.startsWith(PATH_PREFIX_ICONS))
-        {
-            const Path imageFilename {request().path.mid(PATH_PREFIX_ICONS.size())};
-            sendFile(Path(u":/icons"_qs) / imageFilename);
-            return;
-        }
+        throw BadRequestHTTPError();
     }
 
     const QString path = (request().path != u"/")
         ? request().path
-        : u"/index.html"_qs;
+        : INDEX_HTML;
 
     Path localPath = m_rootFolder
                 / Path(session() ? PRIVATE_FOLDER : PUBLIC_FOLDER)
@@ -164,20 +211,36 @@ void WebApplication::sendWebUIFile()
 
     if (m_isAltUIUsed)
     {
-#ifdef Q_OS_UNIX
         if (!Utils::Fs::isRegularFile(localPath))
         {
-            status(500, u"Internal Server Error"_qs);
-            print(tr("Unacceptable file type, only regular file is allowed."), Http::CONTENT_TYPE_TXT);
-            return;
-        }
+#ifdef DISABLE_GUI
+            if (path == INDEX_HTML)
+            {
+                auto *preferences = Preferences::instance();
+                preferences->setAltWebUIEnabled(false);
+                preferences->apply();
+            }
 #endif
+            throw InternalServerErrorHTTPError(tr("Unacceptable file type, only regular file is allowed."));
+        }
 
-        QFileInfo fileInfo {localPath.data()};
-        while (Path(fileInfo.filePath()) != m_rootFolder)
+        const QString rootFolder = m_rootFolder.data();
+
+        QFileInfo fileInfo {localPath.parentPath().data()};
+        while (fileInfo.path() != rootFolder)
         {
             if (fileInfo.isSymLink())
+            {
+#ifdef DISABLE_GUI
+                if (path == INDEX_HTML)
+                {
+                    auto *preferences = Preferences::instance();
+                    preferences->setAltWebUIEnabled(false);
+                    preferences->apply();
+                }
+#endif
                 throw InternalServerErrorHTTPError(tr("Symlinks inside alternative UI folder are forbidden."));
+            }
 
             fileInfo.setFile(fileInfo.path());
         }
@@ -188,29 +251,31 @@ void WebApplication::sendWebUIFile()
 
 void WebApplication::translateDocument(QString &data) const
 {
-    const QRegularExpression regex(u"QBT_TR\\((([^\\)]|\\)(?!QBT_TR))+)\\)QBT_TR\\[CONTEXT=([a-zA-Z_][a-zA-Z0-9_]*)\\]"_qs);
+    const QRegularExpression regex(u"QBT_TR\\((([^\\)]|\\)(?!QBT_TR))+)\\)QBT_TR\\[CONTEXT=([a-zA-Z_][a-zA-Z0-9_]*)\\]"_s);
 
-    int i = 0;
+    qsizetype i = 0;
     bool found = true;
-    while (i < data.size() && found)
+    while ((i < data.size()) && found)
     {
         QRegularExpressionMatch regexMatch;
         i = data.indexOf(regex, i, &regexMatch);
         if (i >= 0)
         {
-            const QString sourceText = regexMatch.captured(1);
-            const QString context = regexMatch.captured(3);
+            const QStringView sourceText = regexMatch.capturedView(1);
+            const QStringView context = regexMatch.capturedView(3);
 
             const QString loadedText = m_translationFileLoaded
                 ? m_translator.translate(context.toUtf8().constData(), sourceText.toUtf8().constData())
                 : QString();
             // `loadedText` is empty when translation is not provided
             // it should fallback to `sourceText`
-            QString translation = loadedText.isEmpty() ? sourceText : loadedText;
+            QString translation = loadedText.isEmpty() ? sourceText.toString() : loadedText;
 
-            // Use HTML code for quotes to prevent issues with JS
-            translation.replace(u'\'', u"&#39;"_qs);
-            translation.replace(u'\"', u"&#34;"_qs);
+            // Escape quotes to workaround issues with HTML attributes
+            // FIXME: this is a dirty workaround to deal with broken translation strings:
+            // 1. Translation strings is the culprit of the issue, they should be fixed instead
+            // 2. The escaped quote/string is wrong for JS. JS use backslash to escape the quote: "\""
+            translation.replace(u'"', u"&#34;"_s);
 
             data.replace(i, regexMatch.capturedLength(), translation);
             i += translation.length();
@@ -220,12 +285,12 @@ void WebApplication::translateDocument(QString &data) const
             found = false; // no more translatable strings
         }
 
-        data.replace(u"${LANG}"_qs, m_currentLocale.left(2));
-        data.replace(u"${CACHEID}"_qs, m_cacheID);
+        data.replace(u"${LANG}"_s, m_currentLocale.left(2));
+        data.replace(u"${CACHEID}"_s, m_cacheID);
     }
 }
 
-WebSession *WebApplication::session()
+ISession *WebApplication::session()
 {
     return m_currentSession;
 }
@@ -240,24 +305,31 @@ const Http::Environment &WebApplication::env() const
     return m_env;
 }
 
-void WebApplication::doProcessRequest()
+void WebApplication::setUsername(const QString &username)
 {
-    const QRegularExpressionMatch match = m_apiPathPattern.match(request().path);
-    if (!match.hasMatch())
-    {
-        sendWebUIFile();
-        return;
-    }
+    m_username = username;
+}
 
-    const QString action = match.captured(u"action"_qs);
-    const QString scope = match.captured(u"scope"_qs);
+void WebApplication::setPasswordHash(const QByteArray &passwordHash)
+{
+    m_passwordHash = passwordHash;
+}
 
+void WebApplication::processAPIRequest(const QString &endpoint)
+{
+    const auto [scope, action] = parseAPIEndpoint(endpoint);
+    if (scope.isEmpty())
+        throw NotFoundHTTPError();
+
+    // Check public/private scope
     if (!session() && !isPublicAPI(scope, action))
         throw ForbiddenHTTPError();
 
+    // Find matching API
     APIController *controller = nullptr;
-    if (session())
-        controller = session()->getAPIController(scope);
+    if (m_currentSession)
+        controller = m_currentSession->getAPIController(scope);
+
     if (!controller)
     {
         if (scope == u"auth")
@@ -266,25 +338,77 @@ void WebApplication::doProcessRequest()
             throw NotFoundHTTPError();
     }
 
+    // Filter HTTP methods
+    const auto allowedMethodIter = m_allowedMethod.constFind({scope, action});
+    if (allowedMethodIter == m_allowedMethod.cend())
+    {
+        // by default allow both GET, POST methods
+        if ((m_request.method != Http::METHOD_GET) && (m_request.method != Http::METHOD_POST))
+            throw MethodNotAllowedHTTPError();
+    }
+    else
+    {
+        if (*allowedMethodIter != m_request.method)
+            throw MethodNotAllowedHTTPError();
+    }
+
+    QHash<QString, QString> params;
+    if ((m_request.method == Http::HEADER_REQUEST_METHOD_GET)
+        || (m_request.method == Http::HEADER_REQUEST_METHOD_HEAD))
+    {
+        params.reserve(m_request.query.size());
+        for (auto iter = m_request.query.cbegin(); iter != m_request.query.cend(); ++iter)
+            params.insert(iter.key(), QString::fromUtf8(iter.value()));
+    }
+    else
+    {
+        params = m_request.posts;
+    }
+
     DataMap data;
     for (const Http::UploadedFile &torrent : request().files)
         data[torrent.filename] = torrent.data;
 
     try
     {
-        const QVariant result = controller->run(action, m_params, data);
-        switch (result.userType())
+        const APIResult result = controller->run(action, params, data);
+        if (result.data.isNull())
         {
-        case QMetaType::QJsonDocument:
-            print(result.toJsonDocument().toJson(QJsonDocument::Compact), Http::CONTENT_TYPE_JSON);
-            break;
-        case QMetaType::QByteArray:
-            print(result.toByteArray(), Http::CONTENT_TYPE_TXT);
-            break;
-        case QMetaType::QString:
-        default:
-            print(result.toString(), Http::CONTENT_TYPE_TXT);
-            break;
+            m_response.status = {.code = 204};
+        }
+        else
+        {
+            switch (result.status)
+            {
+            case APIStatus::Async:
+                m_response.status = {.code = 202};
+                break;
+            case APIStatus::Ok:
+                m_response.status = {.code = 200};
+                break;
+            }
+
+            switch (result.data.userType())
+            {
+            case QMetaType::QJsonDocument:
+                m_response.headers.insert(Http::HEADER_CONTENT_TYPE, Http::CONTENT_TYPE_JSON);
+                m_response.content = result.data.toJsonDocument().toJson(QJsonDocument::Compact);
+                break;
+            case QMetaType::QByteArray:
+                {
+                    const auto resultData = result.data.toByteArray();
+                    m_response.headers.insert(Http::HEADER_CONTENT_TYPE, (!result.mimeType.isEmpty() ? result.mimeType : Http::CONTENT_TYPE_TXT));
+                    if (!result.filename.isEmpty())
+                        m_response.headers.insert(Http::HEADER_CONTENT_DISPOSITION, u"attachment; filename=\"%1\""_s.arg(result.filename));
+                    m_response.content = resultData;
+                }
+                break;
+            case QMetaType::QString:
+            default:
+                m_response.headers.insert(Http::HEADER_CONTENT_TYPE, Http::CONTENT_TYPE_TXT);
+                m_response.content = result.data.toString().toUtf8();
+                break;
+            }
         }
     }
     catch (const APIError &error)
@@ -302,8 +426,11 @@ void WebApplication::doProcessRequest()
             throw ConflictHTTPError(error.message());
         case APIErrorType::NotFound:
             throw NotFoundHTTPError(error.message());
+        case APIErrorType::Unauthorized:
+            throw UnauthorizedHTTPError(error.message());
         default:
-            Q_ASSERT(false);
+            Q_UNREACHABLE();
+            break;
         }
     }
 }
@@ -312,17 +439,17 @@ void WebApplication::configure()
 {
     const auto *pref = Preferences::instance();
 
-    const bool isAltUIUsed = pref->isAltWebUiEnabled();
-    const Path rootFolder = (!isAltUIUsed ? Path(WWW_FOLDER) : pref->getWebUiRootFolder());
+    const bool isAltUIUsed = pref->isAltWebUIEnabled();
+    const Path rootFolder = (!isAltUIUsed ? Path(WWW_FOLDER) : pref->getWebUIRootFolder());
     if ((isAltUIUsed != m_isAltUIUsed) || (rootFolder != m_rootFolder))
     {
         m_isAltUIUsed = isAltUIUsed;
         m_rootFolder = rootFolder;
         m_translatedFiles.clear();
         if (!m_isAltUIUsed)
-            LogMsg(tr("Using built-in Web UI."));
+            LogMsg(tr("Using built-in WebUI."));
         else
-            LogMsg(tr("Using custom Web UI. Location: \"%1\".").arg(m_rootFolder.toString()));
+            LogMsg(tr("Using custom WebUI. Location: \"%1\".").arg(m_rootFolder.toString()));
     }
 
     const QString newLocale = pref->getLocale();
@@ -331,50 +458,62 @@ void WebApplication::configure()
         m_currentLocale = newLocale;
         m_translatedFiles.clear();
 
-        m_translationFileLoaded = m_translator.load((m_rootFolder / Path(u"translations/webui_"_qs) + newLocale).data());
+        m_translationFileLoaded = m_translator.load((m_rootFolder / Path(u"translations/webui_"_s) + newLocale).data());
         if (m_translationFileLoaded)
         {
-            LogMsg(tr("Web UI translation for selected locale (%1) has been successfully loaded.")
+            LogMsg(tr("WebUI translation for selected locale (%1) has been successfully loaded.")
                    .arg(newLocale));
         }
         else
         {
-            LogMsg(tr("Couldn't load Web UI translation for selected locale (%1).").arg(newLocale), Log::WARNING);
+            LogMsg(tr("Couldn't load WebUI translation for selected locale (%1).").arg(newLocale), Log::WARNING);
         }
     }
 
-    m_isLocalAuthEnabled = pref->isWebUiLocalAuthEnabled();
-    m_isAuthSubnetWhitelistEnabled = pref->isWebUiAuthSubnetWhitelistEnabled();
-    m_authSubnetWhitelist = pref->getWebUiAuthSubnetWhitelist();
-    m_sessionTimeout = pref->getWebUISessionTimeout();
+    m_isLocalAuthEnabled = pref->isWebUILocalAuthEnabled();
+    m_isAuthSubnetWhitelistEnabled = pref->isWebUIAuthSubnetWhitelistEnabled();
+    m_authSubnetWhitelist = pref->getWebUIAuthSubnetWhitelist();
+    m_sessionTimeout = std::chrono::seconds(pref->getWebUISessionTimeout());
+    m_sessionCookieName = SESSION_COOKIE_NAME_PREFIX + QString::number(pref->getWebUIPort());
+
+    // all sessions need to update the cookie expiration date
+    for (WebSession *session : asConst(m_sessions))
+    {
+        if (session->type() == WebSessionType::CookieBased)
+            static_cast<CookieBasedWebSession *>(session)->setCookieRefreshTime(0s);
+    }
 
     m_domainList = pref->getServerDomains().split(u';', Qt::SkipEmptyParts);
-    std::for_each(m_domainList.begin(), m_domainList.end(), [](QString &entry) { entry = entry.trimmed(); });
+    for (QString &entry : m_domainList)
+        entry = entry.trimmed();
 
-    m_isCSRFProtectionEnabled = pref->isWebUiCSRFProtectionEnabled();
-    m_isSecureCookieEnabled = pref->isWebUiSecureCookieEnabled();
+    m_isCSRFProtectionEnabled = pref->isWebUICSRFProtectionEnabled();
+    m_isSecureCookieEnabled = pref->isWebUISecureCookieEnabled();
     m_isHostHeaderValidationEnabled = pref->isWebUIHostHeaderValidationEnabled();
-    m_isHttpsEnabled = pref->isWebUiHttpsEnabled();
+    m_isHttpsEnabled = pref->isWebUIHttpsEnabled();
 
     m_prebuiltHeaders.clear();
-    m_prebuiltHeaders.push_back({Http::HEADER_X_XSS_PROTECTION, u"1; mode=block"_qs});
-    m_prebuiltHeaders.push_back({Http::HEADER_X_CONTENT_TYPE_OPTIONS, u"nosniff"_qs});
+    m_prebuiltHeaders.insert(Http::HEADER_X_XSS_PROTECTION, u"1; mode=block"_s);
+    m_prebuiltHeaders.insert(Http::HEADER_X_CONTENT_TYPE_OPTIONS, u"nosniff"_s);
 
     if (!m_isAltUIUsed)
-        m_prebuiltHeaders.push_back({Http::HEADER_REFERRER_POLICY, u"same-origin"_qs});
+    {
+        m_prebuiltHeaders.insert(Http::HEADER_CROSS_ORIGIN_OPENER_POLICY, u"same-origin"_s);
+        m_prebuiltHeaders.insert(Http::HEADER_REFERRER_POLICY, u"same-origin"_s);
+    }
 
-    const bool isClickjackingProtectionEnabled = pref->isWebUiClickjackingProtectionEnabled();
+    const bool isClickjackingProtectionEnabled = pref->isWebUIClickjackingProtectionEnabled();
     if (isClickjackingProtectionEnabled)
-        m_prebuiltHeaders.push_back({Http::HEADER_X_FRAME_OPTIONS, u"SAMEORIGIN"_qs});
+        m_prebuiltHeaders.insert(Http::HEADER_X_FRAME_OPTIONS, u"SAMEORIGIN"_s);
 
     const QString contentSecurityPolicy =
         (m_isAltUIUsed
             ? QString()
-            : u"default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; script-src 'self' 'unsafe-inline'; object-src 'none'; form-action 'self';"_qs)
-        + (isClickjackingProtectionEnabled ? u" frame-ancestors 'self';"_qs : QString())
-        + (m_isHttpsEnabled ? u" upgrade-insecure-requests;"_qs : QString());
+            : u"default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; script-src 'self' 'unsafe-inline'; object-src 'none'; form-action 'self'; frame-src 'self' blob:;"_s)
+        + (isClickjackingProtectionEnabled ? u" frame-ancestors 'self';"_s : QString())
+        + (m_isHttpsEnabled ? u" upgrade-insecure-requests;"_s : QString());
     if (!contentSecurityPolicy.isEmpty())
-        m_prebuiltHeaders.push_back({Http::HEADER_CONTENT_SECURITY_POLICY, contentSecurityPolicy});
+        m_prebuiltHeaders.insert(Http::HEADER_CONTENT_SECURITY_POLICY, contentSecurityPolicy);
 
     if (pref->isWebUICustomHTTPHeadersEnabled())
     {
@@ -383,7 +522,7 @@ void WebApplication::configure()
 
         for (const QStringView line : customHeaderLines)
         {
-            const int idx = line.indexOf(u':');
+            const qsizetype idx = line.indexOf(u':');
             if (idx < 0)
             {
                 // require separator `:` to be present even if `value` field can be empty
@@ -391,29 +530,46 @@ void WebApplication::configure()
                 continue;
             }
 
-            const QString header = line.left(idx).trimmed().toString();
-            const QString value = line.mid(idx + 1).trimmed().toString();
-            m_prebuiltHeaders.push_back({header, value});
+            const QString header = line.first(idx).trimmed().toString();
+            const QString value = line.sliced(idx + 1).trimmed().toString();
+            m_prebuiltHeaders.insert(header, value);
         }
     }
 
     m_isReverseProxySupportEnabled = pref->isWebUIReverseProxySupportEnabled();
     if (m_isReverseProxySupportEnabled)
     {
-        m_trustedReverseProxyList.clear();
-
         const QStringList proxyList = pref->getWebUITrustedReverseProxiesList().split(u';', Qt::SkipEmptyParts);
 
-        for (const QString &proxy : proxyList)
+        m_trustedReverseProxyList.clear();
+        m_trustedReverseProxyList.reserve(proxyList.size());
+
+        for (QString proxy : proxyList)
         {
-            QHostAddress ip;
-            if (ip.setAddress(proxy))
-                m_trustedReverseProxyList.push_back(ip);
+            if (!proxy.contains(u'/'))
+            {
+                const QAbstractSocket::NetworkLayerProtocol protocol = QHostAddress(proxy).protocol();
+                if (protocol == QAbstractSocket::IPv4Protocol)
+                {
+                    proxy.append(u"/32");
+                }
+                else if (protocol == QAbstractSocket::IPv6Protocol)
+                {
+                    proxy.append(u"/128");
+                }
+            }
+
+            const std::optional<Utils::Net::Subnet> subnet = Utils::Net::parseSubnet(proxy);
+            if (subnet)
+                m_trustedReverseProxyList.push_back(subnet.value());
         }
 
         if (m_trustedReverseProxyList.isEmpty())
             m_isReverseProxySupportEnabled = false;
     }
+
+    if (const QString apiKey = pref->getWebUIApiKey(); apiKey.isEmpty() || Utils::APIKey::isValid(apiKey))
+        m_apiKey = apiKey;
 }
 
 void WebApplication::declarePublicAPI(const QString &apiPath)
@@ -426,46 +582,64 @@ void WebApplication::sendFile(const Path &path)
     const QDateTime lastModified = Utils::Fs::lastModified(path);
 
     // find translated file in cache
-    const auto it = m_translatedFiles.constFind(path);
-    if ((it != m_translatedFiles.constEnd()) && (lastModified <= it->lastModified))
+    if (const auto it = m_translatedFiles.constFind(path);
+        (it != m_translatedFiles.constEnd()) && (lastModified <= it->lastModified))
     {
-        print(it->data, it->mimeType);
-        setHeader({Http::HEADER_CACHE_CONTROL, getCachingInterval(it->mimeType)});
+        m_response.status = {.code = 200};
+        m_response.headers.insert(Http::HEADER_CONTENT_TYPE, it->mimeType);
+        m_response.headers.insert(Http::HEADER_CACHE_CONTROL, getCachingInterval(it->mimeType));
+        m_response.content = it->data;
         return;
     }
 
-    QFile file {path.data()};
-    if (!file.open(QIODevice::ReadOnly))
+    const auto readResult = Utils::IO::readFile(path, MAX_ALLOWED_FILESIZE);
+    if (!readResult)
     {
-        qDebug("File %s was not found!", qUtf8Printable(path.toString()));
-        throw NotFoundHTTPError();
+        const QString message = tr("Web server error. %1").arg(readResult.error().message);
+
+        switch (readResult.error().status)
+        {
+        case Utils::IO::ReadError::NotExist:
+            qDebug("%s", qUtf8Printable(message));
+            // don't write log messages here to avoid exhausting the disk space
+            throw NotFoundHTTPError();
+
+        case Utils::IO::ReadError::ExceedSize:
+            qWarning("%s", qUtf8Printable(message));
+            LogMsg(message, Log::WARNING);
+            throw InternalServerErrorHTTPError(readResult.error().message);
+
+        case Utils::IO::ReadError::Failed:
+        case Utils::IO::ReadError::SizeMismatch:
+            LogMsg(message, Log::WARNING);
+            throw InternalServerErrorHTTPError(readResult.error().message);
+        }
+
+        throw InternalServerErrorHTTPError(tr("Web server error. Unknown error."));
     }
 
-    if (file.size() > MAX_ALLOWED_FILESIZE)
-    {
-        qWarning("%s: exceeded the maximum allowed file size!", qUtf8Printable(path.toString()));
-        throw InternalServerErrorHTTPError(tr("Exceeded the maximum allowed file size (%1)!")
-                                           .arg(Utils::Misc::friendlyUnit(MAX_ALLOWED_FILESIZE)));
-    }
-
-    QByteArray data {file.readAll()};
-    file.close();
-
+    QByteArray data = readResult.value();
     const QMimeType mimeType = QMimeDatabase().mimeTypeForFileNameAndData(path.data(), data);
-    const bool isTranslatable = mimeType.inherits(u"text/plain"_qs);
+    const bool isTranslatable = mimeType.inherits(u"text/plain"_s);
 
-    // Translate the file
     if (isTranslatable)
     {
         auto dataStr = QString::fromUtf8(data);
+        // Translate the file
         translateDocument(dataStr);
-        data = dataStr.toUtf8();
 
+        // Add the language options
+        if (path == (m_rootFolder / Path(PRIVATE_FOLDER) / Path(u"views/preferences.html"_s)))
+            dataStr.replace(u"${LANGUAGE_OPTIONS}"_s, createLanguagesOptionsHtml());
+
+        data = dataStr.toUtf8();
         m_translatedFiles[path] = {data, mimeType.name(), lastModified}; // caching translated file
     }
 
-    print(data, mimeType.name());
-    setHeader({Http::HEADER_CACHE_CONTROL, getCachingInterval(mimeType.name())});
+    m_response.status = {.code = 200};
+    m_response.headers.insert(Http::HEADER_CONTENT_TYPE, mimeType.name());
+    m_response.headers.insert(Http::HEADER_CACHE_CONTROL, getCachingInterval(mimeType.name()));
+    m_response.content = data;
 }
 
 Http::Response WebApplication::processRequest(const Http::Request &request, const Http::Environment &env)
@@ -473,46 +647,70 @@ Http::Response WebApplication::processRequest(const Http::Request &request, cons
     m_currentSession = nullptr;
     m_request = request;
     m_env = env;
-    m_params.clear();
-
-    if (m_request.method == Http::METHOD_GET)
-    {
-        for (auto iter = m_request.query.cbegin(); iter != m_request.query.cend(); ++iter)
-            m_params[iter.key()] = QString::fromUtf8(iter.value());
-    }
-    else
-    {
-        m_params = m_request.posts;
-    }
 
     // clear response
-    clear();
+    m_response = {.headers = m_prebuiltHeaders};
+
+    const QString authHeader = m_request.headers.value(Http::HEADER_AUTHORIZATION);
+    const auto [authScheme, authData] = parseAuthorizationHeader(authHeader);
+    const bool isUsingApiKey = (authScheme.compare(BEARER_AUTH, Qt::CaseInsensitive) == 0);
 
     try
     {
         // block suspicious requests
-        if ((m_isCSRFProtectionEnabled && isCrossSiteRequest(m_request))
+        if ((!isUsingApiKey && m_isCSRFProtectionEnabled && isCrossSiteRequest(m_request))
             || (m_isHostHeaderValidationEnabled && !validateHostHeader(m_domainList)))
-            {
+        {
             throw UnauthorizedHTTPError();
         }
 
         // reverse proxy resolve client address
         m_clientAddress = resolveClientAddress();
 
-        sessionInitialize();
-        doProcessRequest();
+        if (isUsingApiKey)
+            apiKeySessionInitialize(authData);
+        else
+            cookieSessionInitialize(authScheme, authData);
+
+        if (request.path.startsWith(API_PATH))
+        {
+            const QString endpoint = request.path.sliced(API_PATH.size());
+
+            if (isUsingApiKey && (endpoint.startsWith(u"auth/")))
+                throw ForbiddenHTTPError();
+
+            processAPIRequest(endpoint);
+        }
+        else
+        {
+            if (isUsingApiKey)
+                throw NotFoundHTTPError();
+
+            sendWebUIFile();
+        }
     }
     catch (const HTTPError &error)
     {
-        status(error.statusCode(), error.statusText());
-        print((!error.message().isEmpty() ? error.message() : error.statusText()), Http::CONTENT_TYPE_TXT);
+        const Http::ResponseStatus &errorStatus = error.status();
+        m_response.status = errorStatus;
+        m_response.headers.insert(Http::HEADER_CONTENT_TYPE, Http::CONTENT_TYPE_TXT);
+        m_response.content = (!error.message().isEmpty() ? error.message() : errorStatus.text).toUtf8();
     }
 
-    for (const Http::Header &prebuiltHeader : asConst(m_prebuiltHeaders))
-        setHeader(prebuiltHeader);
+    if (!isUsingApiKey)
+    {
+        auto *currentSession = static_cast<CookieBasedWebSession *>(m_currentSession);
+        if (currentSession && currentSession->shouldRefreshCookie())
+        {
+            // 'Permanent Cookie' still require an expiration date so set it to a date in the distant future
+            const std::chrono::seconds cookieExpireDuration = (m_sessionTimeout > 0s) ? m_sessionTimeout : std::chrono::years(1);
+            const QNetworkCookie cookie = createSessionCookie(currentSession->id(), cookieExpireDuration);
+            m_response.headers.insert(Http::HEADER_SET_COOKIE, QString::fromLatin1(cookie.toRawForm()));
+            currentSession->setCookieRefreshTime(cookieExpireDuration);
+        }
+    }
 
-    return response();
+    return m_response;
 }
 
 QString WebApplication::clientId() const
@@ -520,38 +718,86 @@ QString WebApplication::clientId() const
     return m_clientAddress.toString();
 }
 
-void WebApplication::sessionInitialize()
+QNetworkCookie WebApplication::createSessionCookie(const QString &sessionID, const std::chrono::seconds expireDuration) const
+{
+    QNetworkCookie cookie {m_sessionCookieName.toLatin1(), sessionID.toLatin1()};
+    cookie.setExpirationDate(QDateTime::currentDateTime().addDuration(expireDuration));
+    cookie.setHttpOnly(true);
+    cookie.setSecure(m_isSecureCookieEnabled && isOriginTrustworthy());  // [rfc6265] 4.1.2.5. The Secure Attribute
+    cookie.setPath(u"/"_s);
+    if (m_isCSRFProtectionEnabled)
+        cookie.setSameSitePolicy(QNetworkCookie::SameSite::Strict);
+    else if (cookie.isSecure())
+        cookie.setSameSitePolicy(QNetworkCookie::SameSite::None);
+
+    return cookie;
+}
+
+void WebApplication::cookieSessionInitialize(const QString &authScheme, const QString &authData)
 {
     Q_ASSERT(!m_currentSession);
 
-    const QString sessionId {parseCookie(m_request.headers.value(u"cookie"_qs)).value(QString::fromLatin1(C_SID))};
-
-    // TODO: Additional session check
-
-    if (!sessionId.isEmpty())
+    if (const QString sessionId = parseCookie(m_request.headers.value(Http::HEADER_COOKIE)).value(m_sessionCookieName);
+        !sessionId.isEmpty())
     {
-        m_currentSession = m_sessions.value(sessionId);
-        if (m_currentSession)
+        if (WebSession *session = m_sessions.value(sessionId))
         {
-            if (m_currentSession->hasExpired(m_sessionTimeout))
+            Q_ASSERT(session->type() == WebSessionType::CookieBased);
+            if (session->type() != WebSessionType::CookieBased) [[unlikely]]
+                return;
+
+            if (!session->hasExpired(m_sessionTimeout))
             {
-                // session is outdated - removing it
-                delete m_sessions.take(sessionId);
-                m_currentSession = nullptr;
+                m_currentSession = session;
+                m_currentSession->updateTimestamp();
             }
             else
             {
-                m_currentSession->updateTimestamp();
+                // session is outdated - removing it
+                delete m_sessions.take(sessionId);
             }
-        }
-        else
-        {
-            qDebug() << Q_FUNC_INFO << "session does not exist!";
         }
     }
 
-    if (!m_currentSession && !isAuthNeeded())
-        sessionStart();
+    if (!m_currentSession)
+    {
+        if (!isAuthNeeded())
+        {
+            sessionStart();
+        }
+        else if (authScheme.compare(BASIC_AUTH, Qt::CaseInsensitive) == 0)
+        {
+            if (!validateBasicAuth(authData))
+                throw UnauthorizedHTTPError();
+
+            sessionStart();
+        }
+    }
+}
+
+void WebApplication::apiKeySessionInitialize(const QString &apiKey)
+{
+    Q_ASSERT(!m_currentSession);
+
+    if (m_apiKey.isEmpty())
+        return;
+
+    if (Utils::Password::slowEquals(apiKey.toLatin1(), m_apiKey.toLatin1()))
+    {
+        if (WebSession *session = m_sessions.value(apiKey))
+        {
+            Q_ASSERT(session->type() == WebSessionType::APIKeyBased);
+            if (session->type() != WebSessionType::APIKeyBased) [[unlikely]]
+                return;
+
+            m_currentSession = session;
+            m_currentSession->updateTimestamp();
+        }
+        else
+        {
+            sessionStartImpl(apiKey, WebSessionType::APIKeyBased);
+        }
+    }
 }
 
 QString WebApplication::generateSid() const
@@ -560,8 +806,7 @@ QString WebApplication::generateSid() const
 
     do
     {
-        const quint32 tmp[] =
-        {Utils::Random::rand(), Utils::Random::rand(), Utils::Random::rand()
+        const quint32 tmp[] = {Utils::Random::rand(), Utils::Random::rand(), Utils::Random::rand()
                 , Utils::Random::rand(), Utils::Random::rand(), Utils::Random::rand()};
         sid = QString::fromLatin1(QByteArray::fromRawData(reinterpret_cast<const char *>(tmp), sizeof(tmp)).toBase64());
     }
@@ -572,19 +817,24 @@ QString WebApplication::generateSid() const
 
 bool WebApplication::isAuthNeeded()
 {
-    if (!m_isLocalAuthEnabled && Utils::Net::isLoopbackAddress(m_clientAddress))
+    if (!m_isLocalAuthEnabled && m_clientAddress.isLoopback())
         return false;
-    if (m_isAuthSubnetWhitelistEnabled && Utils::Net::isIPInRange(m_clientAddress, m_authSubnetWhitelist))
+    if (m_isAuthSubnetWhitelistEnabled && Utils::Net::isIPInSubnets(m_clientAddress, m_authSubnetWhitelist))
         return false;
     return true;
 }
 
 bool WebApplication::isPublicAPI(const QString &scope, const QString &action) const
 {
-    return m_publicAPIs.contains(u"%1/%2"_qs.arg(scope, action));
+    return m_publicAPIs.contains(u"%1/%2"_s.arg(scope, action));
 }
 
 void WebApplication::sessionStart()
+{
+    sessionStartImpl(generateSid(), WebSessionType::CookieBased);
+}
+
+void WebApplication::sessionStartImpl(const QString &sessionId, const WebSessionType sessionType)
 {
     Q_ASSERT(!m_currentSession);
 
@@ -600,38 +850,54 @@ void WebApplication::sessionStart()
         return false;
     });
 
-    m_currentSession = new WebSession(generateSid());
-    m_currentSession->registerAPIController<AppController>(u"app"_qs);
-    m_currentSession->registerAPIController<LogController>(u"log"_qs);
-    m_currentSession->registerAPIController<RSSController>(u"rss"_qs);
-    m_currentSession->registerAPIController<SearchController>(u"search"_qs);
-    m_currentSession->registerAPIController<SyncController>(u"sync"_qs);
-    m_currentSession->registerAPIController<TorrentsController>(u"torrents"_qs);
-    m_currentSession->registerAPIController<TransferController>(u"transfer"_qs);
+    m_currentSession = WebSession::create(sessionType, sessionId);
     m_sessions[m_currentSession->id()] = m_currentSession;
 
-    QNetworkCookie cookie(C_SID, m_currentSession->id().toUtf8());
-    cookie.setHttpOnly(true);
-    cookie.setSecure(m_isSecureCookieEnabled && m_isHttpsEnabled);
-    cookie.setPath(u"/"_qs);
-    QByteArray cookieRawForm = cookie.toRawForm();
-    if (m_isCSRFProtectionEnabled)
-        cookieRawForm.append("; SameSite=Strict");
-    setHeader({Http::HEADER_SET_COOKIE, QString::fromLatin1(cookieRawForm)});
+    m_currentSession->registerAPIController(u"app"_s, new AppController(app(), m_currentSession));
+    m_currentSession->registerAPIController(u"clientdata"_s, new ClientDataController(m_clientDataStorage, app(), m_currentSession));
+    m_currentSession->registerAPIController(u"log"_s, new LogController(app(), m_currentSession));
+    m_currentSession->registerAPIController(u"torrentcreator"_s, new TorrentCreatorController(m_torrentCreationManager, app(), m_currentSession));
+    m_currentSession->registerAPIController(u"rss"_s, new RSSController(app(), m_currentSession));
+    m_currentSession->registerAPIController(u"search"_s, new SearchController(app(), m_currentSession));
+    m_currentSession->registerAPIController(u"torrents"_s, new TorrentsController(app(), m_currentSession));
+    m_currentSession->registerAPIController(u"transfer"_s, new TransferController(app(), m_currentSession));
+
+    const auto *btSession = BitTorrent::Session::instance();
+    auto *syncController = new SyncController(app(), m_currentSession);
+    syncController->updateFreeDiskSpace(btSession->freeDiskSpace());
+    connect(btSession, &BitTorrent::Session::freeDiskSpaceChecked, syncController, &SyncController::updateFreeDiskSpace);
+    m_currentSession->registerAPIController(u"sync"_s, syncController);
 }
 
 void WebApplication::sessionEnd()
 {
     Q_ASSERT(m_currentSession);
 
-    QNetworkCookie cookie(C_SID);
-    cookie.setPath(u"/"_qs);
+    QNetworkCookie cookie {m_sessionCookieName.toLatin1()};
+    cookie.setPath(u"/"_s);
     cookie.setExpirationDate(QDateTime::currentDateTime().addDays(-1));
 
     delete m_sessions.take(m_currentSession->id());
     m_currentSession = nullptr;
 
-    setHeader({Http::HEADER_SET_COOKIE, QString::fromLatin1(cookie.toRawForm())});
+    m_response.headers.insert(Http::HEADER_SET_COOKIE, QString::fromLatin1(cookie.toRawForm()));
+}
+
+bool WebApplication::isOriginTrustworthy() const
+{
+    // https://w3c.github.io/webappsec-secure-contexts/#is-origin-trustworthy
+
+    if (m_isReverseProxySupportEnabled)
+    {
+        const QString forwardedProto = request().headers.value(Http::HEADER_X_FORWARDED_PROTO);
+        if (forwardedProto.compare(u"https", Qt::CaseInsensitive) == 0)
+            return true;
+    }
+
+    if (m_isHttpsEnabled)
+        return true;
+
+    return false;
 }
 
 bool WebApplication::isCrossSiteRequest(const Http::Request &request) const
@@ -662,9 +928,11 @@ bool WebApplication::isCrossSiteRequest(const Http::Request &request) const
     {
         const bool isInvalid = !isSameOrigin(urlFromHostHeader(targetOrigin), originValue);
         if (isInvalid)
+        {
             LogMsg(tr("WebUI: Origin header & Target origin mismatch! Source IP: '%1'. Origin header: '%2'. Target origin: '%3'")
                    .arg(m_env.clientAddress.toString(), originValue, targetOrigin)
                    , Log::WARNING);
+        }
         return isInvalid;
     }
 
@@ -672,9 +940,11 @@ bool WebApplication::isCrossSiteRequest(const Http::Request &request) const
     {
         const bool isInvalid = !isSameOrigin(urlFromHostHeader(targetOrigin), refererValue);
         if (isInvalid)
+        {
             LogMsg(tr("WebUI: Referer header & Target origin mismatch! Source IP: '%1'. Referer header: '%2'. Target origin: '%3'")
                    .arg(m_env.clientAddress.toString(), refererValue, targetOrigin)
                    , Log::WARNING);
+        }
         return isInvalid;
     }
 
@@ -723,7 +993,7 @@ QHostAddress WebApplication::resolveClientAddress() const
         return m_env.clientAddress;
 
     // Only reverse proxy can overwrite client address
-    if (!m_trustedReverseProxyList.contains(m_env.clientAddress))
+    if (!Utils::Net::isIPInSubnets(m_env.clientAddress, m_trustedReverseProxyList))
         return m_env.clientAddress;
 
     const QString forwardedFor = m_request.headers.value(Http::HEADER_X_FORWARDED_FOR);
@@ -751,32 +1021,84 @@ QHostAddress WebApplication::resolveClientAddress() const
     return m_env.clientAddress;
 }
 
-// WebSession
-
-WebSession::WebSession(const QString &sid)
-    : m_sid {sid}
+bool WebApplication::validateCredentials(const QStringView username, const QStringView password) const
 {
-    updateTimestamp();
+    const QString clientAddr = clientId();
+
+    if (isBanned())
+    {
+        LogMsg(tr("WebAPI login failure. Reason: IP has been banned, IP: %1, username: %2")
+                .arg(clientAddr, username)
+            , Log::WARNING);
+        throw ForbiddenHTTPError(tr("Your IP address has been banned after too many failed authentication attempts."));
+    }
+
+    const bool usernameEqual = Utils::Password::slowEquals(username.toUtf8(), m_username.toUtf8());
+    const bool passwordEqual = Utils::Password::PBKDF2::verify(m_passwordHash, password);
+
+    if (usernameEqual && passwordEqual)
+    {
+        m_clientFailedLogins.remove(clientAddr);
+        LogMsg(tr("WebAPI login success. IP: %1").arg(clientAddr));
+        return true;
+    }
+
+    const auto *pref = Preferences::instance();
+    if (pref->getWebUIMaxAuthFailCount() > 0)
+        increaseFailedAttempts();
+
+    LogMsg(tr("WebAPI login failure. Reason: invalid credentials, attempt count: %1, IP: %2, username: %3")
+            .arg(QString::number(failedAttemptsCount()), clientAddr, username)
+        , Log::WARNING);
+    return false;
 }
 
-QString WebSession::id() const
+bool WebApplication::validateBasicAuth(const QStringView credentials) const
 {
-    return m_sid;
+    const QString decodedCredentials = QString::fromUtf8(QByteArray::fromBase64(credentials.toLatin1()));
+    const auto usernamePassword = QStringView(decodedCredentials);
+    if (const qsizetype idx = usernamePassword.indexOf(u':'); idx > 0)
+    {
+        const QStringView username = usernamePassword.first(idx);
+        const QStringView password = usernamePassword.sliced(idx + 1);
+        return validateCredentials(username, password);
+    }
+
+    return false;
 }
 
-bool WebSession::hasExpired(const qint64 seconds) const
+bool WebApplication::isBanned() const
 {
-    if (seconds <= 0)
+    const auto failedLoginIter = m_clientFailedLogins.constFind(clientId());
+    if (failedLoginIter == m_clientFailedLogins.cend())
         return false;
-    return m_timer.hasExpired(seconds * 1000);
+
+    bool isBanned = (failedLoginIter->banTimer.remainingTime() >= 0);
+    if (isBanned && failedLoginIter->banTimer.hasExpired())
+    {
+        m_clientFailedLogins.erase(failedLoginIter);
+        isBanned = false;
+    }
+
+    return isBanned;
 }
 
-void WebSession::updateTimestamp()
+int WebApplication::failedAttemptsCount() const
 {
-    m_timer.start();
+    return m_clientFailedLogins.value(clientId()).failedAttemptsCount;
 }
 
-APIController *WebSession::getAPIController(const QString &scope) const
+void WebApplication::increaseFailedAttempts() const
 {
-    return m_apiControllers.value(scope);
+    Q_ASSERT(Preferences::instance()->getWebUIMaxAuthFailCount() > 0);
+
+    FailedLogin &failedLogin = m_clientFailedLogins[clientId()];
+    ++failedLogin.failedAttemptsCount;
+
+    if (failedLogin.failedAttemptsCount >= Preferences::instance()->getWebUIMaxAuthFailCount())
+    {
+        // Max number of failed attempts reached
+        // Start ban period
+        failedLogin.banTimer.setRemainingTime(Preferences::instance()->getWebUIBanDuration());
+    }
 }

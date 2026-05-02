@@ -29,86 +29,105 @@
 
 #include "programupdater.h"
 
-#if defined(Q_OS_WIN)
-#include <Windows.h>
-#include <versionhelpers.h>  // must follow after Windows.h
-#endif
+#include <algorithm>
 
+#include <libtorrent/version.hpp>
+
+#include <QtCore/qconfig.h>
+#include <QtSystemDetection>
 #include <QDebug>
 #include <QDesktopServices>
+#include <QJsonDocument>
+#include <QJsonValue>
 #include <QRegularExpression>
 #include <QXmlStreamReader>
 
-#if defined(Q_OS_WIN)
-#include <QSysInfo>
-#endif
-
 #include "base/global.h"
+#include "base/logger.h"
 #include "base/net/downloadmanager.h"
-#include "base/utils/version.h"
+#include "base/preferences.h"
 #include "base/version.h"
 
 namespace
 {
-    bool isVersionMoreRecent(const QString &remoteVersion)
+    bool isVersionMoreRecent(const ProgramUpdater::Version &remoteVersion)
     {
-        using Version = Utils::Version<int, 4, 3>;
-
-        try
-        {
-            const Version newVersion {remoteVersion};
-            const Version currentVersion {QBT_VERSION_MAJOR, QBT_VERSION_MINOR, QBT_VERSION_BUGFIX, QBT_VERSION_BUILD};
-            if (newVersion == currentVersion)
-            {
-                const bool isDevVersion = QStringLiteral(QBT_VERSION_STATUS).contains(
-                    QRegularExpression(u"(alpha|beta|rc)"_qs));
-                if (isDevVersion)
-                    return true;
-            }
-            return (newVersion > currentVersion);
-        }
-        catch (const RuntimeError &)
-        {
+        if (!remoteVersion.isValid())
             return false;
+
+        const ProgramUpdater::Version currentVersion {QBT_VERSION_MAJOR, QBT_VERSION_MINOR, QBT_VERSION_BUGFIX, QBT_VERSION_BUILD};
+        if (remoteVersion == currentVersion)
+        {
+            const bool isDevVersion = QStringLiteral(QBT_VERSION_STATUS).contains(
+                QRegularExpression(u"(alpha|beta|rc)"_s));
+            if (isDevVersion)
+                return true;
         }
+        return (remoteVersion > currentVersion);
+    }
+
+    QString buildVariant()
+    {
+#if defined(Q_OS_MACOS)
+        const auto BASE_OS = u"Mac OS X"_s;
+#elif defined(Q_OS_WIN)
+        const auto BASE_OS = u"Windows x64"_s;
+#endif
+
+        if constexpr ((QT_VERSION_MAJOR == 6) && (LIBTORRENT_VERSION_MAJOR == 1))
+            return BASE_OS;
+
+        return u"%1 (qt%2 lt%3%4)"_s.arg(BASE_OS, QString::number(QT_VERSION_MAJOR), QString::number(LIBTORRENT_VERSION_MAJOR), QString::number(LIBTORRENT_VERSION_MINOR));
     }
 }
 
-void ProgramUpdater::checkForUpdates() const
+void ProgramUpdater::checkForUpdates()
 {
-    const auto RSS_URL = u"https://www.fosshub.com/feed/5b8793a7f9ee5a5c3e97a3b2.xml"_qs;
     // Don't change this User-Agent. In case our updater goes haywire,
     // the filehost can identify it and contact us.
-    Net::DownloadManager::instance()->download(
-        Net::DownloadRequest(RSS_URL).userAgent(QStringLiteral("qBittorrent Enhanced/" QBT_VERSION_2 " ProgramUpdater (www.qbittorrent.org)"))
-        , this, &ProgramUpdater::rssDownloadFinished);
+    const auto USER_AGENT = QStringLiteral("qBittorrent/" QBT_VERSION_2 " ProgramUpdater (www.qbittorrent.org)");
+    const auto FOSSHUB_URL = u"https://www.fosshub.com/feed/5b8793a7f9ee5a5c3e97a3b2.xml"_s;
+    const auto QBT_MAIN_URL = u"https://www.qbittorrent.org/versions.json"_s;
+    const auto QBT_BACKUP_URL = u"https://qbittorrent.github.io/qBittorrent-website/versions.json"_s;
+
+    Net::DownloadManager *netManager = Net::DownloadManager::instance();
+    const bool useProxy = Preferences::instance()->useProxyForGeneralPurposes();
+
+    m_pendingRequestCount = 3;
+    netManager->download(Net::DownloadRequest(FOSSHUB_URL).userAgent(USER_AGENT), useProxy, this, &ProgramUpdater::rssDownloadFinished);
+    // don't use the custom user agent for the following requests, disguise as a normal browser instead
+    netManager->download(Net::DownloadRequest(QBT_MAIN_URL), useProxy, this, [this](const Net::DownloadResult &result)
+    {
+        fallbackDownloadFinished(result, m_qbtMainVersion);
+    });
+    netManager->download(Net::DownloadRequest(QBT_BACKUP_URL), useProxy, this, [this](const Net::DownloadResult &result)
+    {
+        fallbackDownloadFinished(result, m_qbtBackupVersion);
+    });
 }
 
-QString ProgramUpdater::getNewVersion() const
+ProgramUpdater::Version ProgramUpdater::getNewVersion() const
 {
-    return m_newVersion;
-}
-
-QString ProgramUpdater::getNewContent() const
-{
-  return m_content;
-}
-
-QString ProgramUpdater::getNextUpdate() const
-{
-  return m_nextUpdate;
+    switch (getLatestRemoteSource())
+    {
+    case RemoteSource::Fosshub:
+        return m_fosshubVersion;
+    case RemoteSource::QbtMain:
+        return m_qbtMainVersion;
+    case RemoteSource::QbtBackup:
+        return m_qbtBackupVersion;
+    }
+    Q_UNREACHABLE();
 }
 
 void ProgramUpdater::rssDownloadFinished(const Net::DownloadResult &result)
 {
     if (result.status != Net::DownloadStatus::Success)
     {
-        qDebug() << "Downloading the new qBittorrent updates RSS failed:" << result.errorString;
-        emit updateCheckFinished();
+        LogMsg(tr("Failed to download the program update info. URL: \"%1\". Error: \"%2\"").arg(result.url, result.errorString) , Log::WARNING);
+        handleFinishedRequest();
         return;
     }
-
-    qDebug("Finished downloading the new qBittorrent updates RSS");
 
     const auto getStringValue = [](QXmlStreamReader &xml) -> QString
     {
@@ -118,18 +137,9 @@ void ProgramUpdater::rssDownloadFinished(const Net::DownloadResult &result)
             : QString {};
     };
 
-#ifdef Q_OS_MACOS
-    const QString OS_TYPE = u"Mac OS X"_qs;
-#elif defined(Q_OS_WIN)
-    const QString OS_TYPE = (::IsWindows7OrGreater() && QSysInfo::currentCpuArchitecture().endsWith(u"64"))
-        ? u"Windows x64"_qs
-        : u"Windows"_qs;
-#endif
-
+    const QString variant = buildVariant();
     bool inItem = false;
     QString version;
-    QString content;
-    QString nextUpdate;
     QString updateLink;
     QString type;
     QXmlStreamReader xml(result.data);
@@ -148,28 +158,23 @@ void ProgramUpdater::rssDownloadFinished(const Net::DownloadResult &result)
                 type = getStringValue(xml);
             else if (inItem && (xml.name() == u"version"))
                 version = getStringValue(xml);
-            else if (inItem && (xml.name() == QLatin1String("content")))
-                content = getStringValue(xml);
-            else if (inItem && (xml.name() == QLatin1String("update")))
-                nextUpdate = getStringValue(xml);
         }
         else if (xml.isEndElement())
         {
             if (inItem && (xml.name() == u"item"))
             {
-                if (type.compare(OS_TYPE, Qt::CaseInsensitive) == 0)
+                if (type.compare(variant, Qt::CaseInsensitive) == 0)
                 {
                     qDebug("The last update available is %s", qUtf8Printable(version));
                     if (!version.isEmpty())
                     {
                         qDebug("Detected version is %s", qUtf8Printable(version));
-                        if (isVersionMoreRecent(version))
+                        const Version tmpVer {version};
+                        if (isVersionMoreRecent(tmpVer))
                         {
-                            m_newVersion = version;
+                            m_fosshubVersion = tmpVer;
                             m_updateURL = updateLink;
-                            m_content = content;
                         }
-                        m_nextUpdate = nextUpdate;
                     }
                     break;
                 }
@@ -178,16 +183,71 @@ void ProgramUpdater::rssDownloadFinished(const Net::DownloadResult &result)
                 updateLink.clear();
                 type.clear();
                 version.clear();
-                content.clear();
-                nextUpdate.clear();
             }
         }
     }
 
-    emit updateCheckFinished();
+    handleFinishedRequest();
+}
+
+void ProgramUpdater::fallbackDownloadFinished(const Net::DownloadResult &result, Version &version)
+{
+    version = {};
+
+    if (result.status != Net::DownloadStatus::Success)
+    {
+        LogMsg(tr("Failed to download the program update info. URL: \"%1\". Error: \"%2\"").arg(result.url, result.errorString) , Log::WARNING);
+        handleFinishedRequest();
+        return;
+    }
+
+    const auto json = QJsonDocument::fromJson(result.data);
+
+#if defined(Q_OS_MACOS)
+    const QString platformKey = u"macos"_s;
+#elif defined(Q_OS_WIN)
+    const QString platformKey = u"win"_s;
+#endif
+
+    if (const QJsonValue verJSON = json[platformKey][u"version"_s]; verJSON.isString())
+    {
+        const Version tmpVer {verJSON.toString()};
+        if (isVersionMoreRecent(tmpVer))
+            version = tmpVer;
+    }
+
+    handleFinishedRequest();
 }
 
 bool ProgramUpdater::updateProgram() const
 {
-    return QDesktopServices::openUrl(m_updateURL);
+    switch (getLatestRemoteSource())
+    {
+    case RemoteSource::Fosshub:
+        return QDesktopServices::openUrl(m_updateURL);
+    case RemoteSource::QbtMain:
+        return QDesktopServices::openUrl(u"https://www.qbittorrent.org/download"_s);
+    case RemoteSource::QbtBackup:
+        return QDesktopServices::openUrl(u"https://qbittorrent.github.io/qBittorrent-website/download"_s);
+    }
+    Q_UNREACHABLE();
+}
+
+void ProgramUpdater::handleFinishedRequest()
+{
+    --m_pendingRequestCount;
+    if (m_pendingRequestCount == 0)
+        emit updateCheckFinished();
+}
+
+ProgramUpdater::RemoteSource ProgramUpdater::getLatestRemoteSource() const
+{
+    const Version max = std::max({m_fosshubVersion, m_qbtMainVersion, m_qbtBackupVersion});
+    if (max == m_fosshubVersion)
+        return RemoteSource::Fosshub;
+    if (max == m_qbtMainVersion)
+        return RemoteSource::QbtMain;
+    if (max == m_qbtBackupVersion)
+        return RemoteSource::QbtBackup;
+    Q_UNREACHABLE();
 }
