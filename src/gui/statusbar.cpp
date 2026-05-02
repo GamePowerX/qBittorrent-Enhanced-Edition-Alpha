@@ -231,9 +231,12 @@ void StatusBar::updateExternalAddressesLabel()
     const bool hasIPv4Address = !lastExternalIPv4Address.isEmpty();
     const bool hasIPv6Address = !lastExternalIPv6Address.isEmpty();
 
-    if (hasIPv4Address && hasIPv6Address)
-        addressText = tr("External IPs: %1, %2").arg(lastExternalIPv4Address, lastExternalIPv6Address);
-    else if (hasIPv4Address || hasIPv6Address)
+    if (hasIPv6Address)
+    {
+        const QString ipv4Address = hasIPv4Address ? lastExternalIPv4Address : tr("N/A");
+        addressText = tr("External IPs: %1, %2").arg(ipv4Address, lastExternalIPv6Address);
+    }
+    else if (hasIPv4Address)
         addressText = tr("External IP: %1%2").arg(lastExternalIPv4Address, lastExternalIPv6Address);
 
     m_lastExternalIPsLbl->setText(addressText);
