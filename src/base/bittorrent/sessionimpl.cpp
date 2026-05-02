@@ -107,6 +107,8 @@
 #include "lttypecast.h"
 #include "nativesessionextension.h"
 #include "portforwarderimpl.h"
+#include "peer_blacklist.hpp"
+#include "peer_filter_session_plugin.hpp"
 #include "resumedatastorage.h"
 #include "torrentcontentremover.h"
 #include "torrentdescriptor.h"
@@ -126,7 +128,7 @@ const std::chrono::seconds FREEDISKSPACE_CHECK_TIMEOUT = 30s;
 namespace
 {
     const char PEER_ID[] = "qB";
-    const auto USER_AGENT = QStringLiteral("qBittorrent/" QBT_VERSION_2);
+    const auto USER_AGENT = QStringLiteral("qBittorrent Enhanced/" QBT_VERSION_2);
     const QString DEFAULT_DHT_BOOTSTRAP_NODES = u"dht.libtorrent.org:25401, dht.transmissionbt.com:6881, router.bittorrent.com:6881"_s;
 
     void torrentQueuePositionUp(const lt::torrent_handle &handle)
@@ -1766,6 +1768,21 @@ void SessionImpl::initializeNativeSession()
     m_nativeSession->add_extension(&lt::create_ut_metadata_plugin);
     if (isPeXEnabled())
         m_nativeSession->add_extension(&lt::create_ut_pex_plugin);
+
+    // Enhanced features
+    db_connection::instance().init(QDir(specialFolderLocation(SpecialFolder::Data).toString()).absoluteFilePath(u"peers.db"_qs));
+    if (Preferences::instance()->getAutoBanBadPeers())
+        m_nativeSession->add_extension(&create_drop_bad_peers_plugin);
+    if (Preferences::instance()->getAutoBanUnknownPeer())
+    {
+        m_nativeSession->add_extension(&create_drop_unknown_peers_plugin);
+        if (Preferences::instance()->getAutoBanOfflineDownloaders())
+            m_nativeSession->add_extension(&create_drop_offline_downloader_plugin);
+    }
+    if (Preferences::instance()->getAutoBanBTPlayerPeer())
+        m_nativeSession->add_extension(&create_drop_bittorrent_media_player_plugin);
+    if (Preferences::instance()->getEnablePeerListFilters())
+        m_nativeSession->add_extension(std::make_shared<peer_filter_session_plugin>());
 
     auto nativeSessionExtension = std::make_shared<NativeSessionExtension>();
     m_nativeSession->add_extension(nativeSessionExtension);
