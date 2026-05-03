@@ -39,12 +39,6 @@ echo '/usr/local/lib/x86_64-linux-gnu' >/etc/ld.so.conf.d/x86_64-linux-gnu-local
 
 apt update
 apt install -y software-properties-common apt-transport-https
-apt-add-repository -yn ppa:savoury1/backports
-add-apt-repository -yn ppa:savoury1/display
-
-if [ x"${USE_CHINA_MIRROR}" = x1 ]; then
-  sed -i 's@http://ppa.launchpad.net@https://launchpad.proxy.ustclug.org@' /etc/apt/sources.list.d/*.list
-fi
 
 apt update
 apt install -y \
@@ -87,12 +81,9 @@ apt install -y \
   libxkbcommon-x11-dev \
   libwayland-dev \
   libwayland-egl-backend-dev \
-  g++-8
+  g++
 
 apt autoremove --purge -y
-# make gcc-8 as default gcc
-ln -svf /usr/bin/gcc-8 /usr/bin/gcc
-ln -svf /usr/bin/g++-8 /usr/bin/g++
 # strip all compiled files by default
 export CFLAGS='-s'
 export CXXFLAGS='-s'
@@ -238,26 +229,12 @@ cat config.summary
 cmake --build . --parallel
 cmake --install .
 
-# install qt6gtk2 for better look
-if [ ! -d "/usr/src/qt6gtk2/" ]; then
-  qt6gtk2_git_url="https://github.com/trialuser02/qt6gtk2.git"
-  if [ x"${USE_CHINA_MIRROR}" = x1 ]; then
-    qt6gtk2_git_url="https://ghproxy.com/${qt6gtk2_git_url}"
-  fi
-  retry git clone --depth 1 --recursive "${qt6gtk2_git_url}" "/usr/src/qt6gtk2/"
-fi
-cd "/usr/src/qt6gtk2/"
-git pull
-git clean -fdx
-qmake
-make -j$(nproc) install
-
 # build latest boost
 boost_ver="$(retry curl -ksSfL --compressed https://www.boost.org/users/download/ \| grep "'>Version\s*'" \| sed -r "'s/.*Version\s*([^<]+).*/\1/'" \| head -1)"
 echo "boost version ${boost_ver}"
 mkdir -p "/usr/src/boost-${boost_ver}"
 if [ ! -f "/usr/src/boost-${boost_ver}/.unpack_ok" ]; then
-  boost_latest_url="https://sourceforge.net/projects/boost/files/boost/${boost_ver}/boost_${boost_ver//./_}.tar.bz2/download"
+  boost_latest_url="https://archives.boost.io/release/${boost_ver}/source/boost_${boost_ver//./_}.tar.bz2"
   retry curl -kSL "${boost_latest_url}" \| tar -jxf - -C "/usr/src/boost-${boost_ver}" --strip-components 1
   touch "/usr/src/boost-${boost_ver}/.unpack_ok"
 fi
@@ -265,7 +242,7 @@ cd "/usr/src/boost-${boost_ver}"
 if [ ! -f ./b2 ]; then
   ./bootstrap.sh
 fi
-./b2 -d0 -q install --with-system variant=release link=shared runtime-link=shared
+./b2 -d0 -q install variant=release link=shared runtime-link=shared
 cd "/usr/src/boost-${boost_ver}/tools/build"
 if [ ! -f ./b2 ]; then
   ./bootstrap.sh
@@ -334,8 +311,6 @@ cat >/tmp/qbee/AppDir/AppRun <<EOF
 
 this_dir="\$(readlink -f "\$(dirname "\$0")")"
 export XDG_DATA_DIRS="\${this_dir}/usr/share:\${XDG_DATA_DIRS}:/usr/share:/usr/local/share"
-export QT_QPA_PLATFORMTHEMES=gtk2
-export QT_STYLE_OVERRIDE=qt6gtk2
 
 # Find the system certificates location
 # https://gitlab.com/probono/platformissues/blob/master/README.md#certificates
