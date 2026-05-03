@@ -30,7 +30,7 @@ public:
 
 protected:
   db_connection()
-    : m_db(QSqlDatabase::addDatabase(u"QSQLITE"_qs))
+    : m_db(QSqlDatabase::addDatabase(u"QSQLITE"_s))
   {}
 
   ~db_connection()
@@ -52,7 +52,7 @@ public:
   {
     if (!db.tables().contains(table)) {
       db.exec(QString(
-                u"CREATE TABLE '%1' ("_qs
+                u"CREATE TABLE '%1' ("_s
                 u"    'id'      INTEGER PRIMARY KEY,"
                 u"    'ip'      TEXT NOT NULL UNIQUE,"
                 u"    'client'  TEXT NOT NULL,"
@@ -66,7 +66,7 @@ public:
   bool log_peer(const lt::peer_info& info, const std::string& tag = {})
   {
     QSqlQuery q(m_db);
-    q.prepare(QString(u"INSERT INTO '%1' (ip, client, pid, tag) VALUES (?, ?, ?, ?)"_qs).arg(m_table));
+    q.prepare(QString(u"INSERT INTO '%1' (ip, client, pid, tag) VALUES (?, ?, ?, ?)"_s).arg(m_table));
     q.addBindValue(QString::fromStdString(info.ip.address().to_string()));
     q.addBindValue(QString::fromStdString(info.client));
     q.addBindValue(QString::fromLatin1(info.pid.data(), 8));

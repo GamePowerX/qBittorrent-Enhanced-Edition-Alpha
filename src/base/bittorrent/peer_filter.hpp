@@ -36,7 +36,7 @@ public:
       QRegularExpression peer_id_re(QString::fromStdString(peer_id));
       QRegularExpression client_re(QString::fromStdString(client));
 
-      QString msg_tmpl(u"'%1': invalid %2 matching expression '%3' detected at line %4, ignoring rule"_qs);
+      QString msg_tmpl(u"'%1': invalid %2 matching expression '%3' detected at line %4, ignoring rule"_s);
       int line = m_filters.size() + 1;
 
       if (!peer_id_re.isValid())

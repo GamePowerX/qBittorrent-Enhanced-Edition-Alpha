@@ -2178,61 +2178,61 @@ void Preferences::setAddNewTorrentDialogAttached(const bool attached)
 
 bool Preferences::getAutoBanUnknownPeer() const
 {
-    return value(u"Preferences/Advanced/AutoBanUnknownPeer"_qs, false);
+    return value(u"Preferences/Advanced/AutoBanUnknownPeer"_s, false);
 }
 
 void Preferences::setAutoBanUnknownPeer(const bool checked)
 {
-    setValue(u"Preferences/Advanced/AutoBanUnknownPeer"_qs, checked);
+    setValue(u"Preferences/Advanced/AutoBanUnknownPeer"_s, checked);
 }
 
 bool Preferences::getAutoBanBTPlayerPeer() const
 {
-    return value(u"Preferences/Advanced/AutoBanBTPlayerPeer"_qs, false);
+    return value(u"Preferences/Advanced/AutoBanBTPlayerPeer"_s, false);
 }
 
 void Preferences::setAutoBanBTPlayerPeer(const bool checked)
 {
-    setValue(u"Preferences/Advanced/AutoBanBTPlayerPeer"_qs, checked);
+    setValue(u"Preferences/Advanced/AutoBanBTPlayerPeer"_s, checked);
 }
 
 bool Preferences::getAutoBanBadPeers() const
 {
-    return value(u"Preferences/Advanced/AutoBanBadPeers"_qs, true);
+    return value(u"Preferences/Advanced/AutoBanBadPeers"_s, true);
 }
 
 void Preferences::setAutoBanBadPeers(const bool checked)
 {
-    setValue(u"Preferences/Advanced/AutoBanBadPeers"_qs, checked);
+    setValue(u"Preferences/Advanced/AutoBanBadPeers"_s, checked);
 }
 
 bool Preferences::getAutoBanOfflineDownloaders() const
 {
-    return value(u"Preferences/Advanced/AutoBanOfflineDownloaders"_qs, true);
+    return value(u"Preferences/Advanced/AutoBanOfflineDownloaders"_s, true);
 }
 
 void Preferences::setAutoBanOfflineDownloaders(const bool checked)
 {
-    setValue(u"Preferences/Advanced/AutoBanOfflineDownloaders"_qs, checked);
+    setValue(u"Preferences/Advanced/AutoBanOfflineDownloaders"_s, checked);
 }
 
 bool Preferences::getEnablePeerListFilters() const
 {
-    return value(u"Preferences/Advanced/EnablePeerListFilters"_qs, true);
+    return value(u"Preferences/Advanced/EnablePeerListFilters"_s, true);
 }
 
 void Preferences::setEnablePeerListFilters(const bool enabled)
 {
-    setValue(u"Preferences/Advanced/EnablePeerListFilters"_qs, enabled);
+    setValue(u"Preferences/Advanced/EnablePeerListFilters"_s, enabled);
 }
 
 QString Preferences::customizeTrackersListUrl() const
 {
-    return value(u"Preferences/Bittorrent/CustomizeTrackersListUrl"_qs, QString(u"https://cdn.jsdelivr.net/gh/ngosang/trackerslist/trackers_best.txt"_qs));
+    return value(u"Preferences/Bittorrent/CustomizeTrackersListUrl"_s, QString(u"https://cdn.jsdelivr.net/gh/ngosang/trackerslist/trackers_best.txt"_s));
 }
 
 void Preferences::setCustomizeTrackersListUrl(const QString &trackersUrl) {
-    setValue(u"Preferences/Bittorrent/CustomizeTrackersListUrl"_qs, trackersUrl);
+    setValue(u"Preferences/Bittorrent/CustomizeTrackersListUrl"_s, trackersUrl);
 }
 
 void Preferences::apply()

@@ -17,17 +17,17 @@ std::unique_ptr<peer_filter> create_peer_filter(const QString& filename)
   QString filter_file = qbt_data_dir.absoluteFilePath(filename);
   // do not create plugin if filter file doesn't exists
   if (!QFile::exists(filter_file)) {
-    LogMsg(QString(u"'%1' doesn't exist. The corresponding filter is disabled."_qs).arg(filename), Log::NORMAL);
+    LogMsg(QString(u"'%1' doesn't exist. The corresponding filter is disabled."_s).arg(filename), Log::NORMAL);
 
     return nullptr;
   }
 
   auto filter = std::make_unique<peer_filter>(filter_file);
   if (filter->is_empty()) {
-    LogMsg(QString(u"'%1' has no valid rules. The corresponding filter is disabled."_qs).arg(filename), Log::WARNING);
+    LogMsg(QString(u"'%1' has no valid rules. The corresponding filter is disabled."_s).arg(filename), Log::WARNING);
     filter.reset();
   } else {
-    LogMsg(QString(u"'%1' contains %2 valid rules."_qs).arg(filename).arg(filter->rules_count()), Log::INFO);
+    LogMsg(QString(u"'%1' contains %2 valid rules."_s).arg(filename).arg(filter->rules_count()), Log::INFO);
   }
 
   return filter;

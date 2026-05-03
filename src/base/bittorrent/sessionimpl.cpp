@@ -1770,7 +1770,7 @@ void SessionImpl::initializeNativeSession()
         m_nativeSession->add_extension(&lt::create_ut_pex_plugin);
 
     // Enhanced features
-    db_connection::instance().init(QDir(specialFolderLocation(SpecialFolder::Data).toString()).absoluteFilePath(u"peers.db"_qs));
+    db_connection::instance().init(QDir(specialFolderLocation(SpecialFolder::Data).toString()).absoluteFilePath(u"peers.db"_s));
     if (Preferences::instance()->getAutoBanBadPeers())
         m_nativeSession->add_extension(&create_drop_bad_peers_plugin);
     if (Preferences::instance()->getAutoBanUnknownPeer())
