@@ -2,27 +2,29 @@ Section "un.$(remove_files)" ;"un.Remove files"
   SectionIn RO
 
 ; Remove files and uninstaller
-  Delete "$INSTDIR\qbittorrent.exe"
-  Delete "$INSTDIR\qbittorrent.pdb"
-  Delete "$INSTDIR\qt.conf"
-  Delete "$INSTDIR\uninst.exe"
+  Delete /REBOOTOK "$INSTDIR\qbittorrent.exe"
+  Delete /REBOOTOK "$INSTDIR\qbittorrent.pdb"
+  Delete /REBOOTOK "$INSTDIR\qt.conf"
+  Delete /REBOOTOK "$INSTDIR\uninst.exe"
+  Delete /REBOOTOK "$INSTDIR\*.*"
 
-  ; Remove directories used
-  RMDir /r "$INSTDIR\translations"
-  RMDir "$INSTDIR"
+  ; Remove all directories used by deployed runtime files
+  RMDir /r /REBOOTOK "$INSTDIR\plugins"
+  RMDir /r /REBOOTOK "$INSTDIR\translations"
+  RMDir /r /REBOOTOK "$INSTDIR"
 SectionEnd
 
 Section "un.$(remove_shortcuts)" ;"un.Remove shortcuts"
   SectionIn RO
 ; Remove shortcuts, if any
-  RMDir /r "$SMPROGRAMS\qBittorrent"
-  Delete "$DESKTOP\qBittorrent.lnk"
+  RMDir /r "$SMPROGRAMS\qBittorrent Enhanced Edition"
+  Delete "$DESKTOP\qBittorrent Enhanced Edition.lnk"
 SectionEnd
 
 Section "un.$(remove_registry)" ;"un.Remove registry keys"
   SectionIn RO
   ; Remove registry keys
-  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\qBittorrent"
+  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\qBittorrent Enhanced Edition"
   DeleteRegKey HKLM "Software\qBittorrent"
   ; Remove ProgIDs
   DeleteRegKey HKLM "Software\Classes\qBittorrent.File.Torrent"

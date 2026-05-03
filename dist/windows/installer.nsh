@@ -54,33 +54,33 @@ Section $(inst_qbt_req) ;"qBittorrent (required)"
   System::Call 'shell32::SHChangeNotify(i ${SHCNE_ASSOCCHANGED}, i ${SHCNF_IDLIST}, p 0, p 0)'
 
   ; Write the uninstall keys for Windows
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\qBittorrent" "DisplayName" "qBittorrent"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\qBittorrent" "UninstallString" '"$INSTDIR\uninst.exe"'
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\qBittorrent" "DisplayIcon" '"$INSTDIR\qbittorrent.exe",0'
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\qBittorrent" "Publisher" "The qBittorrent project"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\qBittorrent" "URLInfoAbout" "https://www.qbittorrent.org"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\qBittorrent" "DisplayVersion" "${QBT_VERSION}"
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\qBittorrent" "NoModify" 1
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\qBittorrent" "NoRepair" 1
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\qBittorrent Enhanced Edition" "DisplayName" "qBittorrent Enhanced Edition"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\qBittorrent Enhanced Edition" "UninstallString" '"$INSTDIR\uninst.exe"'
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\qBittorrent Enhanced Edition" "DisplayIcon" '"$INSTDIR\qbittorrent.exe",0'
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\qBittorrent Enhanced Edition" "Publisher" "GamePowerX"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\qBittorrent Enhanced Edition" "URLInfoAbout" "https://github.com/GamePowerX/qBittorrent-Enhanced-Edition-Alpha"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\qBittorrent Enhanced Edition" "DisplayVersion" "${QBT_VERSION}"
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\qBittorrent Enhanced Edition" "NoModify" 1
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\qBittorrent Enhanced Edition" "NoRepair" 1
   WriteUninstaller "uninst.exe"
   ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
   IntFmt $0 "0x%08X" $0
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\qBittorrent" "EstimatedSize" "$0"
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\qBittorrent Enhanced Edition" "EstimatedSize" "$0"
 
 SectionEnd
 
 ; Optional section (can be disabled by the user)
 Section /o $(inst_desktop) ;"Create Desktop Shortcut"
 
-  CreateShortCut "$DESKTOP\qBittorrent.lnk" "$INSTDIR\qbittorrent.exe"
+  CreateShortCut "$DESKTOP\qBittorrent Enhanced Edition.lnk" "$INSTDIR\qbittorrent.exe"
 
 SectionEnd
 
 Section $(inst_startmenu) ;"Create Start Menu Shortcut"
 
-  CreateDirectory "$SMPROGRAMS\qBittorrent"
-  CreateShortCut "$SMPROGRAMS\qBittorrent\qBittorrent.lnk" "$INSTDIR\qbittorrent.exe"
-  CreateShortCut "$SMPROGRAMS\qBittorrent\$(inst_uninstall_link_description).lnk" "$INSTDIR\uninst.exe"
+  CreateDirectory "$SMPROGRAMS\qBittorrent Enhanced Edition"
+  CreateShortCut "$SMPROGRAMS\qBittorrent Enhanced Edition\qBittorrent Enhanced Edition.lnk" "$INSTDIR\qbittorrent.exe"
+  CreateShortCut "$SMPROGRAMS\qBittorrent Enhanced Edition\$(inst_uninstall_link_description).lnk" "$INSTDIR\uninst.exe"
 
 SectionEnd
 

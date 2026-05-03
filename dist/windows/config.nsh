@@ -18,7 +18,7 @@
 
 ; Option that controls the installer's window name
 ; If set, its value will be used like this:
-; "qBittorrent ${QBT_INSTALLER_FILENAME}"
+; "qBittorrent Enhanced Edition ${QBT_INSTALLER_FILENAME}"
 ; If not set, the window name will be auto composed from QBT_VERSION
 ; If you set this define then you MUST set QBT_INSTALLER_FILENAME too. Otherwise it will be ignored.
 ; This define is meant to ease automation from scripts/commandline
@@ -82,16 +82,16 @@ SetCompressorDictSize 64
 !define MUI_FINISHPAGE_RUN_TEXT $(launch_qbt)
 
 ; The name of the installer
-Name "qBittorrent ${QBT_INSTALLER_WINDOWNAME}"
+Name "qBittorrent Enhanced Edition ${QBT_INSTALLER_WINDOWNAME}"
 
 ; The file to write
-OutFile "qbittorrent_${QBT_INSTALLER_FILENAME}_setup.exe"
+OutFile "qbittorrent_enhanced_edition_${QBT_INSTALLER_FILENAME}_setup.exe"
 
 ;Installer Version Information
-VIAddVersionKey "ProductName" "qBittorrent"
+VIAddVersionKey "ProductName" "qBittorrent Enhanced Edition"
 VIAddVersionKey "CompanyName" "The qBittorrent project"
 VIAddVersionKey "LegalCopyright" "Copyright ©2006-2026 The qBittorrent project"
-VIAddVersionKey "FileDescription" "qBittorrent - A Bittorrent Client"
+VIAddVersionKey "FileDescription" "qBittorrent Enhanced Edition - A Bittorrent Client"
 VIAddVersionKey "FileVersion" "${QBT_VERSION}"
 
 ; VIProductVersion needs a 4 part version.
@@ -100,11 +100,11 @@ ${VersionCompleteXXXX} ${QBT_VERSION} VERSION_4_PART
 VIProductVersion "${VERSION_4_PART}"
 
 ; The default installation directory.
-InstallDir $PROGRAMFILES64\qBittorrent
+InstallDir "$PROGRAMFILES64\qBittorrent Enhanced Edition"
 
 ; Registry key to check for directory (so if you install again, it will
 ; overwrite the old one automatically)
-InstallDirRegKey HKLM Software\qbittorrent InstallLocation
+InstallDirRegKey HKLM "Software\qBittorrent Enhanced Edition" InstallLocation
 
 ; Request application privileges for Windows Vista
 RequestExecutionLevel user
@@ -122,7 +122,7 @@ RequestExecutionLevel user
 ;--------------------------------
 ;Remember the uninstaller/installer language
 !define MUI_LANGDLL_REGISTRY_ROOT "HKLM"
-!define MUI_LANGDLL_REGISTRY_KEY "Software\qbittorrent"
+!define MUI_LANGDLL_REGISTRY_KEY "Software\qBittorrent Enhanced Edition"
 !define MUI_LANGDLL_REGISTRY_VALUENAME "Installer Language"
 
 ;--------------------------------
