@@ -1,44 +1,35 @@
-qBittorrent - A BitTorrent client in Qt
+qBittorrent Enhanced Edition Alpha
 ------------------------------------------
 
-[![GitHub Actions CI Status](https://github.com/qbittorrent/qBittorrent/actions/workflows/ci_ubuntu.yaml/badge.svg)](https://github.com/qbittorrent/qBittorrent/actions)
-[![Coverity Status](https://scan.coverity.com/projects/5494/badge.svg)](https://scan.coverity.com/projects/5494)
-********************************
-### Description:
-qBittorrent is a bittorrent client programmed in C++ / Qt that uses
-libtorrent (sometimes called libtorrent-rasterbar) by Arvid Norberg.
+This repository contains an alpha fork of qBittorrent with Enhanced Edition behavior and packaging updates.
 
-It aims to be a good alternative to all other bittorrent clients
-out there. qBittorrent is fast, stable and provides unicode
-support as well as many features.
+### What this repo is
+- A maintained fork based on upstream qBittorrent (C++/Qt + libtorrent)
+- An alpha release channel for testing Enhanced Edition builds
+- A source tree that produces branded Enhanced Edition installers/artifacts
 
-The free [IP to Country Lite database](https://db-ip.com/db/download/ip-to-country-lite) by [DB-IP](https://db-ip.com/) is used for resolving the countries of peers. The database is licensed under the [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/).
+### Key differences from upstream
+- Application/window branding uses **qBittorrent Enhanced Edition**
+- Enhanced peer-filter and anti-leech options are exposed in UI/WebUI
+- Windows installer/uninstaller branding and shortcut names are fork-specific
+- Linux AppImage workflow is modernized for current build environments
 
-### Installation:
+### Release artifacts
+Releases in this fork are published as alpha tags and include:
+- Windows installer (`qbittorrent_enhanced_edition_*_setup.exe`)
+- Linux AppImage (`qBittorrent-Enhanced-Edition-x86_64.AppImage`)
 
-Refer to the [INSTALL](INSTALL) file.
+### Versioning
+Fork releases use an upstream-based version plus fork suffix, for example:
+- `release-5.3.0-ee.1-alpha`
 
-### Public key:
-Starting from v3.3.4 all source tarballs and binaries are signed.<br />
-The key currently used is 4096R/[5B7CC9A2](https://pgp.mit.edu/pks/lookup?op=get&search=0x6E4A2D025B7CC9A2) with fingerprint `D8F3DA77AAC6741053599C136E4A2D025B7CC9A2`.<br />
-You can also download it from [here](https://github.com/qbittorrent/qBittorrent/raw/master/5B7CC9A2.asc).<br />
-**PREVIOUSLY** the following key was used to sign the v3.3.4 source tarballs and v3.3.4 Windows installer **only**: 4096R/[520EC6F6](https://pgp.mit.edu/pks/lookup?op=get&search=0xA1ACCAE4520EC6F6) with fingerprint `F4A5FD201B117B1C2AB590E2A1ACCAE4520EC6F6`.<br />
+### Build and install
+- Build instructions: [INSTALL](INSTALL)
 
-### Misc:
-For more information please visit:
-https://www.qbittorrent.org
+### Upstream and credits
+- Upstream repository: https://github.com/qbittorrent/qBittorrent
+- Enhanced Edition reference project: https://github.com/c0re100/qBittorrent-Enhanced-Edition
 
-or our wiki here:
-https://wiki.qbittorrent.org
-
-Use the forum for troubleshooting before reporting bugs:
-https://forum.qbittorrent.org
-
-Please report any bug (or feature request) to:
-https://bugs.qbittorrent.org
-
-Official IRC channel:
-[#qbittorrent on irc.libera.chat](ircs://irc.libera.chat:6697/qbittorrent)
-
-------------------------------------------
-sledgehammer999 \<sledgehammer999@qbittorrent.org\>
+This fork is based on qBittorrent. For upstream documentation and project details, see:
+- https://www.qbittorrent.org
+- https://wiki.qbittorrent.org
