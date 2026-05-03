@@ -51,7 +51,8 @@ public:
     , m_table(table)
   {
     if (!db.tables().contains(table)) {
-      db.exec(QString(
+      QSqlQuery q(db);
+      q.exec(QString(
                 u"CREATE TABLE '%1' ("_s
                 u"    'id'      INTEGER PRIMARY KEY,"
                 u"    'ip'      TEXT NOT NULL UNIQUE,"
